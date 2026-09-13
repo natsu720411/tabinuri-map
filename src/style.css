@@ -574,7 +574,10 @@
     letter-spacing: 0.02em;
   }
   main {
-    width: calc(100% - 32px);
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+    padding-inline: 12px;
   }
   .intro {
     padding: 30px 0;
@@ -804,10 +807,27 @@
 @media (max-width:600px) { .year-table-page .memories-header { align-items:stretch; flex-direction:column; gap:12px; } .year-item { grid-template-columns:64px 1fr; gap:10px; } .year-item > img { grid-column:2; width:100%; height:140px; } }
 
 @media (max-width: 600px) {
-  body, #root {
+  html, body, #root {
     width: 100%;
     min-width: 0;
     max-width: 100%;
+    box-sizing: border-box;
+  }
+  .site-header, .site-footer {
+    padding-inline: 12px;
+  }
+  .site-header, .memories-header, .progress-heading, .map-heading, .memory-card-top {
+    flex-wrap: wrap;
+  }
+  .memories-header, .memory-card-top {
+    gap: 8px;
+  }
+  main > *, .memory-controls > *, .panel-heading > div {
+    min-width: 0;
+    max-width: 100%;
+  }
+  .legend {
+    flex-shrink: 0;
   }
   .view-tabs {
     display: grid;
