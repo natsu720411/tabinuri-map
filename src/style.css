@@ -849,3 +849,9 @@
     min-width: 0;
   }
 }
+
+@media (max-width: 412px) {
+  main, .site-header, .site-footer {
+    padding-inline: 8px;
+  }
+}
