@@ -802,3 +802,30 @@
 .year-item h3 { margin:0; font-size:16px; }
 .year-item > img { width:100px; height:76px; border-radius:8px; object-fit:cover; }
 @media (max-width:600px) { .year-table-page .memories-header { align-items:stretch; flex-direction:column; gap:12px; } .year-item { grid-template-columns:64px 1fr; gap:10px; } .year-item > img { grid-column:2; width:100%; height:140px; } }
+
+@media (max-width: 600px) {
+  body, #root {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
+  .view-tabs {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    overflow: visible;
+  }
+  .view-tabs button {
+    min-width: 0;
+    padding-inline: 6px;
+  }
+  .memory-card {
+    grid-template-columns: 120px minmax(0, 1fr);
+  }
+  .memory-card-body, .timeline-content, .year-item-content {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  .memory-dialog fieldset {
+    min-width: 0;
+  }
+}
