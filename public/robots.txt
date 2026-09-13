@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://tabinuri-map.vercel.app/sitemap.xml
