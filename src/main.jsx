@@ -1,3 +1,4 @@
+import { getTravelAchievement } from "./achievement.js";
 import ShareTravel from "./ShareTravel.jsx";
 import React, { useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
@@ -351,7 +352,8 @@ function App() {
   const visited = prefectures.filter(({ id }) => visits.records[id]?.visited).map(({ id }) => id);
   const count = visited.length;
   const wantToVisitIds = prefectures.filter(({ id }) => visits.records[id]?.wantToVisit && !visits.records[id]?.visited).map(({ id }) => id);
-  const percent = Math.round((count / prefectures.length) * 100);
+  const { percent, title: travelTitle } = getTravelAchievement(count);
+  const completedRegions = REGIONS.filter(([, ids]) => ids.every(id => visited.includes(id)));
 
   function saveMemory(id, draft) {
     if (visits.error) return visits.error;
@@ -417,10 +419,14 @@ function App() {
     <progress
       value={count}
       max={prefectures.length}
-      aria-label={`47都道府県中${count}県訪問`}
+      aria-label={`全国の達成率 ${percent}%（47都道府県中${count}県訪問）`}
     />
-    <span>{percent}%</span>
+    <span className="achievement-percent">達成率 {percent}%</span>
   </div>
+  <p className="travel-title"><span>現在の称号</span><strong>{travelTitle}</strong></p>
+  {completedRegions.length > 0 && <ul className="region-badges" aria-label="制覇した地方">
+    {completedRegions.map(([name]) => <li key={name}>{name}{name === "北海道" ? "" : "地方"} 制覇</li>)}
+  </ul>}
   <div className="region-progress" aria-label="地方別の進捗">
     {REGIONS.map(([name, ids]) => { const done = ids.filter(id => visited.includes(id)).length; const complete = done === ids.length; return <div className={`region-item${complete ? " complete" : ""}`} key={name}><div className="region-label"><span>{name}</span><strong>{complete ? "達成" : `${done} / ${ids.length}`}</strong></div><progress value={done} max={ids.length} aria-label={`${name}${done} / ${ids.length}`} /></div>; })}
   </div>

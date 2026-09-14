@@ -928,3 +928,10 @@
 .share-image-dialog button { padding: 10px 16px; border: 1px solid #c9d6c5; border-radius: 10px; font: inherit; cursor: pointer; }
 .travel-share button:focus-visible, .travel-share a:focus-visible, .share-image-dialog button:focus-visible, .share-image-dialog a:focus-visible { outline: 3px solid #217453; outline-offset: 3px; }
 @media (max-width: 600px) { .travel-share { padding: 20px 18px; border-radius: 17px; } .share-image-dialog .share-actions > * { flex: 1 1 140px; text-align: center; } }
+.travel-title { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 16px; margin: 20px 0 12px; color: #427859; line-height: 1.6; }
+.travel-title span { font-size: 13px; }
+.travel-title strong { font-size: 20px; overflow-wrap: anywhere; }
+.region-badges { display: flex; flex-wrap: wrap; gap: 8px; padding: 0; margin: 12px 0; list-style: none; }
+.region-badges li { padding: 7px 12px; border: 1px solid #d6dfc9; border-radius: 12px; background: #f1f6ef; color: #427859; font-size: 13px; }
+.progress-bottom .achievement-percent { white-space: nowrap; font-size: 14px; }
+@media (max-width: 600px) { .travel-title { flex-direction: column; gap: 4px; } .travel-title strong { font-size: 18px; } }

@@ -1,3 +1,4 @@
+import { getTravelAchievement } from "./achievement.js";
 import { getShareTopThree } from "./shareRanking.js";
 import React, { useEffect, useRef, useState } from "react";
 import prefectures from "./prefectures.json";
@@ -20,6 +21,9 @@ export async function createTravelImage(visited, photo = null, topThree = []) {
   ctx.fillText(count === 47 ? "47都道府県制覇！" : `全国制覇まであと${47-count}県`, 64, 285);
   ctx.font = '22px system-ui, sans-serif';
   ctx.fillText(count === 0 ? "これから日本全国を旅しよう" : "旅の思い出を、日本地図に。", 64, 350);
+  const { percent, title } = getTravelAchievement(count);
+  ctx.font = "18px system-ui, sans-serif";
+  ctx.fillText(`達成率 ${percent}%｜${title}`, 64, 380, 410);
   ctx.fillStyle = "#edf0e9"; ctx.fillRect(64, 395, 410, 12);
   ctx.fillStyle = "#638e71"; ctx.fillRect(64, 395, 410 * count / 47, 12);
   ctx.font = '20px system-ui, sans-serif'; ctx.fillText("tabinuri-map.vercel.app", 64, 550);
