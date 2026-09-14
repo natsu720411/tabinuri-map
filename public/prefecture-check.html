@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f8f9f5" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="apple-touch-icon" href="/favicon.png" />
+    <meta
+      name="description"
+      content="行った都道府県を日本地図でチェックし、訪問日・写真・旅行の思い出まで無料で記録できる「旅図帳」。47都道府県の訪問状況や行きたい県もまとめて管理できます。スマホ・PC対応、インストール不要です。"
+    />
+    <title>行った都道府県をチェック・記録する無料ツール｜旅図帳</title>
+    <link rel="canonical" href="https://tabinuri-map.vercel.app/prefecture-check.html" />
+    <meta property="og:title" content="行った都道府県をチェック・記録する無料ツール｜旅図帳" />
+    <meta property="og:description" content="行った都道府県を日本地図でチェックし、訪問日・写真・旅行の思い出まで無料で記録できる「旅図帳」。47都道府県の訪問状況や行きたい県もまとめて管理できます。スマホ・PC対応、インストール不要です。" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://tabinuri-map.vercel.app/prefecture-check.html" />
+    <!-- 共有画像は public/og-image.png に配置・差し替えできます。 -->
+    <meta property="og:image" content="https://tabinuri-map.vercel.app/og-image.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="行った都道府県をチェック・記録する無料ツール｜旅図帳" />
+    <meta name="twitter:description" content="行った都道府県を日本地図でチェックし、訪問日・写真・旅行の思い出まで無料で記録できる「旅図帳」。47都道府県の訪問状況や行きたい県もまとめて管理できます。スマホ・PC対応、インストール不要です。" />
+    <meta name="twitter:image" content="https://tabinuri-map.vercel.app/og-image.png" />
+  
+    <style>
+      * { box-sizing: border-box; }
+      body { margin: 0; background: #f8f9f5; color: #293f36; font-family: "Noto Sans JP", system-ui, sans-serif; line-height: 1.9; }
+      a { color: #427859; text-underline-offset: 4px; overflow-wrap: anywhere; }
+      a:focus-visible { outline: 3px solid #217453; outline-offset: 4px; }
+      header, main, footer { width: min(100%, 800px); margin: auto; padding: 24px 16px; }
+      .brand { font-size: 24px; font-weight: 800; text-decoration: none; }
+      article { padding: 32px; background: #fff; border: 1px solid #e2e8df; border-radius: 20px; overflow-wrap: anywhere; }
+      .kicker { color: #65766b; font-size: 12px; letter-spacing: .12em; }
+      h1 { margin: 8px 0 24px; font-size: clamp(23px, 5vw, 30px); line-height: 1.5; }
+      h2 { margin: 32px 0 12px; color: #427859; font-size: 19px; line-height: 1.6; }
+      p { margin: 12px 0; }
+      footer nav { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-bottom: 16px; }
+      footer nav a { display: inline-flex; align-items: center; min-height: 44px; }
+      footer { color: #65766b; font-size: 14px; }
+      @media (max-width: 600px) { header, main, footer { padding: 20px 12px; } article { padding: 24px 18px; } }
+      .cta { display: inline-flex; justify-content: center; align-items: center; min-height: 48px; padding: 12px 24px; border-radius: 12px; background: #527f61; color: #fff; font-weight: 700; text-decoration: none; max-width: 100%; }
+      .cta:hover { background: #427859; }
+      ul, ol { padding-left: 24px; }
+      li { margin: 10px 0; }
+      h3 { margin: 24px 0 8px; font-size: 17px; color: #427859; }
+    </style>
+  </head>
+  <body>
+    <header><a class="brand" href="/">旅図帳<span aria-hidden="true">.</span></a></header>
+    <main>
+      <article aria-labelledby="check-title">
+        <p class="kicker">PREFECTURE CHECK</p>
+        <h1 id="check-title">行った都道府県をチェック・記録できる無料ツール</h1>
+        <p>「この県には行ったことがあるけれど、いつだったかな」。そんな記憶を整理したいときに、旅図帳を使ってみてください。行った都道府県のチェックと、その場所での体験を一緒に残せる無料のツールです。紙のメモや写真を手がかりに、これまでの訪問先をまとめられます。</p>
+        <section>
+          <h2>行った都道府県をチェックリストのように整理</h2>
+          <p>旅図帳では、日本地図から都道府県を選んで訪問済みにすると、保存後に地図の色が変わります。47都道府県の訪問状況を見比べられるので、頭の中だけで数えるよりも、行った場所と未訪問の場所を整理しやすくなります。</p>
+          <p>都道府県のチェックリストを作るつもりで、まずは確かに覚えている県から登録しましょう。通過しただけの県を含めるか、観光した県だけにするかは、自分なりの基準を決めておくと後で見返しやすくなります。</p>
+        </section>
+        <section>
+          <h2>旅行の思い出も一緒に記録</h2>
+          <p>行った県の記録に訪問日を添えると、どの季節に出かけたのかを振り返れます。写真も保存できるので、文章にしにくい景色や街の雰囲気も残せます。長い旅行記を書く時間がなくても、印象に残った出来事を一言添えるだけで、自分にとっての記録になります。</p>
+          <p>昔の旅行を整理するときは、手元の写真を見ながら思い出せる内容を入力してみてください。日付が分からない場合も、訪問済みのチェックから旅行記録を始められます。</p>
+        </section>
+        <section>
+          <h2>行きたい県も保存しておく</h2>
+          <p>まだ訪れていない県は「行きたい」として記録できます。気になっている温泉や見たい祭りなど、候補を思いついたときにメモしておけば、旅行先を相談するときにも便利です。過去の訪問先を確かめるだけでなく、次に出かけたい場所を考えるためにも使えます。</p>
+        </section>
+        <section>
+          <h2>こんな人におすすめ</h2>
+          <ul>
+            <li>家族旅行や出張で訪ねた県を、忘れないうちに整理したい人</li>
+            <li>全国を巡る目標に向けて、未訪問の県を確認したい人</li>
+            <li>日記を毎日書くより、旅先ごとに写真や短いメモを残したい人</li>
+          </ul>
+        </section>
+        <section>
+          <h2>使い方は簡単。ブラウザから始められます</h2>
+          <p>トップページで県を選び、詳細パネルの「訪問済み」をチェックします。必要に応じて訪問日や思い出を入力し、「保存する」を押してください。スマホでもPCでも利用でき、インストールや会員登録は不要です。</p>
+          <p>旅行記録と写真は使っているブラウザ内に保存されます。端末間の自動同期はなく、サイトデータの削除で消える場合があります。続けて記録する際は同じブラウザを使い、大切な写真は元のファイルも保管してください。</p>
+        </section>
+        <p><a class="cta" href="/">旅図帳を使ってみる</a></p>
+        <p><a href="/how-to-use.html">使い方を見る</a></p>
+        <p><a href="/japan-map.html">日本地図で塗りつぶすページを見る</a></p>
+      </article>
+    </main>
+    <footer><nav aria-label="サイト情報"><a href="/privacy.html">プライバシーポリシー</a><a href="/contact.html">お問い合わせ</a><a href="/about.html">運営者情報</a></nav><a href="/">旅図帳の地図に戻る</a></footer>
+  </body>
+</html>
