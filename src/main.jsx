@@ -521,6 +521,7 @@ function App() {
   タビヌリ<span>.</span>
 </span>
 <span>旅の思い出を、日本地図に。</span>
+<a href="/privacy.html">プライバシーポリシー</a>
 <small>
   地図：
   <a href="https://www.gsi.go.jp/kankyochiri/gm_jpn.html">
