@@ -891,3 +891,10 @@
 .share-status { margin: 8px 0 0; font-size: 13px; overflow-wrap: anywhere; }
 .share-status:empty { display: none; }
 .travel-share .share-alternative { margin-top: 8px; background: #f1f6ef; color: #427859; width: 100%; }
+
+.share-image-dialog { width: min(900px, calc(100% - 24px)); max-width: calc(100% - 24px); max-height: 90dvh; padding: 20px; border: 1px solid #d4dfd0; border-radius: 18px; background: #f8f9f5; color: #293f36; overflow-y: auto; }
+.share-image-dialog::backdrop { background: #20362966; }
+.share-image-dialog h2 { font-size: 20px; margin: 0 0 16px; }
+.share-image-dialog img { display: block; width: 100%; height: auto; border-radius: 10px; }
+.share-image-dialog p { font-size: 13px; overflow-wrap: anywhere; }
+@media (max-width: 600px) { .share-image-dialog { padding: 14px; } }

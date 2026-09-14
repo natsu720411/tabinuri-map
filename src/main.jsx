@@ -424,7 +424,7 @@ function App() {
   <div className="region-progress" aria-label="地方別の進捗">
     {REGIONS.map(([name, ids]) => { const done = ids.filter(id => visited.includes(id)).length; const complete = done === ids.length; return <div className={`region-item${complete ? " complete" : ""}`} key={name}><div className="region-label"><span>{name}</span><strong>{complete ? "達成" : `${done} / ${ids.length}`}</strong></div><progress value={done} max={ids.length} aria-label={`${name}${done} / ${ids.length}`} /></div>; })}
   </div>
-  <ShareTravel count={count} total={prefectures.length} />
+  <ShareTravel count={count} total={prefectures.length} visited={visited} />
 </section>
 <p className="sr-only" role="status">
   {visits.announcement ?? ""}
