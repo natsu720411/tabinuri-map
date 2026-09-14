@@ -299,6 +299,11 @@
   pointer-events: all;
   touch-action: manipulation;
   }
+  /* Small Okinawa islands lose their fill under the shared white border. */
+  #prefecture-47 {
+    stroke: #8b9e83;
+    stroke-width: 0.6;
+  }
   .inset-line,
   .map-label,
   .map-caption {
