@@ -878,3 +878,16 @@
   .home-guide h2 { font-size: 20px; }
   .home-guide h3 { font-size: 16px; }
 }
+
+.travel-share { margin-top: 20px; }
+.travel-share button, .share-actions a { min-height: 48px; padding: 10px 16px; border: 1px solid #c9d6c5; border-radius: 10px; font: inherit; font-size: 14px; cursor: pointer; }
+.travel-share .share-primary { width: 100%; background: #527f61; color: white; font-weight: 600; }
+.travel-share button:disabled { opacity: .6; cursor: wait; }
+.share-options { margin-top: 12px; padding: 14px; border-radius: 12px; background: #f1f6ef; min-width: 0; }
+.share-options label { display: block; font-size: 13px; margin-bottom: 8px; }
+.share-options textarea { display: block; width: 100%; min-width: 0; max-width: 100%; padding: 10px; border: 1px solid #c9d6c5; border-radius: 8px; font: inherit; font-size: 16px; color: #293f36; background: white; resize: vertical; }
+.share-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.share-actions a, .share-actions button { display: inline-flex; align-items: center; justify-content: center; background: white; color: #427859; text-decoration: none; }
+.share-status { margin: 8px 0 0; font-size: 13px; overflow-wrap: anywhere; }
+.share-status:empty { display: none; }
+.travel-share .share-alternative { margin-top: 8px; background: #f1f6ef; color: #427859; width: 100%; }
