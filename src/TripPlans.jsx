@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import prefectures from "./prefectures.json";
 import { loadPlans, newId, newPlan, persistPlans, todayLocal, TRIP_PLANS_KEY } from "./tripPlans.js";
 import "./tripPlans.css";
+import TripAI from "./TripAI.jsx";
 
 const notes = [["places", "行きたい場所"], ["foods", "食べたいもの"], ["activities", "やりたいこと"], ["accommodation", "宿泊先メモ"], ["transport", "移動メモ"], ["notes", "その他メモ"]];
 
@@ -12,6 +13,12 @@ export default function TripPlans() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [conflict, setConflict] = useState(false);
+  const [aiOpen, setAiOpen] = useState(false);
+  const [saveFeedback, setSaveFeedback] = useState(false);
+  const feedbackTimer = useRef(null);
+  useEffect(() => () => clearTimeout(feedbackTimer.current), []);
+  function clearFeedback() { clearTimeout(feedbackTimer.current); setSaveFeedback(false); }
+  function showSaved() { clearTimeout(feedbackTimer.current); setSaveFeedback(true); feedbackTimer.current = setTimeout(() => setSaveFeedback(false), 2800); }
   const heading = useRef(null);
   const form = useRef(null);
   const editing = Boolean(draft);
@@ -26,8 +33,8 @@ export default function TripPlans() {
     return () => { window.removeEventListener("beforeunload", warn); window.removeEventListener("storage", changed); window.removeEventListener("trip-plan-leave", leave); };
   }, [dirty]);
   const blocked = Boolean(store.error || conflict);
-  function edit(plan) { setDraft(structuredClone(plan)); setDirty(false); setMessage(""); setError(""); }
-  function update(key, value) { setDraft(previous => ({ ...previous, [key]: value })); setDirty(true); }
+  function edit(plan) { clearFeedback(); setDraft(structuredClone(plan)); setDirty(false); setMessage(""); setError(""); }
+  function update(key, value) { clearFeedback(); setDraft(previous => ({ ...previous, [key]: value })); setDirty(true); }
   function updateDay(id, transform) { update("days", draft.days.map(day => day.id === id ? transform(day) : day)); }
   function updateItem(dayId, itemId, key, value) { updateDay(dayId, day => ({ ...day, items: day.items.map(item => item.id === itemId ? { ...item, [key]: value } : item) })); }
   function move(dayId, index, offset) {
@@ -39,6 +46,7 @@ export default function TripPlans() {
     catch { setError("保存できませんでした。空き容量やブラウザの保存設定をご確認ください。入力内容はこの画面に残っています。"); return false; }
   }
   function save(completed = false) {
+    clearFeedback();
     if (!form.current.reportValidity() || blocked) return;
     if (!draft.title.trim()) { setError("旅行タイトルを入力してください。"); return; }
     if (draft.startDate && draft.endDate && draft.endDate < draft.startDate) { setError("帰宅日は出発日以降にしてください。"); return; }
@@ -47,14 +55,15 @@ export default function TripPlans() {
     if (completed && (!draft.endDate || draft.endDate > todayLocal())) return;
     const saved = { ...draft, title: draft.title.trim(), status: completed ? "completed" : draft.status, updatedAt: new Date().toISOString() };
     const plans = store.plans.some(plan => plan.id === saved.id) ? store.plans.map(plan => plan.id === saved.id ? saved : plan) : [...store.plans, saved];
-    if (commit(plans, completed ? "旅行済みにしました。地図・思い出への転記はまだ行いません。" : "旅行計画を保存しました。")) { setDraft(saved); setDirty(false); }
+    if (commit(plans, completed ? "旅行済みにしました。地図・思い出への転記はまだ行いません。" : "")) { setDraft(saved); setDirty(false); showSaved(); }
   }
-  function close() { if (dirty && !window.confirm("未保存の変更を破棄して一覧に戻りますか？")) return; setDraft(null); setDirty(false); setError(""); }
+  function close() { if (dirty && !window.confirm("未保存の変更を破棄して一覧に戻りますか？")) return; clearFeedback(); setDraft(null); setDirty(false); setError(""); }
   function removePlan() {
     if (!window.confirm(`「${draft.title || "この旅行"}」を削除しますか？`)) return;
     if (commit(store.plans.filter(plan => plan.id !== draft.id), "旅行計画を削除しました。")) { setDraft(null); setDirty(false); }
   }
   return <section className="trip-plans" aria-labelledby="trip-plans-title">
+    <div className={saveFeedback ? "trip-toast" : "sr-only"} role="status" aria-live="polite" aria-atomic="true">{saveFeedback ? "✓ 旅の計画を保存しました" : ""}</div>
     <div className="trip-heading"><div><p className="section-kicker">PLAN YOUR NEXT TRIP</p><h1 id="trip-plans-title" ref={heading} tabIndex={-1}>{draft ? "旅の計画を編集" : "旅の計画"}</h1></div>
       {draft ? <button type="button" onClick={close}>一覧に戻る</button> : <button type="button" className="trip-primary" disabled={blocked} onClick={() => edit(newPlan())}>新しい旅行を計画する</button>}
     </div>
@@ -82,6 +91,8 @@ export default function TripPlans() {
           {notes.map(([key, label]) => <label key={key}>{label}<textarea rows={3} value={draft[key]} onChange={event => update(key, event.target.value)} /></label>)}
         </div>
         <section className="trip-schedule" aria-labelledby="trip-schedule-title"><h2 id="trip-schedule-title">日ごとのスケジュール</h2><p>日付は未定でも作れます。予定は矢印で並び替えられます。</p>
+          <button type="button" aria-haspopup="dialog" onClick={() => setAiOpen(true)}>✨ AIで旅程を作る</button>
+          <p className="trip-storage-note">AI作成には行き先・出発日・帰宅日が必要です。生成結果を確認してから反映できます。</p>
           {draft.days.map((day, dayIndex) => <section key={day.id} className="trip-day" aria-labelledby={`day-${day.id}`}>
             <div className="trip-day-heading"><h3 id={`day-${day.id}`}>{dayIndex + 1}日目</h3><button type="button" onClick={() => { if (window.confirm(`${dayIndex + 1}日目の予定をすべて削除しますか？`)) update("days", draft.days.filter(value => value.id !== day.id)); }}>この日を削除</button></div>
             <label>{dayIndex + 1}日目の日付<input type="date" min={draft.startDate || undefined} max={draft.endDate || undefined} value={day.date} onChange={event => updateDay(day.id, value => ({ ...value, date: event.target.value }))} /></label>
@@ -94,12 +105,15 @@ export default function TripPlans() {
           </section>)}
           <button type="button" onClick={() => update("days", [...draft.days, { id: newId(), date: "", items: [] }])}>日を追加</button>
         </section>
-        <div className="trip-save"><button className="trip-primary" type="submit">計画を保存</button><span>{dirty ? "未保存の変更があります" : ""}</span></div>
+        <div className="trip-save"><button className="trip-primary" type="submit">{saveFeedback ? "✓ 保存しました" : "計画を保存"}</button><span>{dirty ? "未保存の変更があります" : ""}</span>
+          {store.plans.find(plan => plan.id === draft.id)?.updatedAt && <small>最終保存：<time dateTime={store.plans.find(plan => plan.id === draft.id).updatedAt}>{new Date(store.plans.find(plan => plan.id === draft.id).updatedAt).toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" })}</time></small>}
+        </div>
         <section className="trip-finish"><h2>旅が終わったら</h2><p>今回は「旅行済み」への変更まで対応しています。訪問済みの県や写真・思い出には自動転記されません。</p>
           {draft.status === "completed" ? <p>この旅行は旅行済みです。</p> : <><button type="button" disabled={!draft.endDate || draft.endDate > todayLocal()} onClick={() => save(true)}>この旅行を旅図帳に保存</button><p>帰宅日を設定すると、その日以降に利用できます。入力中の計画も一緒に保存します。</p></>}
         </section>
         {store.plans.some(plan => plan.id === draft.id) && <button className="trip-delete" type="button" onClick={removePlan}>旅行計画を削除</button>}
       </fieldset>
     </form>}
+    {aiOpen && draft && <TripAI plan={draft} blocked={blocked} onClose={() => setAiOpen(false)} onApply={days => { if (blocked) return; update("days", days); setAiOpen(false); setMessage("AI旅程を反映しました。内容を確認して「計画を保存」を押してください。"); }} />}
   </section>;
 }
