@@ -918,3 +918,13 @@
 #map-heading { scroll-margin-top: 24px; }
 @media (max-width: 900px) { .home-feature-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .home-steps { grid-template-columns: 1fr; } }
 @media (max-width: 600px) { .home-feature-grid { grid-template-columns: 1fr; } .home-guide-actions { align-items: stretch; flex-direction: column; } .home-guide-actions .home-map-cta { width: 100%; } }
+/* Map sharing entry point */
+.travel-share { margin: 24px 0; padding: 24px; border: 1px solid #d8e2d3; border-radius: 20px; background: #f1f6ef; color: #293f36; }
+.travel-share h2 { margin: 0 0 10px; font-size: 20px; line-height: 1.5; }
+.travel-share > p { font-size: 14px; line-height: 1.8; overflow-wrap: anywhere; }
+.travel-share .share-image-primary { width: 100%; background: #527f61; color: #fff; font-weight: 700; }
+.travel-share .share-primary { margin-top: 12px; background: #fff; color: #427859; }
+.travel-share button, .share-image-dialog button, .share-image-dialog a { max-width: 100%; min-height: 48px; white-space: normal; overflow-wrap: anywhere; }
+.share-image-dialog button { padding: 10px 16px; border: 1px solid #c9d6c5; border-radius: 10px; font: inherit; cursor: pointer; }
+.travel-share button:focus-visible, .travel-share a:focus-visible, .share-image-dialog button:focus-visible, .share-image-dialog a:focus-visible { outline: 3px solid #217453; outline-offset: 3px; }
+@media (max-width: 600px) { .travel-share { padding: 20px 18px; border-radius: 17px; } .share-image-dialog .share-actions > * { flex: 1 1 140px; text-align: center; } }

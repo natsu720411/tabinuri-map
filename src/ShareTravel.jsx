@@ -42,10 +42,13 @@ export default function ShareTravel({ count, total, visited, records }) {
     }
   }
 
-  return <div className="travel-share">
-    <button type="button" className="share-primary" onClick={share} disabled={busy} aria-expanded={open} aria-controls="travel-share-options">旅の記録をシェア</button>
-    <button type="button" className="share-alternative" onClick={() => { setOpen(previous => !previous); setStatus(""); }} aria-expanded={open} aria-controls="travel-share-options">X・コピーで共有</button>
+  return <div className="travel-share" role="region" aria-labelledby="travel-share-heading">
+    <h2 id="travel-share-heading">旅マップを保存・共有</h2>
+    <p id="travel-share-description">訪問した都道府県の地図を画像にして保存・共有できます。プレビューで写真を1枚添えることもできます。</p>
     <ShareImage visited={visited} records={records} onTextShare={() => { setOpen(true); setStatus("画像の代わりに共有文を使えます。"); }} />
+    <button type="button" className="share-primary" onClick={share} disabled={busy} aria-expanded={open} aria-controls="travel-share-options">旅の記録を文章で共有</button>
+    <button type="button" className="share-alternative" onClick={() => { setOpen(previous => !previous); setStatus(""); }} aria-expanded={open} aria-controls="travel-share-options">X・コピーで共有</button>
+
     {open && <div id="travel-share-options" className="share-options">
       <label htmlFor="travel-share-text">共有する内容</label>
       <textarea ref={preview} id="travel-share-text" readOnly value={fullText} rows={8} />

@@ -123,8 +123,9 @@ function ImagePreview({ image, onClose, onTextShare }) {
     } finally { setBusy(false); }
   }
   return <dialog ref={dialog} className="share-image-dialog" aria-labelledby="share-image-title" onCancel={e => { e.preventDefault(); onClose(); }}>
-    <h2 id="share-image-title">旅の記録の共有画像</h2>
+    <h2 id="share-image-title">旅マップを画像で保存・共有</h2>
     <img src={rendered.url} alt={`旅図帳：47都道府県中${image.count}県訪問の日本地図`} width="1200" height="630" />
+    <p>「PNG画像を保存」で端末に保存できます。「画像を共有」では、対応端末でLINEなどの共有先を選べます。非対応の場合は共有文とURLのコピーをご利用ください。</p>
     <p className="share-photo-note">写真はこの共有画像にだけ使われ、旅行記録には保存されません。</p>
     <input ref={photoInput} type="file" accept="image/*" hidden onChange={event => {
       const file = event.target.files?.[0]; event.target.value = "";
@@ -135,8 +136,8 @@ function ImagePreview({ image, onClose, onTextShare }) {
       {hasPhoto && <button type="button" onClick={() => updatePhoto(null)} disabled={busy}>写真を削除</button>}
     </div>
     <div className="share-actions">
-      {busy ? <span>処理中…</span> : <a href={rendered.url} download="tabinuri-travel.png">画像を保存</a>}
-      <button type="button" onClick={share} disabled={busy}>共有</button>
+      {busy ? <span>処理中…</span> : <a href={rendered.url} download="tabinuri-travel.png">PNG画像を保存</a>}
+      <button type="button" onClick={share} disabled={busy}>画像を共有</button>
       <button type="button" onClick={onTextShare}>テキストで共有</button>
       <button type="button" onClick={onClose} autoFocus>閉じる</button>
     </div>
@@ -160,7 +161,7 @@ export default function ShareImage({ visited, records, onTextShare }) {
     finally { setBusy(false); }
   }
   return <>
-    <button type="button" className="share-alternative" onClick={generate} disabled={busy}>{busy ? "画像を作成中…" : "共有画像を作る"}</button>
+    <button type="button" className="share-image-primary" aria-haspopup="dialog" aria-describedby="travel-share-description" onClick={generate} disabled={busy}>{busy ? "画像を作成中…" : "旅マップを画像で保存・共有"}</button>
     {error && <p role="alert" className="share-status">{error}</p>}
     {image && <ImagePreview image={image} onClose={() => setImage(null)} onTextShare={() => { setImage(null); onTextShare(); }} />}
   </>;
