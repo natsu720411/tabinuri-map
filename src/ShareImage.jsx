@@ -1,8 +1,9 @@
+import { getShareTopThree } from "./shareRanking.js";
 import React, { useEffect, useRef, useState } from "react";
 import prefectures from "./prefectures.json";
 import { createShareText, SHARE_URL } from "./share.js";
 
-export async function createTravelImage(visited, photo = null) {
+export async function createTravelImage(visited, photo = null, topThree = []) {
   const canvas = document.createElement("canvas");
   canvas.width = 1200; canvas.height = 630;
   const ctx = canvas.getContext("2d");
@@ -22,6 +23,19 @@ export async function createTravelImage(visited, photo = null) {
   ctx.fillStyle = "#edf0e9"; ctx.fillRect(64, 395, 410, 12);
   ctx.fillStyle = "#638e71"; ctx.fillRect(64, 395, 410 * count / 47, 12);
   ctx.font = '20px system-ui, sans-serif'; ctx.fillText("tabinuri-map.vercel.app", 64, 550);
+  if (topThree.length) {
+    ctx.fillStyle = "#f1f6ef";
+    ctx.beginPath(); ctx.roundRect(64, 422, 410, 30 + topThree.length * 26, 12); ctx.fill();
+    ctx.fillStyle = "#527f61"; ctx.font = 'bold 17px system-ui, sans-serif';
+    ctx.fillText("お気に入り県", 78, 444);
+    topThree.forEach((prefecture, index) => {
+      const y = 470 + index * 26;
+      ctx.fillStyle = "#293f36"; ctx.font = '18px system-ui, sans-serif';
+      ctx.fillText((index + 1) + ". " + prefecture.name, 78, y);
+      ctx.fillStyle = "#a17a32";
+      ctx.fillText("★".repeat(prefecture.rating) + "☆".repeat(5 - prefecture.rating), 310, y);
+    });
+  }
   // Measure the existing map paths so outlying islands remain inside the image.
   const ns = "http://www.w3.org/2000/svg";
   const svg = document.createElementNS(ns, "svg");
@@ -85,7 +99,7 @@ function ImagePreview({ image, onClose, onTextShare }) {
         try { bitmap = await createImageBitmap(file); }
         catch { throw new Error("写真を読み込めませんでした。JPEGやPNGなど別の画像でお試しください。"); }
       }
-      const blob = await createTravelImage(image.visited, bitmap);
+      const blob = await createTravelImage(image.visited, bitmap, image.topThree);
       if (!mounted.current) return;
       setRendered({ ...image, blob, url: URL.createObjectURL(blob) });
       setHasPhoto(Boolean(file));
@@ -130,7 +144,7 @@ function ImagePreview({ image, onClose, onTextShare }) {
   </dialog>;
 }
 
-export default function ShareImage({ visited, onTextShare }) {
+export default function ShareImage({ visited, records, onTextShare }) {
   const [image, setImage] = useState(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -139,8 +153,9 @@ export default function ShareImage({ visited, onTextShare }) {
     setBusy(true); setError("");
     try {
       const snapshot = [...visited];
-      const blob = await createTravelImage(snapshot);
-      setImage({ blob, url: URL.createObjectURL(blob), count: snapshot.length, visited: snapshot });
+      const topThree = getShareTopThree(records, prefectures);
+      const blob = await createTravelImage(snapshot, null, topThree);
+      setImage({ blob, url: URL.createObjectURL(blob), count: snapshot.length, visited: snapshot, topThree });
     } catch { setError("画像を生成できませんでした。もう一度お試しください。"); }
     finally { setBusy(false); }
   }

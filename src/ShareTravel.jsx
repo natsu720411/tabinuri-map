@@ -2,7 +2,7 @@ import ShareImage from "./ShareImage.jsx";
 import React, { useRef, useState } from "react";
 import { createShareText, SHARE_URL } from "./share.js";
 
-export default function ShareTravel({ count, total, visited }) {
+export default function ShareTravel({ count, total, visited, records }) {
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState("");
@@ -45,7 +45,7 @@ export default function ShareTravel({ count, total, visited }) {
   return <div className="travel-share">
     <button type="button" className="share-primary" onClick={share} disabled={busy} aria-expanded={open} aria-controls="travel-share-options">旅の記録をシェア</button>
     <button type="button" className="share-alternative" onClick={() => { setOpen(previous => !previous); setStatus(""); }} aria-expanded={open} aria-controls="travel-share-options">X・コピーで共有</button>
-    <ShareImage visited={visited} onTextShare={() => { setOpen(true); setStatus("画像の代わりに共有文を使えます。"); }} />
+    <ShareImage visited={visited} records={records} onTextShare={() => { setOpen(true); setStatus("画像の代わりに共有文を使えます。"); }} />
     {open && <div id="travel-share-options" className="share-options">
       <label htmlFor="travel-share-text">共有する内容</label>
       <textarea ref={preview} id="travel-share-text" readOnly value={fullText} rows={8} />
