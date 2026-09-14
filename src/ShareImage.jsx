@@ -13,7 +13,7 @@ export async function createTravelImage(visited, photo = null, topThree = []) {
   ctx.fillStyle = "#f8f9f5"; ctx.fillRect(0, 0, 1200, 630);
   ctx.fillStyle = "#ffffff"; ctx.fillRect(24, 24, 1152, 582);
   ctx.fillStyle = "#427859"; ctx.font = 'bold 52px system-ui, sans-serif';
-  ctx.fillText("タビヌリ", 64, 110);
+  ctx.fillText("旅図帳", 64, 110);
   ctx.fillStyle = "#293f36"; ctx.font = 'bold 32px system-ui, sans-serif';
   ctx.fillText(`47都道府県中 ${count}県訪問`, 64, 225);
   ctx.fillStyle = "#527f61"; ctx.font = 'bold 28px system-ui, sans-serif';
@@ -116,7 +116,7 @@ function ImagePreview({ image, onClose, onTextShare }) {
     setStatus(""); setBusy(true);
     try {
       if (navigator.share && navigator.canShare?.({ files: [file] })) {
-        await navigator.share({ files: [file], title: "タビヌリの旅の記録", text: createShareText(image.count), url: SHARE_URL });
+        await navigator.share({ files: [file], title: "旅図帳の旅の記録", text: createShareText(image.count), url: SHARE_URL });
       } else { onTextShare(); }
     } catch (error) {
       if (error.name !== "AbortError") setStatus("画像を共有できませんでした。画像を保存するか、テキストで共有してください。");
@@ -124,7 +124,7 @@ function ImagePreview({ image, onClose, onTextShare }) {
   }
   return <dialog ref={dialog} className="share-image-dialog" aria-labelledby="share-image-title" onCancel={e => { e.preventDefault(); onClose(); }}>
     <h2 id="share-image-title">旅の記録の共有画像</h2>
-    <img src={rendered.url} alt={`タビヌリ：47都道府県中${image.count}県訪問の日本地図`} width="1200" height="630" />
+    <img src={rendered.url} alt={`旅図帳：47都道府県中${image.count}県訪問の日本地図`} width="1200" height="630" />
     <p className="share-photo-note">写真はこの共有画像にだけ使われ、旅行記録には保存されません。</p>
     <input ref={photoInput} type="file" accept="image/*" hidden onChange={event => {
       const file = event.target.files?.[0]; event.target.value = "";

@@ -19,7 +19,7 @@ export default function ShareTravel({ count, total, visited, records }) {
     }
     setBusy(true);
     try {
-      await navigator.share({ title: "タビヌリの旅の記録", text, url: SHARE_URL });
+      await navigator.share({ title: "旅図帳の旅の記録", text, url: SHARE_URL });
     } catch (error) {
       if (error.name !== "AbortError") {
         setOpen(true);
