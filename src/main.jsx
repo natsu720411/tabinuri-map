@@ -522,6 +522,8 @@ function App() {
 </span>
 <span>旅の思い出を、日本地図に。</span>
 <a href="/privacy.html">プライバシーポリシー</a>
+<a href="/contact.html">お問い合わせ</a>
+<a href="/about.html">運営者情報</a>
 <small>
   地図：
   <a href="https://www.gsi.go.jp/kankyochiri/gm_jpn.html">
