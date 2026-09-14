@@ -513,6 +513,24 @@ function App() {
     ))}
   </ul>
 </details>
+<section className="home-guide" aria-labelledby="about-tabinuri-title">
+  <h2 id="about-tabinuri-title">タビヌリとは？</h2>
+  <p>タビヌリは、行った場所を日本地図で振り返りながら、旅行の思い出を残せる旅行アプリです。訪問した都道府県を選ぶと地図に色が付き、訪問日や写真、思い出の文章をまとめて旅行記録として保存できます。</p>
+  <p>お気に入り度や一緒に行った人、食べたものも書き添えて、自分だけの旅の記録を作れます。訪問記録を旅行年表で振り返ったり、次に行きたい県をメモしたり、旅の前後にお使いください。</p>
+</section>
+<section className="home-guide home-faq" aria-labelledby="faq-title">
+  <h2 id="faq-title">よくある質問</h2>
+  <h3>タビヌリは無料で使えますか？</h3>
+  <p>はい。現在のタビヌリは無料で利用できます。旅行記録や写真の保存に料金はかかりません。サイトへのアクセスに必要な通信料は利用者の負担となります。</p>
+  <h3>写真はどこに保存されますか？</h3>
+  <p>写真はブラウザ内でサイズを調整・圧縮し、お使いのブラウザのIndexedDBに保存します。1つの都道府県につき5枚まで保存できます。ブラウザのサイトデータを削除すると写真も失われるため、元の写真はご自身で保管してください。</p>
+  <h3>会員登録は必要ですか？</h3>
+  <p>会員登録やログインは必要ありません。旅行記録はお使いのブラウザに保存され、別の端末やブラウザには自動で引き継がれません。</p>
+  <h3>スマホでも使えますか？</h3>
+  <p>スマホのブラウザでも利用できます。日本地図の都道府県をタップして記録できます。小さな県を選びにくいときは、地図の下にある都道府県の一覧から選べます。</p>
+  <h3>記録したデータはサーバーに送信されますか？</h3>
+  <p>現在、旅行記録はlocalStorage、写真はIndexedDBというブラウザ内の保存領域に保存しており、タビヌリのサーバーにアップロードする処理はありません。一方、Google Analytics 4によるアクセス情報はGoogleへ送信されます。詳しくは<a href="/privacy.html">プライバシーポリシー</a>をご確認ください。</p>
+</section>
 </>}
 </main>
 {selectedId !== null && <MemoryPanel key={selectedId} prefecture={prefectures.find(({ id }) => id === selectedId)} record={visits.records[selectedId]} readError={visits.error} onSave={(id, draft) => { const result = saveMemory(id, draft); if (!result) setView("memories"); return result; }} onClose={() => setSelectedId(null)} />}

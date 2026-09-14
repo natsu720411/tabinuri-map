@@ -855,3 +855,26 @@
     padding-inline: 8px;
   }
 }
+
+
+.home-guide {
+  margin: 24px 0;
+  padding: 28px 32px;
+  border: 1px solid #e2e8df;
+  border-radius: 20px;
+  background: #fff;
+  color: #596e5e;
+  font-size: 15px;
+  line-height: 1.9;
+  overflow-wrap: anywhere;
+}
+.home-guide h2 { margin: 0 0 16px; color: #293f36; font-size: 22px; line-height: 1.5; }
+.home-guide h3 { margin: 24px 0 8px; color: #427859; font-size: 17px; line-height: 1.6; }
+.home-guide p { margin: 12px 0; }
+.home-guide p:last-child { margin-bottom: 0; }
+.home-guide a { color: #427859; text-underline-offset: 4px; }
+@media (max-width: 600px) {
+  .home-guide { padding: 24px 18px; border-radius: 17px; }
+  .home-guide h2 { font-size: 20px; }
+  .home-guide h3 { font-size: 16px; }
+}
