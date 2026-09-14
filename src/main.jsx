@@ -539,6 +539,7 @@ function App() {
   タビヌリ<span>.</span>
 </span>
 <span>旅の思い出を、日本地図に。</span>
+<a href="/how-to-use.html">タビヌリの使い方</a>
 <a href="/privacy.html">プライバシーポリシー</a>
 <a href="/contact.html">お問い合わせ</a>
 <a href="/about.html">運営者情報</a>
