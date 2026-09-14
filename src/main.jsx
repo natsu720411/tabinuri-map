@@ -438,7 +438,7 @@ function App() {
   <div className="map-heading">
     <div>
       <p className="section-kicker">MY TRAVEL MAP</p>
-      <h2 id="map-heading">あなたの旅の地図</h2>
+      <h2 id="map-heading" tabIndex={-1}>あなたの旅の地図</h2>
     </div>
     <span className="legend">
       <i />
@@ -516,9 +516,38 @@ function App() {
   </ul>
 </details>
 <section className="home-guide" aria-labelledby="about-tabinuri-title">
-  <h2 id="about-tabinuri-title">旅図帳とは？</h2>
-  <p>旅図帳（たびずちょう）は、行った場所を日本地図で振り返りながら、旅行の思い出を残せる旅行アプリです。訪問した都道府県を選ぶと地図に色が付き、訪問日や写真、思い出の文章をまとめて旅行記録として保存できます。</p>
-  <p>お気に入り度や一緒に行った人、食べたものも書き添えて、自分だけの旅の記録を作れます。訪問記録を旅行年表で振り返ったり、次に行きたい県をメモしたり、旅の前後にお使いください。</p>
+  <h2 id="about-tabinuri-title">旅図帳とは</h2>
+  <p>旅図帳（たびずちょう）は、行った都道府県を日本地図に残せる無料の旅行記録アプリです。訪問済みの県をチェックして保存すると地図が塗りつぶされ、これまでの旅をひと目で確認できます。</p>
+  <p>写真・訪問日・思い出を県ごとに保存したり、行きたい県を記録したり。まずは覚えている旅先を一つ選んでみてください。インストール不要で、スマホ・PCのブラウザから使えます。</p>
+</section>
+<section className="home-guide" aria-labelledby="home-features-title">
+  <h2 id="home-features-title">旅図帳でできること</h2>
+  <div className="home-feature-grid">
+    <div className="home-feature"><h3>日本地図で訪問県をチェック</h3><p>訪れた県に色を付け、全国や地方別の進捗から旅の広がりを確認できます。</p></div>
+    <div className="home-feature"><h3>旅行の写真と思い出を保存</h3><p>旅先の景色や、その日に感じたことを訪問日と一緒に残せます。</p></div>
+    <div className="home-feature"><h3>行きたい県を管理</h3><p>気になる場所や行きたい理由をメモして、次の旅行の候補にできます。</p></div>
+    <div className="home-feature"><h3>旅行年表で振り返る</h3><p>訪問日を登録した記録を年ごとに眺めて、あの年の旅を思い返せます。</p></div>
+    <div className="home-feature"><h3>訪問県ランキング</h3><p>お気に入り度を付けた県を見比べて、また訪ねたい場所を探せます。</p></div>
+    <div className="home-feature"><h3>旅マップを共有</h3><p>訪問県数を入れた共有文や画像を作り、自分の旅の歩みを伝えられます。</p></div>
+  </div>
+</section>
+<section className="home-guide" aria-labelledby="home-steps-title">
+  <h2 id="home-steps-title">使い方は3ステップ</h2>
+  <ol className="home-steps">
+    <li><span className="section-kicker">STEP 1</span><h3>日本地図から都道府県を選ぶ</h3><p>行った県をタップ・クリック。小さな県は地図の下の一覧からも選べます。</p></li>
+    <li><span className="section-kicker">STEP 2</span><h3>訪問日・写真・思い出を登録する</h3><p>「訪問済み」をチェックし、日付や文章を入れて「保存する」を押します。写真は追加した時点で保存されます。</p></li>
+    <li><span className="section-kicker">STEP 3</span><h3>自分だけの旅の記録を振り返る</h3><p>地図や年表から記録を見返しましょう。旅行のあとに少しずつ書き足せます。</p></li>
+  </ol>
+  <div className="home-guide-actions">
+    <a className="home-map-cta" href="#map-heading" onClick={(event) => {
+      const heading = document.getElementById("map-heading");
+      if (!heading) return;
+      event.preventDefault();
+      heading.focus({ preventScroll: true });
+      heading.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth", block: "start" });
+    }}>日本地図から記録を始める</a>
+    <a href="/how-to-use.html">詳しい使い方を見る</a>
+  </div>
 </section>
 <section className="home-guide home-faq" aria-labelledby="faq-title">
   <h2 id="faq-title">よくある質問</h2>
