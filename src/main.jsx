@@ -1,4 +1,5 @@
 import TripPlans from "./TripPlans.jsx";
+import SharedTrip from "./SharedTrip.jsx";
 import { importedIds, mergeTripMemory } from "./tripMemory.js";
 import { getTravelAchievement } from "./achievement.js";
 import ShareTravel from "./ShareTravel.jsx";
@@ -608,6 +609,6 @@ function App() {
 }
 createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <App />
+    {new URLSearchParams(location.search).has("shared-trip") ? <SharedTrip /> : <App />}
   </React.StrictMode>,
 );

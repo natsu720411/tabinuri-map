@@ -1,0 +1,22 @@
+.trip-share-dialog { box-sizing: border-box; }
+.trip-share-checks { min-width: 0; padding: 12px; border: 1px solid #c9d6c5; border-radius: 12px; margin: 16px 0; }
+.trip-plans .trip-share-checks label, .trip-plans .trip-share-compat { display: flex; align-items: center; gap: 12px; min-height: 48px; }
+.trip-plans .trip-share-checks input, .trip-plans .trip-share-compat input { width: 20px; height: 20px; min-height: 20px; flex: 0 0 20px; accent-color: #527f61; }
+.trip-link-button { display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; min-height: 48px; max-width: 100%; padding: 10px 16px; background: #527f61; color: #fff; border-radius: 12px; text-decoration: none; text-align: center; overflow-wrap: anywhere; }
+.trip-link-button:focus-visible, .shared-trip a:focus-visible { outline: 3px solid #217453; outline-offset: 4px; }
+.trip-share-dialog section { margin-top: 18px; }
+.trip-share-dialog .trip-ai-actions { margin-top: 12px; }
+.shared-trip { width: 100%; max-width: 820px; box-sizing: border-box; margin: auto; padding: 32px 16px; color: #293f36; line-height: 1.8; overflow-wrap: anywhere; }
+.shared-trip header, .shared-trip footer { text-align: center; padding: 24px 12px; }
+.shared-trip header > a { color: #427859; font-weight: 700; }
+.shared-trip h1 { font-size: clamp(24px, 5vw, 36px); line-height: 1.5; }
+.shared-trip h2 { font-size: 22px; color: #427859; }
+.shared-trip h2 small { display: block; font-size: 14px; font-weight: normal; }
+.shared-day { border: 1px solid #d8e2d3; border-radius: 18px; background: #fff; padding: 24px; margin: 20px 0; }
+.shared-day ol { list-style: none; padding: 0; }
+.shared-day li { display: grid; grid-template-columns: 74px minmax(0, 1fr); gap: 12px; border-bottom: 1px dashed #d8e2d3; padding: 18px 0; }
+.shared-day time { color: #427859; font-weight: 700; }
+.shared-day h3 { font-size: 18px; margin: 0; }
+.shared-day li p { font-size: 14px; margin: 6px 0 0; white-space: pre-wrap; }
+.shared-note { white-space: pre-wrap; }
+@media (max-width: 600px) { .shared-trip { padding: 16px 10px; } .shared-day { padding: 16px; } .shared-day li { grid-template-columns: 64px minmax(0, 1fr); gap: 8px; } .trip-share-dialog .trip-ai-actions > * { width: 100%; flex-basis: 100%; } }

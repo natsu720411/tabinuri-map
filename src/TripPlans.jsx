@@ -4,10 +4,12 @@ import { loadPlans, newId, newPlan, persistPlans, todayLocal, TRIP_PLANS_KEY } f
 import "./tripPlans.css";
 import TripAI from "./TripAI.jsx";
 import TripImport from "./TripImport.jsx";
+import TripShare from "./TripShare.jsx";
 
 const notes = [["places", "行きたい場所"], ["foods", "食べたいもの"], ["activities", "やりたいこと"], ["accommodation", "宿泊先メモ"], ["transport", "移動メモ"], ["notes", "その他メモ"]];
 
 export default function TripPlans({ onImport, onOpenMemory }) {
+  const [shareOpen, setShareOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const [importedPrefecture, setImportedPrefecture] = useState(null);
   const [toast, setToast] = useState("");
@@ -129,6 +131,7 @@ export default function TripPlans({ onImport, onOpenMemory }) {
         <div className="trip-save"><button className="trip-primary" type="submit">{saveFeedback ? "✓ 保存しました" : "計画を保存"}</button><span>{dirty ? "未保存の変更があります" : ""}</span>
           {store.plans.find(plan => plan.id === draft.id)?.updatedAt && <small>最終保存：<time dateTime={store.plans.find(plan => plan.id === draft.id).updatedAt}>{new Date(store.plans.find(plan => plan.id === draft.id).updatedAt).toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" })}</time></small>}
         </div>
+        <section className="trip-finish"><h2>友達と予定をチェック</h2><p>共有する項目を選んで、閲覧専用の旅のしおりを送れます。</p><button type="button" aria-haspopup="dialog" onClick={() => setShareOpen(true)}>しおりを共有</button></section>
         <section className="trip-finish"><h2>旅が終わったら</h2><p>実際の旅の内容を確認して、行き先の都道府県に思い出を追記できます。</p>
           {draft.travelBookSavedAt ? <p>✓ 旅図帳に保存済み。この旅行はすでに旅図帳に保存されています。</p> : <><button type="button" aria-haspopup="dialog" disabled={!draft.endDate || draft.endDate > todayLocal()} onClick={openImport}>この旅行を旅図帳に保存</button><p>帰宅日を設定すると、その日以降に利用できます。入力中の計画も一緒に保存します。</p></>}
           {importedPrefecture && <button type="button" onClick={() => onOpenMemory(importedPrefecture)}>{prefectures.find(p => p.id === importedPrefecture)?.name}の思い出を見る</button>}
@@ -138,5 +141,6 @@ export default function TripPlans({ onImport, onOpenMemory }) {
     </form>}
     {aiOpen && draft && <TripAI plan={draft} blocked={blocked} onClose={() => setAiOpen(false)} onApply={days => { if (blocked) return; update("days", days); setAiOpen(false); setMessage("AI旅程を反映しました。内容を確認して「計画を保存」を押してください。"); }} />}
     {importOpen && draft && <TripImport plan={draft} prefectureName={prefectures.find(p => p.id === draft.prefectureId)?.name} blocked={blocked} onClose={() => setImportOpen(false)} onConfirm={confirmImport} />}
+    {shareOpen && draft && <TripShare plan={draft} onClose={() => setShareOpen(false)} />}
   </section>;
 }

@@ -3,13 +3,22 @@
   <head>
     <meta charset="UTF-8" />
     <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-TLPNKXBB7T"></script>
     <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-
-      gtag('config', 'G-TLPNKXBB7T');
+      // Shared itineraries must not be sent to analytics through their URL.
+      if (new URLSearchParams(location.search).has('shared-trip')) {
+        const robots = document.createElement('meta');
+        robots.name = 'robots'; robots.content = 'noindex, nofollow';
+        document.head.appendChild(robots);
+      } else {
+        window.dataLayer = window.dataLayer || [];
+        window.gtag = function(){dataLayer.push(arguments);};
+        gtag('js', new Date());
+        gtag('config', 'G-TLPNKXBB7T');
+        const tag = document.createElement('script');
+        tag.async = true;
+        tag.src = 'https://www.googletagmanager.com/gtag/js?id=G-TLPNKXBB7T';
+        document.head.appendChild(tag);
+      }
     </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#f8f9f5" />
