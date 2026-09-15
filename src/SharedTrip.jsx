@@ -2,12 +2,14 @@ import React, { useEffect, useState } from "react";
 import prefectures from "./prefectures.json";
 import { readTripFragment, SHARE_FIELDS, tripDuration } from "./tripShare.js";
 import "./tripShare.css";
+import CopySharedTrip from "./CopySharedTrip.jsx";
 
 export default function SharedTrip() {
+  const [copyOpen, setCopyOpen] = useState(false);
   const [state, setState] = useState({ loading: true });
   useEffect(() => {
     let active = true;
-    function load() { setState({ loading: true }); const hash = location.hash; readTripFragment(hash).then(plan => { if (active && hash === location.hash) setState({ plan }); }).catch(error => { if (active && hash === location.hash) setState({ error: true, unsupported: error.message?.startsWith("圧縮リンクに対応") ? error.message : "" }); }); }
+    function load() { setCopyOpen(false); setState({ loading: true }); const hash = location.hash; readTripFragment(hash).then(plan => { if (active && hash === location.hash) setState({ plan }); }).catch(error => { if (active && hash === location.hash) setState({ error: true, unsupported: error.message?.startsWith("圧縮リンクに対応") ? error.message : "" }); }); }
     load(); window.addEventListener("hashchange", load);
     return () => { active = false; window.removeEventListener("hashchange", load); };
   }, []);
@@ -26,6 +28,9 @@ export default function SharedTrip() {
       </section>)}
       {SHARE_FIELDS.filter(([key]) => plan[key]).map(([key, label]) => <section className="shared-day" key={key}><h2>{label}</h2><p className="shared-note">{plan[key]}{key === "budget" ? " 円" : ""}</p></section>)}
     </>}
-    <footer><p>旅の計画から思い出まで、日本地図に残せる旅サービス</p><a className="trip-link-button" href="/">旅図帳で自分の旅を作る</a></footer>
+    <footer><h2>旅図帳とは？</h2><p>旅図帳は、旅行を計画して、旅が終わったら思い出を日本地図に残せるサービスです。</p><p>無料・登録不要</p>
+      {plan && <p><button className="trip-link-button" type="button" aria-haspopup="dialog" onClick={() => setCopyOpen(true)}>このしおりを自分の旅の計画にコピー</button></p>}
+      <a href="/">旅図帳で自分の旅を作る</a></footer>
+    {copyOpen && plan && <CopySharedTrip plan={plan} onClose={() => setCopyOpen(false)} />}
   </main>;
 }

@@ -8,13 +8,13 @@ import TripShare from "./TripShare.jsx";
 
 const notes = [["places", "行きたい場所"], ["foods", "食べたいもの"], ["activities", "やりたいこと"], ["accommodation", "宿泊先メモ"], ["transport", "移動メモ"], ["notes", "その他メモ"]];
 
-export default function TripPlans({ onImport, onOpenMemory }) {
+export default function TripPlans({ onImport, onOpenMemory, initialPlanId, onInitialPlanOpened }) {
   const [shareOpen, setShareOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const [importedPrefecture, setImportedPrefecture] = useState(null);
   const [toast, setToast] = useState("");
   const [store, setStore] = useState(loadPlans);
-  const [draft, setDraft] = useState(null);
+  const [draft, setDraft] = useState(() => store.plans.find(plan => plan.id === initialPlanId) || null);
   const [dirty, setDirty] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -29,6 +29,12 @@ export default function TripPlans({ onImport, onOpenMemory }) {
   const form = useRef(null);
   const editing = Boolean(draft);
   useEffect(() => { heading.current?.focus(); }, [editing]);
+  useEffect(() => {
+    if (!initialPlanId) return;
+    if (store.plans.some(plan => plan.id === initialPlanId)) setMessage("共有されたしおりをコピーした計画です。日程や予定を自由に変更できます。");
+    else setError("計画が見つかりませんでした。旅行計画の一覧をご確認ください。");
+    onInitialPlanOpened?.();
+  }, [initialPlanId]);
   useEffect(() => {
     const warn = event => { if (dirty) { event.preventDefault(); event.returnValue = ""; } };
     const changed = event => { if (event.key === TRIP_PLANS_KEY || event.key === null) setConflict(true); };

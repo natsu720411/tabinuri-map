@@ -1,4 +1,13 @@
 .trip-share-dialog { box-sizing: border-box; }
+.shared-trip button { font: inherit; cursor: pointer; border: 1px solid #c9d6c5; min-height: 48px; max-width: 100%; white-space: normal; }
+.shared-trip button:focus-visible, .trip-copy-dialog input:focus-visible { outline: 3px solid #217453; outline-offset: 3px; }
+.trip-copy-dialog { box-sizing: border-box; width: min(580px, calc(100% - 24px)); max-width: calc(100% - 24px); max-height: 88dvh; overflow: auto; margin: auto; padding: 24px; border: 1px solid #c9d6c5; border-radius: 18px; background: #f8f9f5; color: #293f36; }
+.trip-copy-dialog::backdrop { background: #20362988; }
+.trip-copy-dialog label { display: grid; gap: 8px; }
+.trip-copy-dialog input { box-sizing: border-box; width: 100%; min-width: 0; min-height: 48px; font-size: 16px; padding: 10px; border: 1px solid #c9d6c5; border-radius: 8px; }
+.trip-copy-dialog button { margin-top: 16px; padding: 10px 16px; border-radius: 12px; }
+.trip-copy-dialog button:disabled { opacity: .6; cursor: wait; }
+.trip-copy-dialog [role=alert] { color: #8a3027; }
 .trip-share-checks { min-width: 0; padding: 12px; border: 1px solid #c9d6c5; border-radius: 12px; margin: 16px 0; }
 .trip-plans .trip-share-checks label, .trip-plans .trip-share-compat { display: flex; align-items: center; gap: 12px; min-height: 48px; }
 .trip-plans .trip-share-checks input, .trip-plans .trip-share-compat input { width: 20px; height: 20px; min-height: 20px; flex: 0 0 20px; accent-color: #527f61; }
