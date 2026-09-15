@@ -1,4 +1,5 @@
 import TripPlans from "./TripPlans.jsx";
+import { importedIds, mergeTripMemory } from "./tripMemory.js";
 import { getTravelAchievement } from "./achievement.js";
 import ShareTravel from "./ShareTravel.jsx";
 import React, { useEffect, useRef, useState } from "react";
@@ -104,6 +105,7 @@ function readVisits() {
         if (!validIds.has(Number(id)) || !entry || typeof entry !== "object") continue;
         records[Number(id)] = {
           visited: entry.visited === true,
+          importedTripPlanIds: importedIds(entry.importedTripPlanIds),
           visitDate: typeof entry.visitDate === "string" && /^\d{4}-\d{2}-\d{2}$/.test(entry.visitDate) ? entry.visitDate : "",
           memory: typeof entry.memory === "string" ? entry.memory : "",
           favorite: entry.favorite === true,
@@ -356,10 +358,10 @@ function App() {
   const { percent, title: travelTitle } = getTravelAchievement(count);
   const completedRegions = REGIONS.filter(([, ids]) => ids.every(id => visited.includes(id)));
 
-  function saveMemory(id, draft) {
+  function saveMemory(id, draft, source = visits) {
     if (visits.error) return visits.error;
     if (!validIds.has(id)) return "都道府県を選び直してください。";
-    const records = { ...visits.records, [id]: { ...draft } };
+    const records = { ...source.records, [id]: { ...draft, importedTripPlanIds: importedIds([...(source.records[id]?.importedTripPlanIds || []), ...(draft.importedTripPlanIds || [])]) } };
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
     } catch {
@@ -367,6 +369,17 @@ function App() {
     }
     setVisits({ records, error: "", announcement: `${prefectures.find(prefecture => prefecture.id === id).name}の思い出を保存しました。` });
     return "";
+  }
+
+  function importTrip(plan, values) {
+    const source = readVisits();
+    if (source.error) return { error: source.error };
+    const previous = Object.entries(source.records).find(([, record]) => importedIds(record.importedTripPlanIds).includes(plan.id));
+    if (previous) { setVisits(source); return { already: true, prefectureId: Number(previous[0]) }; }
+    if (!validIds.has(plan.prefectureId)) return { error: "行き先を選んでください。" };
+    const record = mergeTripMemory({ ...emptyMemory, ...source.records[plan.prefectureId] }, plan, values);
+    const error = saveMemory(plan.prefectureId, record, source);
+    return { error, prefectureId: plan.prefectureId };
   }
 
   return (
@@ -385,7 +398,7 @@ function App() {
 </header>
 <main id="main">
 <nav className="view-tabs" aria-label="表示切り替え" onClickCapture={event => { if (view === "plans" && event.target.closest("button") && !window.dispatchEvent(new Event("trip-plan-leave", { cancelable: true }))) { event.preventDefault(); event.stopPropagation(); } }}><button type="button" className={view === "map" ? "active" : ""} aria-current={view === "map" ? "page" : undefined} onClick={() => setView("map")}>地図</button><button type="button" className={view === "memories" ? "active" : ""} aria-current={view === "memories" ? "page" : undefined} onClick={() => setView("memories")}>思い出一覧</button><button type="button" className={view === "want" ? "active" : ""} aria-current={view === "want" ? "page" : undefined} onClick={() => setView("want")}>行きたい</button><button type="button" className={view === "ranking" ? "active" : ""} aria-current={view === "ranking" ? "page" : undefined} onClick={() => setView("ranking")}>ランキング</button><button type="button" className={view === "year" ? "active" : ""} aria-current={view === "year" ? "page" : undefined} onClick={() => setView("year")}>旅行年表</button><button type="button" className={view === "timeline" ? "active" : ""} aria-current={view === "timeline" ? "page" : undefined} onClick={() => setView("timeline")}>タイムライン</button><button type="button" className={view === "plans" ? "active" : ""} aria-current={view === "plans" ? "page" : undefined} onClick={() => setView("plans")}>旅の計画</button></nav>
-{view === "plans" ? <TripPlans /> : view === "year" ? <YearTable visits={visits} onSelect={setSelectedId} /> : view === "ranking" ? <Ranking visits={visits} onSelect={setSelectedId} /> : view === "timeline" ? <Timeline visits={visits} onSelect={setSelectedId} /> : view === "want" ? <WantList visits={visits} onSelect={setSelectedId} /> : view === "memories" ? <MemoriesList visits={visits} onSelect={(id) => { if (id === null) setView("map"); else setSelectedId(id); }} /> : <>
+{view === "plans" ? <TripPlans onImport={importTrip} onOpenMemory={setSelectedId} /> : view === "year" ? <YearTable visits={visits} onSelect={setSelectedId} /> : view === "ranking" ? <Ranking visits={visits} onSelect={setSelectedId} /> : view === "timeline" ? <Timeline visits={visits} onSelect={setSelectedId} /> : view === "want" ? <WantList visits={visits} onSelect={setSelectedId} /> : view === "memories" ? <MemoriesList visits={visits} onSelect={(id) => { if (id === null) setView("map"); else setSelectedId(id); }} /> : <>
 <section className="intro" aria-labelledby="home-title">
   <p className="eyebrow">
     <span /> YOUR TRAVEL, YOUR COLORS

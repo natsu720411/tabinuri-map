@@ -30,7 +30,7 @@ export function loadPlans() {
         }
       }
     }
-    return { plans: data.plans, error: "" };
+    return { plans: data.plans.map(plan => ({ ...plan, travelBookSavedAt: typeof plan.travelBookSavedAt === "string" ? plan.travelBookSavedAt : "" })), error: "" };
   } catch {
     return { plans: [], error: "旅行計画を読み込めませんでした。保存済みデータを保護するため編集を停止しています。サイトデータを削除せず、再読み込みをお試しください。" };
   }
