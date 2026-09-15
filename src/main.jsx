@@ -540,50 +540,91 @@ function App({ initialPlanId }) {
 </details>
 <section className="home-guide" aria-labelledby="about-tabinuri-title">
   <h2 id="about-tabinuri-title">旅図帳とは</h2>
-  <p>旅図帳（たびずちょう）は、行った都道府県を日本地図に残せる無料の旅行記録アプリです。訪問済みの県をチェックして保存すると地図が塗りつぶされ、これまでの旅をひと目で確認できます。</p>
-  <p>写真・訪問日・思い出を県ごとに保存したり、行きたい県を記録したり。まずは覚えている旅先を一つ選んでみてください。インストール不要で、スマホ・PCのブラウザから使えます。</p>
+  <p>旅図帳（たびずちょう）は、旅行前の計画から旅行後の思い出までを、ひとつにつなげて残せる無料の旅行サービスです。「行きたい」をメモし、行き先や日程を決めて旅の計画を作れます。</p>
+  <p>AIに旅行スケジュールを提案してもらい、旅のしおりをLINEなどで友達に共有。旅行後は計画を旅図帳へ保存すると、訪れた都道府県が日本地図に色付きます。写真や食べたもの、訪問日、思い出も書き足せます。</p>
+  <p>会員登録・インストールは不要。スマートフォン・PCのブラウザから、これからの旅にも過去の旅行記録にも使えます。</p>
 </section>
 <section className="home-guide" aria-labelledby="home-features-title">
   <h2 id="home-features-title">旅図帳でできること</h2>
   <div className="home-feature-grid">
-    <div className="home-feature"><h3>日本地図で訪問県をチェック</h3><p>訪れた県に色を付け、全国や地方別の進捗から旅の広がりを確認できます。</p></div>
-    <div className="home-feature"><h3>旅行の写真と思い出を保存</h3><p>旅先の景色や、その日に感じたことを訪問日と一緒に残せます。</p></div>
-    <div className="home-feature"><h3>行きたい県を管理</h3><p>気になる場所や行きたい理由をメモして、次の旅行の候補にできます。</p></div>
-    <div className="home-feature"><h3>旅行年表で振り返る</h3><p>訪問日を登録した記録を年ごとに眺めて、あの年の旅を思い返せます。</p></div>
-    <div className="home-feature"><h3>訪問県ランキング</h3><p>お気に入り度を付けた県を見比べて、また訪ねたい場所を探せます。</p></div>
-    <div className="home-feature"><h3>旅マップを共有</h3><p>訪問県数を入れた共有文や画像を作り、自分の旅の歩みを伝えられます。</p></div>
+    <div className="home-feature"><h3>AIで旅の計画を作る</h3><p>行き先・日程・予算・やりたいことなどをもとに、AIが旅行日数に合わせた旅程を提案します。</p></div>
+    <div className="home-feature"><h3>旅のしおりを作る</h3><p>日ごとの予定、時間、場所、メモをまとめて、旅行中にも見やすいしおりとして使えます。</p></div>
+    <div className="home-feature"><h3>LINEやURLで共有</h3><p>しおりをLINEや共有リンクで友達に送れます。受け取った人は登録なしで閲覧できます。</p></div>
+    <div className="home-feature"><h3>しおりを自分の計画にコピー</h3><p>友達から届いたしおりを自分の旅の計画へコピーし、日程や予定を自由に編集できます。</p></div>
+    <div className="home-feature"><h3>日本地図に旅を残す</h3><p>旅行後に計画を旅図帳へ保存すると、行き先の都道府県を訪問済みにして地図に残せます。</p></div>
+    <div className="home-feature"><h3>写真と思い出を記録</h3><p>訪問日・写真・一緒に行った人・食べたもの・おすすめスポットなどを都道府県ごとに保存できます。</p></div>
+    <div className="home-feature"><h3>行きたい場所を管理</h3><p>気になる県や行きたい場所、行きたい理由をメモし、次の旅行候補として残せます。</p></div>
+    <div className="home-feature"><h3>旅を振り返る</h3><p>旅行年表・タイムライン・ランキング・日本地図で振り返れます。旅マップを画像や文章で共有することもできます。</p></div>
   </div>
 </section>
 <section className="home-guide" aria-labelledby="home-steps-title">
   <h2 id="home-steps-title">使い方は3ステップ</h2>
   <ol className="home-steps">
-    <li><span className="section-kicker">STEP 1</span><h3>日本地図から都道府県を選ぶ</h3><p>行った県をタップ・クリック。小さな県は地図の下の一覧からも選べます。</p></li>
-    <li><span className="section-kicker">STEP 2</span><h3>訪問日・写真・思い出を登録する</h3><p>「訪問済み」をチェックし、日付や文章を入れて「保存する」を押します。写真は追加した時点で保存されます。</p></li>
-    <li><span className="section-kicker">STEP 3</span><h3>自分だけの旅の記録を振り返る</h3><p>地図や年表から記録を見返しましょう。旅行のあとに少しずつ書き足せます。</p></li>
+    <li><span className="section-kicker">STEP 1</span><h3>旅の計画を作る</h3><p>「旅の計画」から行き先や日程を入力します。自分で予定を追加するほか、「AIで旅程を作る」で提案を受け取り、確認して保存できます。</p></li>
+    <li><span className="section-kicker">STEP 2</span><h3>しおりを共有して旅を楽しむ</h3><p>旅のしおりはLINEやURLで共有できます。友達から届いたしおりを自分の計画にコピーして編集することもできます。</p></li>
+    <li><span className="section-kicker">STEP 3</span><h3>旅行後は思い出を日本地図へ</h3><p>旅行が終わったら「この旅行を旅図帳に保存」。訪問した県を地図に残し、写真や食べたもの、思い出を追加して振り返れます。</p></li>
   </ol>
+  <p className="trip-storage-note">過去の旅行を記録するだけでも利用できます。日本地図から都道府県を選んで、直接思い出を追加できます。</p>
   <div className="home-guide-actions">
-    <a className="home-map-cta" href="#map-heading" onClick={(event) => {
+    <button type="button" className="home-map-cta" onClick={() => setView("plans")}>旅の計画を作る</button>
+    <a href="#map-heading" onClick={(event) => {
       const heading = document.getElementById("map-heading");
       if (!heading) return;
       event.preventDefault();
       heading.focus({ preventScroll: true });
       heading.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth", block: "start" });
-    }}>日本地図から記録を始める</a>
+    }}>過去の旅を日本地図に記録する</a>
     <a href="/how-to-use.html">詳しい使い方を見る</a>
   </div>
 </section>
 <section className="home-guide home-faq" aria-labelledby="faq-title">
   <h2 id="faq-title">よくある質問</h2>
-  <h3>旅図帳は無料で使えますか？</h3>
-  <p>はい。現在の旅図帳は無料で利用できます。旅行記録や写真の保存に料金はかかりません。サイトへのアクセスに必要な通信料は利用者の負担となります。</p>
-  <h3>写真はどこに保存されますか？</h3>
+  <details>
+    <summary>旅図帳は無料で使えますか？</summary>
+  <p>はい。現在の旅図帳は無料で利用でき、会員登録も必要ありません。通信に必要な料金は利用者の負担となります。</p>
+  </details>
+  <details>
+    <summary>会員登録やログインは必要ですか？</summary>
+  <p>必要ありません。旅行計画や旅行記録は基本的に利用しているブラウザ内へ保存されます。別の端末やブラウザへ自動同期はされません。</p>
+  </details>
+  <details>
+    <summary>AIでは何ができますか？</summary>
+  <p>行き先・日程・予算・行きたい場所などをもとに、1〜14日間の旅行スケジュールを提案します。雰囲気やペースを選び、作成結果を確認して「この旅程を使う」を押した後、編集して「計画を保存」できます。AI旅程の作成にはインターネット接続が必要です。</p>
+  </details>
+  <details>
+    <summary>AIが作った旅行プランは必ず正しいですか？</summary>
+  <p>AIの提案には、営業時間・料金・休業日などの最新情報と異なる内容が含まれる場合があります。旅行前に施設や交通機関の公式情報をご確認ください。</p>
+  </details>
+  <details>
+    <summary>友達に旅のしおりを送れますか？</summary>
+  <p>はい。「しおりを共有」から、LINE、対応端末の共有メニュー、リンクコピーを利用できます。受け取った人は会員登録なしで閲覧できます。リンクは作成時点の内容なので、予定を変更したら作り直して送ってください。</p>
+  </details>
+  <details>
+    <summary>共有されたしおりを編集できますか？</summary>
+  <p>共有しおり自体は閲覧専用です。「このしおりを自分の旅の計画にコピー」で自分用の計画を作り、日程や予定を自由に編集できます。コピーを編集しても元のしおりには影響しません。</p>
+  </details>
+  <details>
+    <summary>共有リンクには何が含まれますか？</summary>
+  <p>旅行タイトル・行き先・日程・スケジュール（予定名とメモを含む）は必ず含まれます。行きたい場所・食べたいもの・やりたいことは初期状態で選択されています。同行者・予算・宿泊先メモ・移動メモ・その他メモは初期状態では共有しません。</p>
+  <p>リンクを知っている人は内容を閲覧・再共有できます。予定内のメモも確認し、個人情報や公開したくない情報は含めないでください。送信済みリンクの内容変更・取り消しはできません。</p>
+  </details>
+  <details>
+    <summary>旅行後に何ができますか？</summary>
+  <p>帰宅日以降に「この旅行を旅図帳に保存」から内容を確認し、行き先の県を訪問済みにして、訪問日・同行者・食べたもの・スポット・思い出を追記できます。写真は県の思い出画面から別途追加します。</p>
+  </details>
+  <details>
+    <summary>写真はどこに保存されますか？</summary>
   <p>写真はブラウザ内でサイズを調整・圧縮し、お使いのブラウザのIndexedDBに保存します。1つの都道府県につき5枚まで保存できます。ブラウザのサイトデータを削除すると写真も失われるため、元の写真はご自身で保管してください。</p>
-  <h3>会員登録は必要ですか？</h3>
-  <p>会員登録やログインは必要ありません。旅行記録はお使いのブラウザに保存され、別の端末やブラウザには自動で引き継がれません。</p>
-  <h3>スマホでも使えますか？</h3>
-  <p>スマホのブラウザでも利用できます。日本地図の都道府県をタップして記録できます。小さな県を選びにくいときは、地図の下にある都道府県の一覧から選べます。</p>
-  <h3>記録したデータはサーバーに送信されますか？</h3>
-  <p>現在、旅行記録はlocalStorage、写真はIndexedDBというブラウザ内の保存領域に保存しており、旅図帳のサーバーにアップロードする処理はありません。AI旅程の「AIで作成」を押した場合は、入力中の計画情報をサーバー経由でGoogle Geminiへ送ります。また、Google Analytics 4によるアクセス情報はGoogleへ送信されます。詳しくは<a href="/privacy.html">プライバシーポリシー</a>をご確認ください。</p>
+  </details>
+  <details>
+    <summary>スマートフォンでも使えますか？</summary>
+  <p>はい。旅の計画・AI旅程・しおり共有・日本地図・思い出記録をスマートフォンのブラウザから利用できます。地図の小さな県は、下の都道府県一覧からも選べます。</p>
+  </details>
+  <details>
+    <summary>データはどこに保存されますか？</summary>
+  <p>旅行計画や旅行記録は主にブラウザのlocalStorage、写真はIndexedDBに保存します。サイトデータの削除などで失われることがあり、端末間の自動同期はありません。</p>
+  <p>AI旅程を作成する場合は、入力中の必要な計画情報を旅図帳のサーバー経由でGoogle Geminiへ送信します。共有しおりは選択したデータをURLに含める仕組みです。Google Analytics 4によるアクセス解析も含め、詳しくは<a href="/privacy.html">プライバシーポリシー</a>をご確認ください。</p>
+  </details>
 </section>
 </>}
 </main>

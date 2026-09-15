@@ -17,19 +17,19 @@
     <link rel="apple-touch-icon" href="/favicon.png" />
     <meta
       name="description"
-      content="旅図帳のアクセス解析、旅行記録・写真のブラウザ内保存についてご案内します。"
+      content="旅図帳の旅行計画・記録・写真のブラウザ内保存、AI旅程生成、しおり共有とアクセス解析についてご案内します。"
     />
     <title>プライバシーポリシー｜旅図帳</title>
     <link rel="canonical" href="https://tabinuri-map.vercel.app/privacy.html" />
     <meta property="og:title" content="プライバシーポリシー｜旅図帳" />
-    <meta property="og:description" content="旅図帳のアクセス解析、旅行記録・写真のブラウザ内保存についてご案内します。" />
+    <meta property="og:description" content="旅図帳の旅行計画・記録・写真のブラウザ内保存、AI旅程生成、しおり共有とアクセス解析についてご案内します。" />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://tabinuri-map.vercel.app/privacy.html" />
     <!-- 共有画像は public/og-image.png に配置・差し替えできます。 -->
     <meta property="og:image" content="https://tabinuri-map.vercel.app/og-image.png" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="プライバシーポリシー｜旅図帳" />
-    <meta name="twitter:description" content="旅図帳のアクセス解析、旅行記録・写真のブラウザ内保存についてご案内します。" />
+    <meta name="twitter:description" content="旅図帳の旅行計画・記録・写真のブラウザ内保存、AI旅程生成、しおり共有とアクセス解析についてご案内します。" />
     <meta name="twitter:image" content="https://tabinuri-map.vercel.app/og-image.png" />
   
     <style>
@@ -56,11 +56,11 @@
       <article aria-labelledby="privacy-title">
         <p class="kicker">PRIVACY POLICY</p>
         <h1 id="privacy-title">プライバシーポリシー</h1>
-        <p>旅図帳では、旅行の記録や写真を大切に扱うため、現在のデータ保存とアクセス解析の仕組みを以下のとおりご案内します。</p>
+        <p>旅図帳では、旅行計画・旅行記録・写真の保存、AI旅程生成、しおり共有とアクセス解析の現在の仕組みを以下のとおりご案内します。</p>
         <section aria-labelledby="records-title">
           <h2 id="records-title">旅行記録の保存について</h2>
-          <p>都道府県の訪問状態、訪問日、思い出の文章、お気に入り・お気に入り度、行きたい県、旅の詳細などは、お使いのブラウザの保存領域（localStorage）に保存されます。</p>
-          <p>現在、これらの旅行記録を旅図帳のサーバーへ送信・保存する機能や、別の端末・ブラウザと自動同期する機能はありません。</p>
+          <p>都道府県の訪問状態、訪問日、思い出の文章、お気に入り・お気に入り度、行きたい県、旅の詳細などは、お使いのブラウザの保存領域（localStorage）に保存されます。旅行計画も、旅行記録とは別の保存キーで同じブラウザ内に保存されます。</p>
+          <p>通常の保存操作では、これらを旅図帳のサーバーへ送信・保存しません。端末・ブラウザ間の自動同期はありません。AI作成や共有を選んだ場合の情報の扱いは、以下の項目をご確認ください。</p>
         </section>
         <section aria-labelledby="photos-title">
           <h2 id="photos-title">写真の保存について</h2>
@@ -70,12 +70,26 @@
         <section aria-labelledby="ai-plans-title">
           <h2 id="ai-plans-title">AIによる旅行計画の作成</h2>
           <p>旅行計画はブラウザ内に保存されます。「AIで作成」を押した場合のみ、入力中の旅行タイトル・行き先・日程・人数・同行者・予算・各メモと選択した雰囲気・ペースを、旅図帳のサーバー経由でGoogle Geminiへ送信し、旅程作成に使用します。写真や他の旅行記録は送信しません。</p>
-          <p>AIの結果は確認・適用後に「計画を保存」を押した場合だけブラウザへ確定保存されます。情報の取り扱いは<a href="https://policies.google.com/privacy?hl=ja">Googleのプライバシーポリシー</a>もご確認ください。</p>
+          <p>AIの結果はプレビューで確認し、適用した後も未保存の状態です。「計画を保存」など、旅行計画の保存操作でブラウザへ確定保存されます。情報の取り扱いは<a href="https://policies.google.com/privacy?hl=ja">Googleのプライバシーポリシー</a>もご確認ください。</p>
+        </section>
+        <section aria-labelledby="sharing-title">
+          <h2 id="sharing-title">旅のしおりの共有について</h2>
+          <p>共有リンクを作成すると、旅行タイトル・行き先・日程・日ごとのスケジュール（予定名・メモを含む）と、選択した追加項目をURLのフラグメント（「#」以降）へ格納します。共有内容を旅図帳のサーバーやデータベースへ保存する仕組みではありません。フラグメントは通常、ページを取得するHTTPリクエストには含まれません。</p>
+          <p>行きたい場所・食べたいもの・やりたいことは初期状態で共有対象です。同行者・予算・宿泊先メモ・移動メモ・その他メモは初期状態では対象外です。予定内のメモは必ず共有されるため、個人情報が含まれていないか確認してください。写真はしおり共有URLに含まれません。</p>
+          <p>共有URLを知っている人は内容を閲覧・再共有できます。URLの圧縮や文字列への変換は、パスワード保護や暗号化ではありません。リンクは作成時点の内容で、送信済みリンクの内容変更・無効化はできません。</p>
+          <p>「LINEで送る」を選ぶと、共有URLと共有文をLINEの共有サービスへ渡します。スマホの共有メニューでは選択したアプリへ、リンクコピーではクリップボードへ渡します。共有先での情報の扱いは各サービスの案内をご確認ください。</p>
+        </section>
+        <section aria-labelledby="copy-title">
+          <h2 id="copy-title">共有しおりの閲覧・コピーについて</h2>
+          <p>共有しおりはブラウザ内で復元して表示し、閲覧だけでは旅行計画へ自動保存しません。本人が確認画面でコピーを実行した場合に、共有されている内容を新しい旅行計画として、そのブラウザのlocalStorageへ追加します。共有されていない情報は復元しません。</p>
+          <p>二重コピーを防ぐため、共有内容から作るハッシュ値をコピーした計画とともに保存します。共有URL全体を旅行計画に保存することはありません。コピー先の編集は元の共有URLや送信者のデータには反映されず、コピーだけで訪問済みや思い出に追加されることもありません。</p>
+          <p>旅マップの画像共有はしおり共有とは別の機能です。共有画像へ追加した写真は画像作成用にブラウザ内で扱い、既存の旅行写真としては保存しません。生成した画像や共有文は、利用者が選んだ共有先へ渡されます。</p>
         </section>
         <section aria-labelledby="analytics-title">
           <h2 id="analytics-title">Google Analyticsによるアクセス解析</h2>
           <p>旅図帳はGoogle Analytics 4を利用し、ページの閲覧や利用端末・ブラウザなどのアクセス情報を収集しています。収集した情報は、サイトの改善や利用状況の分析に利用します。</p>
           <p>Google AnalyticsではCookie等が利用される場合があり、アクセス情報はGoogleへ送信されます。旅行記録・写真のブラウザ内保存とは別の仕組みです。現在のアプリには、保存した旅行記録の本文や写真データをGoogle Analyticsに送信する処理は実装していません。</p>
+          <p>共有しおり画面では、共有URLの内容をアクセス解析へ渡さないようGoogle Analyticsを読み込みません。通常の旅図帳画面へ移動した後は、通常のアクセス解析が適用されます。</p>
           <p>Googleによる情報の取り扱いは、<a href="https://policies.google.com/privacy?hl=ja">Googleのプライバシーポリシー</a>と<a href="https://support.google.com/analytics/answer/6004245?hl=ja">Google Analyticsのデータ保護に関する説明</a>をご確認ください。</p>
         </section>
         <section aria-labelledby="changes-title">

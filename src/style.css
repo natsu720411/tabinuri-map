@@ -911,10 +911,16 @@
 .home-steps { list-style: none; margin: 0; padding: 0; }
 .home-steps .section-kicker { display: block; margin-bottom: 8px; }
 .home-guide-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px; margin-top: 24px; }
-.home-guide-actions a { display: inline-flex; align-items: center; min-height: 48px; }
+.home-guide-actions a, .home-guide-actions button { display: inline-flex; align-items: center; min-height: 48px; }
+.home-guide-actions button { font: inherit; border: 0; cursor: pointer; white-space: normal; }
 .home-guide-actions .home-map-cta { justify-content: center; max-width: 100%; padding: 12px 20px; border-radius: 12px; background: #527f61; color: #fff; font-weight: 600; text-align: center; text-decoration: none; }
 .home-map-cta:hover { background: #427859; }
-.home-guide a:focus-visible, #map-heading:focus-visible { outline: 3px solid #217453; outline-offset: 4px; }
+.home-guide a:focus-visible, .home-guide button:focus-visible, .home-faq summary:focus-visible, #map-heading:focus-visible { outline: 3px solid #217453; outline-offset: 4px; }
+.home-faq details { margin: 12px 0; padding: 0; border: 1px solid #d8e2d3; border-radius: 12px; background: #f8f9f5; }
+.home-faq summary { min-height: 48px; padding: 14px 16px; color: #427859; font-weight: 600; cursor: pointer; overflow-wrap: anywhere; }
+.home-faq summary:hover { background: #edf3e9; border-radius: 12px; }
+.home-faq details[open] summary { border-bottom: 1px solid #d8e2d3; }
+.home-faq details > p { margin: 14px 16px; }
 #map-heading { scroll-margin-top: 24px; }
 @media (max-width: 900px) { .home-feature-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .home-steps { grid-template-columns: 1fr; } }
 @media (max-width: 600px) { .home-feature-grid { grid-template-columns: 1fr; } .home-guide-actions { align-items: stretch; flex-direction: column; } .home-guide-actions .home-map-cta { width: 100%; } }
