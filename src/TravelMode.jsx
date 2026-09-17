@@ -15,6 +15,17 @@ function geoErrorMessage(error) {
   return "位置情報を取得できませんでした。";
 }
 
+function distanceMeters(a, b) {
+  if (!a || !b) return Infinity;
+  const toRad = value => value * Math.PI / 180;
+  const dLat = toRad(b.lat - a.lat);
+  const dLng = toRad(b.lng - a.lng);
+  const lat1 = toRad(a.lat);
+  const lat2 = toRad(b.lat);
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
+  return 6371000 * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
+}
+
 export default function TravelMode({ plan, onClose, onPersist }) {
   const today = todayLocal();
   const initialDayIndex = Math.max(0, plan.days.findIndex(day => day.date === today));
@@ -25,10 +36,16 @@ export default function TravelMode({ plan, onClose, onPersist }) {
   const [extraOpen, setExtraOpen] = useState(false);
   const [extraName, setExtraName] = useState("");
   const [extraMemo, setExtraMemo] = useState("");
+  const [nearbyPlaces, setNearbyPlaces] = useState([]);
+  const [nearbyState, setNearbyState] = useState("idle");
+  const [nearbyMessage, setNearbyMessage] = useState("");
   const watchId = useRef(null);
+  const lastNearbySearch = useRef({ at: 0, position: null });
+  const nearbyAbort = useRef(null);
 
   useEffect(() => () => {
     if (watchId.current !== null && navigator.geolocation) navigator.geolocation.clearWatch(watchId.current);
+    nearbyAbort.current?.abort();
   }, []);
 
   const day = plan.days[dayIndex] || { id: "", date: "", items: [], extraStops: [] };
@@ -43,6 +60,32 @@ export default function TravelMode({ plan, onClose, onPersist }) {
     onPersist({ ...plan, days, updatedAt: new Date().toISOString() });
   };
 
+  async function searchNearby(currentPosition, { force = false } = {}) {
+    if (!currentPosition) return;
+    const last = lastNearbySearch.current;
+    const moved = distanceMeters(last.position, currentPosition);
+    if (!force && Date.now() - last.at < 120000 && moved < 80) return;
+    lastNearbySearch.current = { at: Date.now(), position: currentPosition };
+    nearbyAbort.current?.abort();
+    const controller = new AbortController();
+    nearbyAbort.current = controller;
+    setNearbyState("loading");
+    setNearbyMessage("近くのお店・スポットを探しています…");
+    try {
+      const response = await fetch(`/api/nearby-places?lat=${encodeURIComponent(currentPosition.lat)}&lng=${encodeURIComponent(currentPosition.lng)}`, { signal: controller.signal });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || "周辺スポットを取得できませんでした。");
+      const places = Array.isArray(data.places) ? data.places : [];
+      setNearbyPlaces(places);
+      setNearbyState("ready");
+      setNearbyMessage(places.length ? "現在地の近くにある候補です。実際に立ち寄った場所だけ記録してください。" : "近くに候補が見つかりませんでした。");
+    } catch (error) {
+      if (error.name === "AbortError") return;
+      setNearbyState("error");
+      setNearbyMessage(error.message || "周辺スポットを取得できませんでした。");
+    }
+  }
+
   function startLocation() {
     if (!navigator.geolocation) {
       setLocationState("error");
@@ -54,9 +97,11 @@ export default function TravelMode({ plan, onClose, onPersist }) {
     setLocationMessage("現在地を取得しています…");
     watchId.current = navigator.geolocation.watchPosition(
       ({ coords, timestamp }) => {
-        setPosition({ lat: coords.latitude, lng: coords.longitude, accuracy: coords.accuracy, timestamp });
+        const nextPosition = { lat: coords.latitude, lng: coords.longitude, accuracy: coords.accuracy, timestamp };
+        setPosition(nextPosition);
         setLocationState("ready");
         setLocationMessage(coords.accuracy >= 150 ? "現在地を取得しました。精度が低い可能性があります。" : "現在地を取得しました。");
+        searchNearby(nextPosition);
       },
       error => {
         setLocationState("error");
@@ -69,8 +114,12 @@ export default function TravelMode({ plan, onClose, onPersist }) {
   function stopLocation() {
     if (watchId.current !== null && navigator.geolocation) navigator.geolocation.clearWatch(watchId.current);
     watchId.current = null;
+    nearbyAbort.current?.abort();
     setLocationState("idle");
     setLocationMessage("位置情報を停止しました。");
+    setNearbyState("idle");
+    setNearbyMessage("");
+    setNearbyPlaces([]);
   }
 
   function completeItem(item) {
@@ -96,6 +145,29 @@ export default function TravelMode({ plan, onClose, onPersist }) {
         checkinAccuracy: position.accuracy,
       } : value),
     }));
+  }
+
+  function saveSuggestedPlace(place) {
+    if (!window.confirm(`「${place.name}」に立ち寄った記録を保存しますか？`)) return;
+    const existing = (day.extraStops || []).some(stop => stop.placeId && stop.placeId === place.id);
+    if (existing) {
+      setNearbyMessage("この場所はすでに立ち寄り記録へ保存されています。");
+      return;
+    }
+    const stop = {
+      id: newId(),
+      name: place.name,
+      memo: place.address || "",
+      visitedAt: new Date().toISOString(),
+      lat: position?.lat ?? place.lat ?? null,
+      lng: position?.lng ?? place.lng ?? null,
+      accuracy: position?.accuracy ?? null,
+      placeId: place.id,
+      placeName: place.name,
+      placeSource: "geoapify",
+    };
+    persistDay(current => ({ ...current, extraStops: [...(current.extraStops || []), stop] }));
+    setNearbyMessage(`✓ ${place.name} を立ち寄り記録に保存しました。`);
   }
 
   function addExtraStop(event) {
@@ -133,12 +205,22 @@ export default function TravelMode({ plan, onClose, onPersist }) {
     </header>
 
     <section className="travel-location" aria-labelledby="location-title">
-      <div><h2 id="location-title">現在地チェックイン</h2><p>旅行中の現在地を使って、訪れた場所と到着時刻をこの端末の旅行計画に記録できます。位置情報は外部サーバーへ送信しません。</p></div>
+      <div><h2 id="location-title">現在地チェックイン</h2><p>旅行中の現在地を使って、訪れた場所と到着時刻をこの端末の旅行計画に記録できます。位置情報を有効にすると、近くのお店や観光スポットも自動で候補表示します。</p></div>
       <div className="travel-location-actions">
-        {watchId.current === null ? <button type="button" className="travel-primary" onClick={startLocation}>位置情報を使う</button> : <button type="button" onClick={stopLocation}>位置情報を停止</button>}
+        {watchId.current === null ? <button type="button" className="travel-primary" onClick={startLocation}>位置情報を使う</button> : <><button type="button" onClick={stopLocation}>位置情報を停止</button><button type="button" onClick={() => searchNearby(position, { force: true })} disabled={!position || nearbyState === "loading"}>近くを再検索</button></>}
       </div>
       <p className={`travel-location-status ${locationState}`} role="status">{locationMessage || "位置情報はまだ使用していません。"}</p>
     </section>
+
+    {watchId.current !== null && <section className="travel-nearby" aria-labelledby="nearby-title">
+      <div className="travel-nearby-heading"><div><p className="section-kicker">NEARBY</p><h2 id="nearby-title">この場所に立ち寄りましたか？</h2></div>{nearbyState === "loading" && <span>検索中…</span>}</div>
+      <p className={`travel-nearby-status ${nearbyState}`} role="status">{nearbyMessage || "現在地が取れると周辺候補を表示します。"}</p>
+      {nearbyPlaces.length > 0 && <div className="travel-nearby-list">{nearbyPlaces.map(place => <article key={place.id} className="travel-nearby-card">
+        <div><h3>{place.name}</h3><p>{place.distance !== null ? `現在地から約${place.distance}m` : "現在地の近く"}</p>{place.address && <small>{place.address}</small>}</div>
+        <button type="button" className="travel-primary" onClick={() => saveSuggestedPlace(place)}>立ち寄った</button>
+      </article>)}</div>}
+      <p className="travel-nearby-note">候補は現在地周辺のデータから表示しています。GPSや店舗データの誤差があるため、自動では保存せず確認後に記録します。</p>
+    </section>}
 
     {plan.days.length > 1 && <nav className="travel-day-tabs" aria-label="旅行日を選択">
       {plan.days.map((value, index) => <button type="button" key={value.id} className={index === dayIndex ? "active" : ""} onClick={() => setDayIndex(index)}>{index + 1}日目{value.date === today ? "・今日" : ""}</button>)}
@@ -181,7 +263,7 @@ export default function TravelMode({ plan, onClose, onPersist }) {
         <label>メモ<textarea rows={3} maxLength={1000} value={extraMemo} onChange={event => setExtraMemo(event.target.value)} /></label>
         <div className="travel-event-actions"><button className="travel-primary" type="submit">立ち寄りを保存</button><button type="button" onClick={() => setExtraOpen(false)}>キャンセル</button></div>
       </form>}
-      {(day.extraStops || []).length > 0 && <ul className="travel-extra-list">{day.extraStops.map(stop => <li key={stop.id}><strong>{stop.name}</strong><span>{formatTime(stop.visitedAt)}</span>{stop.memo && <p>{stop.memo}</p>}{stop.lat !== null && <small>位置情報付きで保存済み</small>}</li>)}</ul>}
+      {(day.extraStops || []).length > 0 && <ul className="travel-extra-list">{day.extraStops.map(stop => <li key={stop.id}><strong>{stop.name}</strong><span>{formatTime(stop.visitedAt)}</span>{stop.memo && <p>{stop.memo}</p>}{stop.lat !== null && <small>位置情報付きで保存済み{stop.placeSource === "geoapify" ? "・周辺候補から追加" : ""}</small>}</li>)}</ul>}
     </section>
   </section>;
 }
