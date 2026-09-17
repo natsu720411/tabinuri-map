@@ -14,17 +14,17 @@
     <meta name="theme-color" content="#f8f9f5" />
     <link rel="icon" type="image/png" href="/favicon.png?v=2" />
     <link rel="apple-touch-icon" href="/favicon.png" />
-    <meta name="description" content="旅図帳の旅行計画・記録・写真・位置情報のブラウザ内保存、AI旅程生成、しおり共有とアクセス解析についてご案内します。" />
+    <meta name="description" content="旅図帳の旅行計画・記録・写真のブラウザ内保存、AI旅程生成、位置情報による周辺スポット検索、しおり共有とアクセス解析についてご案内します。" />
     <title>プライバシーポリシー｜旅図帳</title>
     <link rel="canonical" href="https://tabinuri-map.vercel.app/privacy.html" />
     <meta property="og:title" content="プライバシーポリシー｜旅図帳" />
-    <meta property="og:description" content="旅図帳の旅行計画・記録・写真・位置情報のブラウザ内保存、AI旅程生成、しおり共有とアクセス解析についてご案内します。" />
+    <meta property="og:description" content="旅図帳の旅行計画・記録・写真のブラウザ内保存、AI旅程生成、位置情報による周辺スポット検索、しおり共有とアクセス解析についてご案内します。" />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://tabinuri-map.vercel.app/privacy.html" />
     <meta property="og:image" content="https://tabinuri-map.vercel.app/og-image.png" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="プライバシーポリシー｜旅図帳" />
-    <meta name="twitter:description" content="旅図帳の旅行計画・記録・写真・位置情報のブラウザ内保存、AI旅程生成、しおり共有とアクセス解析についてご案内します。" />
+    <meta name="twitter:description" content="旅図帳の旅行計画・記録・写真のブラウザ内保存、AI旅程生成、位置情報による周辺スポット検索、しおり共有とアクセス解析についてご案内します。" />
     <meta name="twitter:image" content="https://tabinuri-map.vercel.app/og-image.png" />
     <style>
       * { box-sizing: border-box; }
@@ -50,11 +50,11 @@
       <article aria-labelledby="privacy-title">
         <p class="kicker">PRIVACY POLICY</p>
         <h1 id="privacy-title">プライバシーポリシー</h1>
-        <p>旅図帳では、旅行計画・旅行記録・写真・旅行中の位置情報の保存、AI旅程生成、しおり共有とアクセス解析の現在の仕組みを以下のとおりご案内します。</p>
+        <p>旅図帳では、旅行計画・旅行記録・写真の保存、AI旅程生成、旅行中の位置情報機能、しおり共有とアクセス解析の現在の仕組みを以下のとおりご案内します。</p>
         <section aria-labelledby="records-title">
           <h2 id="records-title">旅行記録の保存について</h2>
           <p>都道府県の訪問状態、訪問日、思い出の文章、お気に入り・お気に入り度、行きたい県、旅の詳細などは、お使いのブラウザの保存領域（localStorage）に保存されます。旅行計画も、旅行記録とは別の保存キーで同じブラウザ内に保存されます。</p>
-          <p>通常の保存操作では、これらを旅図帳のサーバーへ送信・保存しません。端末・ブラウザ間の自動同期はありません。AI作成や共有を選んだ場合の情報の扱いは、以下の項目をご確認ください。</p>
+          <p>通常の保存操作では、これらを旅図帳のサーバーへ送信・保存しません。端末・ブラウザ間の自動同期はありません。AI作成、位置情報による周辺検索、共有を選んだ場合の情報の扱いは、以下の項目をご確認ください。</p>
         </section>
         <section aria-labelledby="photos-title">
           <h2 id="photos-title">写真の保存について</h2>
@@ -65,6 +65,13 @@
           <h2 id="ai-plans-title">AIによる旅行計画の作成</h2>
           <p>旅行計画はブラウザ内に保存されます。「AIで作成」を押した場合のみ、入力中の旅行タイトル・行き先・日程・人数・同行者・予算・各メモと選択した雰囲気・ペースを、旅図帳のサーバー経由でGoogle Geminiへ送信し、旅程作成に使用します。写真や他の旅行記録は送信しません。</p>
           <p>AIの結果はプレビューで確認し、適用した後も未保存の状態です。「計画を保存」など、旅行計画の保存操作でブラウザへ確定保存されます。情報の取り扱いは<a href="https://policies.google.com/privacy?hl=ja">Googleのプライバシーポリシー</a>もご確認ください。</p>
+        </section>
+        <section aria-labelledby="location-title">
+          <h2 id="location-title">旅行中モードの位置情報と周辺スポット検索</h2>
+          <p>旅行中モードでは、利用者が「位置情報を使う」を押してブラウザの許可を与えた場合のみ、端末の現在地を取得します。位置情報を有効にしている間は、現在地の変化を取得し、予定へのチェックインや予定外の立ち寄り記録に利用できます。</p>
+          <p>手動のチェックインや立ち寄り記録へ保存した緯度・経度・位置精度・時刻は、その端末の旅行計画としてlocalStorageに保存されます。これらの保存済み位置情報をGoogle Analyticsへ送信する処理は実装していません。</p>
+          <p>近くのお店・観光スポットを候補表示するため、位置情報を有効にしている間は、現在の緯度・経度を旅図帳のサーバー経由でGeoapify Places APIへ送信します。検索結果として取得した施設名・住所・距離・Geoapifyのplace IDなどを画面に表示し、利用者が「立ち寄った」と確認した場合のみ、その候補を旅行計画へ保存します。候補は自動では訪問記録になりません。</p>
+          <p>周辺検索はAPI利用量とプライバシーに配慮し、位置情報を取得するたびに毎回送信するのではなく、一定時間が経過した場合や一定距離を移動した場合などに限定して実行します。「位置情報を停止」または旅行中モードを閉じると、ブラウザの位置情報監視を停止します。Geoapifyでの情報の取り扱いは<a href="https://www.geoapify.com/privacy-policy/">Geoapifyのプライバシーポリシー</a>もご確認ください。</p>
         </section>
         <section aria-labelledby="sharing-title">
           <h2 id="sharing-title">旅のしおりの共有について</h2>
@@ -79,16 +86,10 @@
           <p>二重コピーを防ぐため、共有内容から作るハッシュ値をコピーした計画とともに保存します。共有URL全体を旅行計画に保存することはありません。コピー先の編集は元の共有URLや送信者のデータには反映されず、コピーだけで訪問済みや思い出に追加されることもありません。</p>
           <p>旅マップの画像共有はしおり共有とは別の機能です。共有画像へ追加した写真は画像作成用にブラウザ内で扱い、既存の旅行写真としては保存しません。生成した画像や共有文は、利用者が選んだ共有先へ渡されます。</p>
         </section>
-        <section aria-labelledby="location-title">
-          <h2 id="location-title">旅行中モードの位置情報について</h2>
-          <p>旅行中モードでは、利用者が「位置情報を使う」を押して端末・ブラウザで許可した場合のみ、ブラウザの位置情報機能を利用します。ページを開いただけで位置情報の許可を求めることはありません。</p>
-          <p>チェックインや予定外の立ち寄りを位置情報付きで保存した場合、緯度・経度・位置精度・到着時刻などを旅行計画の一部として、そのブラウザのlocalStorageへ保存します。現在地を継続取得している間の位置情報を、旅図帳のサーバー、Google Gemini、Google Analyticsその他の外部サービスへ送信する処理は実装していません。</p>
-          <p>「位置情報を停止」を押すか旅行中モードを閉じると、継続的な現在地取得を停止します。位置情報の精度は端末や環境によって異なります。ブラウザのサイトデータを削除すると、保存したチェックイン情報も失われる場合があります。</p>
-        </section>
         <section aria-labelledby="analytics-title">
           <h2 id="analytics-title">Google Analyticsによるアクセス解析</h2>
           <p>旅図帳はGoogle Analytics 4を利用し、ページの閲覧や利用端末・ブラウザなどのアクセス情報を収集しています。収集した情報は、サイトの改善や利用状況の分析に利用します。</p>
-          <p>Google AnalyticsではCookie等が利用される場合があり、アクセス情報はGoogleへ送信されます。旅行記録・写真のブラウザ内保存とは別の仕組みです。現在のアプリには、保存した旅行記録の本文・写真データ・旅行中モードで取得した緯度経度をGoogle Analyticsに送信する処理は実装していません。</p>
+          <p>Google AnalyticsではCookie等が利用される場合があり、アクセス情報はGoogleへ送信されます。旅行記録・写真のブラウザ内保存とは別の仕組みです。現在のアプリには、保存した旅行記録の本文や写真データ、旅行中モードで保存した緯度・経度をGoogle Analyticsへ送信する処理は実装していません。</p>
           <p>共有しおり画面では、共有URLの内容をアクセス解析へ渡さないようGoogle Analyticsを読み込みません。通常の旅図帳画面へ移動した後は、通常のアクセス解析が適用されます。</p>
           <p>Googleによる情報の取り扱いは、<a href="https://policies.google.com/privacy?hl=ja">Googleのプライバシーポリシー</a>と<a href="https://support.google.com/analytics/answer/6004245?hl=ja">Google Analyticsのデータ保護に関する説明</a>をご確認ください。</p>
         </section>
@@ -96,7 +97,7 @@
           <h2 id="changes-title">本ポリシーの変更</h2>
           <p>サービス内容の変更に伴い本ポリシーを変更する場合があります。変更後の内容は、このページに掲載します。</p>
         </section>
-        <p>制定日：2026年9月14日<br />最終更新日：2026年9月18日</p>
+        <p>制定日：2026年9月14日</p>
       </article>
     </main>
     <footer><nav aria-label="サイト情報"><a href="/privacy.html">プライバシーポリシー</a><a href="/contact.html">お問い合わせ</a><a href="/about.html">運営者情報</a></nav><a href="/">旅図帳の地図に戻る</a></footer>
