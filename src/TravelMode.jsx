@@ -75,6 +75,7 @@ export default function TravelMode({ plan, onClose, onPersist, onFinish, onOpenM
   const [finishMessage, setFinishMessage] = useState("");
   const [finishedPlan, setFinishedPlan] = useState(null);
   const [scheduleMessage, setScheduleMessage] = useState("");
+  const [scheduleUndo, setScheduleUndo] = useState(null);
   const [clockNow, setClockNow] = useState(() => Date.now());
   const watchId = useRef(null);
   const lastNearbySearch = useRef({ at: 0, position: null });
@@ -168,6 +169,7 @@ export default function TravelMode({ plan, onClose, onPersist, onFinish, onOpenM
       return;
     }
     if (!window.confirm(`未完了の予定をすべて${minutes}分後ろへずらしますか？`)) return;
+    const originalTimes = Object.fromEntries(remaining.map(item => [item.id, item.time]));
     persistDay(current => ({
       ...current,
       items: current.items.map(item => {
@@ -176,7 +178,18 @@ export default function TravelMode({ plan, onClose, onPersist, onFinish, onOpenM
         return shifted ? { ...item, time: shifted } : item;
       }),
     }));
+    setScheduleUndo({ dayId: day.id, times: originalTimes });
     setScheduleMessage(`✓ この後の予定を${minutes}分後ろへずらしました。`);
+  }
+
+  function undoScheduleShift() {
+    if (!scheduleUndo || scheduleUndo.dayId !== day.id) return;
+    persistDay(current => ({
+      ...current,
+      items: current.items.map(item => Object.hasOwn(scheduleUndo.times, item.id) ? { ...item, time: scheduleUndo.times[item.id] } : item),
+    }));
+    setScheduleUndo(null);
+    setScheduleMessage("↶ 予定時刻をずらす前の状態に戻しました。");
   }
 
   async function searchNearby(currentPosition, { force = false } = {}) {
@@ -492,6 +505,7 @@ export default function TravelMode({ plan, onClose, onPersist, onFinish, onOpenM
       <p className="section-kicker">NEXT</p>
       {nextItem ? <><h2 id="next-title">次の予定</h2><div className="travel-next-card"><time>{nextItem.time || "時刻未定"}</time><strong>{nextItem.name}</strong>{nextTiming && <span className={`travel-next-timing ${nextTiming.kind}`}>{nextTiming.text}</span>}{nextTiming?.kind === "late" && nextTiming.minutes >= 5 && <button type="button" className="travel-delay-button" onClick={() => delayRemainingItems(nextTiming.minutes)}>この後の予定を +{nextTiming.minutes}分ずらす</button>}{nextItem.memo && <p>{nextItem.memo}</p>}{googleMapsRouteForItem(nextItem) ? <a className="travel-route-link" href={googleMapsRouteForItem(nextItem)} target="_blank" rel="noopener noreferrer">Googleマップで経路を確認 ↗</a> : googleMapsNavigationForItem(nextItem) && <a className="travel-route-link" href={googleMapsNavigationForItem(nextItem)} target="_blank" rel="noopener noreferrer">現在地からナビ ↗</a>}</div>
         {scheduleMessage && <p className="travel-schedule-message" role="status">{scheduleMessage}</p>}
+        {scheduleUndo?.dayId === day.id && <button type="button" className="travel-schedule-undo" onClick={undoScheduleShift}>↶ 時刻変更を元に戻す</button>}
         {day.items[nextIndex + 1] && <p className="travel-after-next">その次：{day.items[nextIndex + 1].time || "時刻未定"} {day.items[nextIndex + 1].name}</p>}</> : <><h2 id="next-title">今日の予定はすべて完了しました 🎉</h2><p>おつかれさまでした。予定外の立ち寄りも記録できます。</p></>}
     </section>
 

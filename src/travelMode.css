@@ -4,3 +4,5 @@
 .travel-next-timing{grid-column:1/-1;display:inline-flex;width:max-content;max-width:100%;padding:5px 10px;border-radius:999px;font-size:13px;font-weight:800}.travel-next-timing.ahead{background:#e9f3eb;color:#356449}.travel-next-timing.now{background:#fff4d8;color:#765c14}.travel-next-timing.late{background:#fff0ed;color:#9a3f35}@media(max-width:600px){.travel-next-timing{width:auto;justify-content:center}}
 
 .travel-delay-button{grid-column:1/-1;width:max-content;max-width:100%;min-height:40px!important;padding:7px 11px!important;border-style:dashed!important;color:#9a3f35!important;background:#fff8f6!important;font-size:13px!important}.travel-schedule-message{margin:10px 0 0!important;color:#356449!important;font-size:13px!important;font-weight:700}@media(max-width:600px){.travel-delay-button{width:100%}}
+
+.travel-schedule-undo{margin-top:8px;min-height:40px!important;padding:7px 11px!important;border-style:dashed!important;background:transparent!important;color:#527f61!important;font-size:13px!important}@media(max-width:600px){.travel-schedule-undo{width:100%}}
