@@ -57,8 +57,8 @@ export default function TripAI({ plan, blocked, onApply, onClose }) {
     {ready === null && <p role="status">AIの利用可否を確認中…</p>}
     {ready === false && <div><p role="alert" className="trip-error">{PREPARING}</p><button type="button" onClick={() => { setError(""); setReadinessAttempt(value => value + 1); }}>接続・設定を再確認</button></div>}
     {!result && <><p>行き先・日程・出発地点・最終到着地点をもとに、1〜14日間の旅程を考えます。</p>
-      <p><strong>{plan.departureLocation || "出発地点未入力"} → {prefectureNameForAI(plan.prefectureId)} → {plan.returnLocation || "最終到着地点未入力"}</strong><br />電車・バス・徒歩などの移動も、駅名・路線・乗換・おおよその所要時間までできるだけ細かく入れます。</p>
-      <p className="trip-ai-disclosure">「AIで作成」を押すと、出発地点・最終到着地点を含む入力中の計画情報を旅図帳のサーバー経由でGoogle Geminiへ送信します。写真や他の旅行記録は送りません。</p>
+      <p><strong>{plan.departureLocation || "出発地点未入力"}{plan.departureTime ? `（${plan.departureTime}ごろ出発）` : ""} → {prefectureNameForAI(plan.prefectureId)} → {plan.returnLocation || "最終到着地点未入力"}{plan.returnTime ? `（${plan.returnTime}までに到着）` : ""}</strong><br />電車・バス・徒歩などの移動も、駅名・路線・乗換・おおよその所要時間までできるだけ細かく入れます。</p>
+      <p className="trip-ai-disclosure">「AIで作成」を押すと、出発地点・出発希望時刻・最終到着地点・最終到着希望時刻を含む入力中の計画情報を旅図帳のサーバー経由でGoogle Geminiへ送信します。写真や他の旅行記録は送りません。</p>
       <div className="trip-fields"><label>旅行の雰囲気<select autoFocus disabled={busy} value={mood} onChange={e => setMood(e.target.value)}>{MOODS.map(value => <option key={value}>{value}</option>)}</select></label>
         <label>旅行ペース<select disabled={busy} value={pace} onChange={e => setPace(e.target.value)}>{PACES.map(value => <option key={value}>{value}</option>)}</select></label></div>
       <p>現在の予定は、プレビューで確認して「この旅程を使う」を押した場合だけ置き換わります。</p></>}
