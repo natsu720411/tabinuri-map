@@ -2,6 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://tabinuri-map.vercel.app/</loc>
+    <lastmod>2026-09-19</lastmod>
   </url>
   <url>
     <loc>https://tabinuri-map.vercel.app/privacy.html</loc>
@@ -14,14 +15,18 @@
   </url>
   <url>
     <loc>https://tabinuri-map.vercel.app/how-to-use.html</loc>
+    <lastmod>2026-09-19</lastmod>
   </url>
   <url>
     <loc>https://tabinuri-map.vercel.app/japan-map.html</loc>
+    <lastmod>2026-09-19</lastmod>
   </url>
   <url>
     <loc>https://tabinuri-map.vercel.app/prefecture-check.html</loc>
+    <lastmod>2026-09-19</lastmod>
   </url>
   <url>
     <loc>https://tabinuri-map.vercel.app/travel-record.html</loc>
+    <lastmod>2026-09-19</lastmod>
   </url>
 </urlset>

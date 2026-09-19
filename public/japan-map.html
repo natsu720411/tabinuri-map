@@ -2,26 +2,75 @@
 <html lang="ja">
   <head>
     <meta charset="UTF-8" />
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-TLPNKXBB7T"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-TLPNKXBB7T');
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#f8f9f5" />
     <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="apple-touch-icon" href="/favicon.png" />
     <meta
       name="description"
-      content="日本地図で行った都道府県をチェックし、塗りつぶして旅行記録を残せる無料ツール「旅図帳」。写真・訪問日・思い出や行きたい県も保存できます。インストール不要で、スマホやPCのブラウザから使えます。"
+      content="行った都道府県を日本地図で塗りつぶして旅行記録を残せる無料ツール「旅図帳」。47都道府県の訪問状況、写真、訪問日、思い出、行きたい県をスマホやPCで記録できます。会員登録・インストール不要。"
     />
-    <title>日本地図で行った都道府県を塗りつぶす無料ツール｜旅図帳</title>
+    <title>日本地図を塗りつぶして旅行記録｜行った都道府県がわかる無料ツール・旅図帳</title>
     <link rel="canonical" href="https://tabinuri-map.vercel.app/japan-map.html" />
-    <meta property="og:title" content="日本地図で行った都道府県を塗りつぶす無料ツール｜旅図帳" />
-    <meta property="og:description" content="日本地図で行った都道府県をチェックし、塗りつぶして旅行記録を残せる無料ツール「旅図帳」。写真・訪問日・思い出や行きたい県も保存できます。インストール不要で、スマホやPCのブラウザから使えます。" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
+    <meta property="og:title" content="日本地図を塗りつぶして旅行記録｜行った都道府県がわかる無料ツール・旅図帳" />
+    <meta property="og:site_name" content="旅図帳" />
+    <meta property="og:locale" content="ja_JP" />
+    <meta property="og:description" content="行った都道府県を日本地図で塗りつぶして旅行記録を残せる無料ツール「旅図帳」。47都道府県の訪問状況、写真、訪問日、思い出、行きたい県をスマホやPCで記録できます。会員登録・インストール不要。" />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://tabinuri-map.vercel.app/japan-map.html" />
     <!-- 共有画像は public/og-image.png に配置・差し替えできます。 -->
     <meta property="og:image" content="https://tabinuri-map.vercel.app/og-image.png" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="日本地図で行った都道府県を塗りつぶす無料ツール｜旅図帳" />
-    <meta name="twitter:description" content="日本地図で行った都道府県をチェックし、塗りつぶして旅行記録を残せる無料ツール「旅図帳」。写真・訪問日・思い出や行きたい県も保存できます。インストール不要で、スマホやPCのブラウザから使えます。" />
+    <meta name="twitter:title" content="日本地図を塗りつぶして旅行記録｜行った都道府県がわかる無料ツール・旅図帳" />
+    <meta name="twitter:description" content="行った都道府県を日本地図で塗りつぶして旅行記録を残せる無料ツール「旅図帳」。47都道府県の訪問状況、写真、訪問日、思い出、行きたい県をスマホやPCで記録できます。会員登録・インストール不要。" />
     <meta name="twitter:image" content="https://tabinuri-map.vercel.app/og-image.png" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "WebPage",
+            "@id": "https://tabinuri-map.vercel.app/japan-map.html#webpage",
+            "url": "https://tabinuri-map.vercel.app/japan-map.html",
+            "name": "日本地図を塗りつぶして旅行記録",
+            "description": "行った都道府県を日本地図で塗りつぶして旅行記録を残せる無料ツール「旅図帳」。47都道府県の訪問状況、写真、訪問日、思い出、行きたい県をスマホやPCで記録できます。会員登録・インストール不要。",
+            "isPartOf": {
+              "@type": "WebSite",
+              "name": "旅図帳",
+              "url": "https://tabinuri-map.vercel.app/"
+            },
+            "inLanguage": "ja"
+          },
+          {
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+              {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "旅図帳",
+                "item": "https://tabinuri-map.vercel.app/"
+              },
+              {
+                "@type": "ListItem",
+                "position": 2,
+                "name": "日本地図を塗りつぶして旅行記録",
+                "item": "https://tabinuri-map.vercel.app/japan-map.html"
+              }
+            ]
+          }
+        ]
+      }
+    </script>
+
   
     <style>
       * { box-sizing: border-box; }
@@ -44,6 +93,12 @@
       ul, ol { padding-left: 24px; }
       li { margin: 10px 0; }
       h3 { margin: 24px 0 8px; font-size: 17px; color: #427859; }
+      .related { margin-top: 32px; padding-top: 24px; border-top: 1px solid #e2e8df; }
+      .related-links { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; padding: 0; list-style: none; }
+      .related-links li { margin: 0; }
+      .related-links a { display: block; height: 100%; padding: 14px; border: 1px solid #dfe7dc; border-radius: 12px; background: #f8faf7; text-decoration: none; font-weight: 700; }
+      .related-links small { display: block; margin-top: 4px; color: #65766b; font-weight: 400; line-height: 1.6; }
+      @media (max-width: 600px) { .related-links { grid-template-columns: 1fr; } }
     </style>
   </head>
   <body>
@@ -52,7 +107,7 @@
       <article aria-labelledby="map-title">
         <p class="kicker">JAPAN MAP</p>
         <h1 id="map-title">日本地図で行った都道府県を塗りつぶす無料ツール</h1>
-        <p>これまでに行った都道府県を、いくつ思い出せますか。旅図帳（たびずちょう）は、日本地図の塗りつぶしで訪問先を見渡せる無料の旅行記録ツールです。旅の回数に関係なく、覚えている場所から自分だけの地図を作れます。</p>
+        <p>これまでに行った都道府県を、いくつ思い出せますか。旅図帳（たびずちょう）は、行った都道府県を日本地図で塗りつぶし、自分だけの旅行記録マップを作れる無料のWebサービスです。47都道府県の訪問状況を見ながら、写真・訪問日・思い出や「行きたい県」も一緒に残せます。</p>
         <p><a class="cta" href="/">旅図帳を使ってみる</a></p>
         <section>
           <h2>行った都道府県をチェックして、旅の広がりを見る</h2>
@@ -75,7 +130,15 @@
         </section>
         <p><a class="cta" href="/">旅図帳を使ってみる</a></p>
         <p><a href="/how-to-use.html">使い方を見る</a></p>
-        <p>写真や文章の残し方は、<a href="/travel-record.html">旅行の思い出を写真付きで記録する</a>ページでも紹介しています。</p>
+        <section class="related" aria-labelledby="related-title">
+          <h2 id="related-title">目的に合わせて旅図帳を使う</h2>
+          <ul class="related-links">
+            <li><a href="/prefecture-check.html">行った都道府県をチェックする<small>47都道府県の訪問済み・未訪問を整理したい方へ</small></a></li>
+            <li><a href="/travel-record.html">旅行の思い出を写真付きで記録する<small>写真・旅ログ・訪問日を残して振り返りたい方へ</small></a></li>
+            <li><a href="/how-to-use.html">旅図帳の詳しい使い方<small>旅行計画から旅行中モード、旅行後の保存まで</small></a></li>
+            <li><a href="/">旅図帳を今すぐ使う<small>日本地図から最初の旅行記録を始める</small></a></li>
+          </ul>
+        </section>
       </article>
     </main>
     <footer><nav aria-label="サイト情報"><a href="/privacy.html">プライバシーポリシー</a><a href="/contact.html">お問い合わせ</a><a href="/about.html">運営者情報</a></nav><a href="/">旅図帳の地図に戻る</a></footer>
