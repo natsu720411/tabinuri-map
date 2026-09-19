@@ -210,6 +210,7 @@ function MemoryPanel({ prefecture, record, onSave, onClose, readError }) {
                 dayLabel={logDay.label || `${dayIndex + 1}日目の旅ログ`}
                 dayDate={logDay.date}
                 entries={logDay.entries}
+                planId={log.id}
               />
             </div>
           </section>)}</div>
