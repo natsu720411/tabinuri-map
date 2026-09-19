@@ -26,6 +26,26 @@ function distanceMeters(a, b) {
   return 6371000 * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
 }
 
+function normalizePlaceName(value) {
+  return String(value || "")
+    .normalize("NFKC")
+    .toLowerCase()
+    .replace(/[（）()【】\[\]「」『』・･.,，。/\\\s\-_]/g, "")
+    .replace(/(?:を|で|に|へ)?(?:散策|観光|見学|訪問|参拝|食事|ランチ|昼食|ディナー|夕食|休憩|買い物|ショッピング|宿泊|チェックイン|到着|行く|いく)$/g, "");
+}
+
+function likelySamePlace(plannedName, nearbyName) {
+  const planned = normalizePlaceName(plannedName);
+  const nearby = normalizePlaceName(nearbyName);
+  if (planned.length < 2 || nearby.length < 2) return false;
+  if (planned.includes(nearby) || nearby.includes(planned)) return true;
+
+  const trimBranch = value => value.replace(/(?:本店|支店|駅前店|店)$/g, "");
+  const a = trimBranch(planned);
+  const b = trimBranch(nearby);
+  return a.length >= 3 && b.length >= 3 && (a.includes(b) || b.includes(a));
+}
+
 export default function TravelMode({ plan, onClose, onPersist }) {
   const today = todayLocal();
   const initialDayIndex = Math.max(0, plan.days.findIndex(day => day.date === today));
@@ -54,6 +74,20 @@ export default function TravelMode({ plan, onClose, onPersist }) {
   const nextIndex = nextItem ? day.items.indexOf(nextItem) : -1;
   const dayLabel = day.date === today ? "今日" : day.date || `${dayIndex + 1}日目`;
   const progress = day.items.length ? Math.round((completedCount / day.items.length) * 100) : 0;
+
+  const plannedArrival = useMemo(() => {
+    const matches = [];
+    day.items.forEach((item, itemIndex) => {
+      if (item.completedAt || item.checkedInAt || !item.name?.trim()) return;
+      nearbyPlaces.forEach(place => {
+        if (place.distance === null || place.distance > 350) return;
+        if (!likelySamePlace(item.name, place.name)) return;
+        matches.push({ item, itemIndex, place });
+      });
+    });
+    matches.sort((a, b) => (a.place.distance ?? Infinity) - (b.place.distance ?? Infinity) || a.itemIndex - b.itemIndex);
+    return matches[0] || null;
+  }, [day.items, nearbyPlaces]);
 
   const persistDay = (transform) => {
     const days = plan.days.map((value, index) => index === dayIndex ? transform(value) : value);
@@ -211,6 +245,13 @@ export default function TravelMode({ plan, onClose, onPersist }) {
       </div>
       <p className={`travel-location-status ${locationState}`} role="status">{locationMessage || "位置情報はまだ使用していません。"}</p>
     </section>
+
+    {plannedArrival && <section className="travel-arrival" aria-labelledby="planned-arrival-title">
+      <p className="section-kicker">ARRIVAL</p>
+      <h2 id="planned-arrival-title">「{plannedArrival.item.name}」に到着しましたか？</h2>
+      <p>周辺データの「{plannedArrival.place.name}」が現在地から約{plannedArrival.place.distance}mです。実際に到着していれば記録できます。</p>
+      <button type="button" className="travel-primary" onClick={() => checkIn(plannedArrival.item)}>到着として記録</button>
+    </section>}
 
     {watchId.current !== null && <section className="travel-nearby" aria-labelledby="nearby-title">
       <div className="travel-nearby-heading"><div><p className="section-kicker">NEARBY</p><h2 id="nearby-title">この場所に立ち寄りましたか？</h2></div>{nearbyState === "loading" && <span>検索中…</span>}</div>
