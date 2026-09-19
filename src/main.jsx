@@ -1,6 +1,6 @@
 import TripPlans from "./TripPlans.jsx";
 import SharedTrip from "./SharedTrip.jsx";
-import { importedIds, mergeTripMemory } from "./tripMemory.js";
+import { importedIds, mergeTripMemory, normalizeTravelLogs } from "./tripMemory.js";
 import { getTravelAchievement } from "./achievement.js";
 import ShareTravel from "./ShareTravel.jsx";
 import React, { useEffect, useRef, useState } from "react";
@@ -51,7 +51,7 @@ function Icon({ name, ...props }) {
 const STORAGE_KEY = "tabinuri.prefectureMemories.v1";
 const LEGACY_KEY = "tabinuri.visitedPrefectures.v1";
 const validIds = new Set(prefectures.map(({ id }) => id));
-const emptyMemory = { visited: false, visitDate: "", memory: "", favorite: false, wantToVisit: false, rating: 0, companions: "", municipalities: "", foods: "", recommendedSpots: "", wantToVisitReason: "", wantToVisitPlaces: "" };
+const emptyMemory = { visited: false, visitDate: "", memory: "", favorite: false, wantToVisit: false, rating: 0, companions: "", municipalities: "", foods: "", recommendedSpots: "", wantToVisitReason: "", wantToVisitPlaces: "", travelLogs: [] };
 const PHOTO_DB = "tabinuri-photos-v1";
 const PHOTO_STORE = "photos";
 const MAX_PHOTOS = 5;
@@ -118,6 +118,7 @@ function readVisits() {
           recommendedSpots: typeof entry.recommendedSpots === "string" ? entry.recommendedSpots : "",
           wantToVisitReason: typeof entry.wantToVisitReason === "string" ? entry.wantToVisitReason : "",
           wantToVisitPlaces: typeof entry.wantToVisitPlaces === "string" ? entry.wantToVisitPlaces : "",
+          travelLogs: normalizeTravelLogs(entry.travelLogs),
         };
       }
     } else {
@@ -192,6 +193,19 @@ function MemoryPanel({ prefecture, record, onSave, onClose, readError }) {
         <label className={`photo-add${photoBusy || photos.length >= MAX_PHOTOS ? " disabled" : ""}`}><input type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple disabled={photoBusy || photos.length >= MAX_PHOTOS} onChange={addPhotos} />{photoBusy ? "保存中…" : photos.length >= MAX_PHOTOS ? "5枚保存済み" : "＋ 写真を追加"}</label>
         {photos.length > 0 && <div className="photo-grid">{photos.map(photo => <div className="photo-thumb" key={photo.id}><img src={URL.createObjectURL(photo.blob)} alt={`${prefecture.name}の思い出`} onClick={() => setPreview(photo)} /><button type="button" onClick={() => removePhoto(photo.id)} aria-label="この写真を削除">×</button></div>)}</div>}
       </div></div>
+
+      {draft.travelLogs?.length > 0 && <div className="panel-section travel-log-archive"><h3 className="panel-section-title">旅ログ</h3><p className="panel-note">旅行中モードで残したチェックイン・立ち寄りを時刻順で見返せます。</p>
+        <div className="travel-log-archive-list">{draft.travelLogs.map(log => <details key={log.id} className="travel-log-trip">
+          <summary><strong>{log.title || "旅行"}</strong><span>{log.startDate || "日程未定"}{log.endDate ? ` 〜 ${log.endDate}` : ""}</span></summary>
+          <div className="travel-log-trip-body">{log.days.map((logDay, dayIndex) => <section key={`${log.id}:${logDay.date}:${dayIndex}`} className="travel-log-day">
+            <h4>{logDay.date ? new Date(`${logDay.date}T00:00:00`).toLocaleDateString("ja-JP", { month: "long", day: "numeric" }) : logDay.label || `${dayIndex + 1}日目`}</h4>
+            <ol>{logDay.entries.map(entry => <li key={entry.id}>
+              <time dateTime={entry.at}>{entry.at ? new Date(entry.at).toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" }) : "--:--"}</time>
+              <div><strong>{entry.name}</strong><span>{entry.kind}</span>{entry.memo && <p>「{entry.memo}」</p>}{entry.photoCount > 0 && <small>📷 写真 {entry.photoCount}枚</small>}</div>
+            </li>)}</ol>
+          </section>)}</div>
+        </details>)}</div>
+      </div>}
   <details className="panel-section panel-collapsible"><summary className="panel-section-title">旅の詳細</summary>
   <label htmlFor="companions">一緒に行った人</label>
   <input id="companions" type="text" placeholder="家族、友達、一人旅など" value={draft.companions} onChange={event => setDraft(previous => ({ ...previous, companions: event.target.value }))} />
