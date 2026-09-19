@@ -1,4 +1,5 @@
 import React, { useMemo } from "react";
+import TravelSummaryShare from "./TravelSummaryShare.jsx";
 
 function formatTime(iso) {
   if (!iso) return "--:--";
@@ -96,6 +97,8 @@ export default function TravelSummary({ plan, onClose, onOpenMemory }) {
           </li>)}</ol>
         </section>)}</div>}
     </section>
+
+    <TravelSummaryShare plan={plan} summary={summary} />
 
     <div className="travel-summary-actions">
       <button type="button" className="travel-primary" onClick={onOpenMemory}>思い出を見る</button>
