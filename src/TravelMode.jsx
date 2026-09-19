@@ -98,6 +98,32 @@ export default function TravelMode({ plan, onClose, onPersist }) {
     return matches[0] || null;
   }, [day.items, nearbyPlaces]);
 
+  const travelLog = useMemo(() => {
+    const scheduled = day.items
+      .filter(item => item.checkedInAt || item.completedAt)
+      .map(item => ({
+        id: `item:${item.id}`,
+        name: item.name,
+        at: item.checkedInAt || item.completedAt,
+        kind: item.checkedInAt ? "チェックイン" : "完了",
+        memo: item.travelMemo || "",
+        photoCount: Math.max(0, Number(item.travelPhotoCount) || 0),
+      }));
+    const extras = (day.extraStops || [])
+      .filter(stop => stop.visitedAt)
+      .map(stop => ({
+        id: `stop:${stop.id}`,
+        name: stop.name,
+        at: stop.visitedAt,
+        kind: "立ち寄り",
+        memo: stop.travelMemo || "",
+        photoCount: Math.max(0, Number(stop.travelPhotoCount) || 0),
+      }));
+    return [...scheduled, ...extras].sort((a, b) => new Date(a.at).getTime() - new Date(b.at).getTime());
+  }, [day.items, day.extraStops]);
+
+  const travelLogTitle = day.date === today ? "今日の旅ログ" : `${dayLabel}の旅ログ`;
+
   const persistDay = (transform) => {
     const days = plan.days.map((value, index) => index === dayIndex ? transform(value) : value);
     onPersist({ ...plan, days, updatedAt: new Date().toISOString() });
@@ -389,6 +415,24 @@ export default function TravelMode({ plan, onClose, onPersist }) {
       <p className="section-kicker">NEXT</p>
       {nextItem ? <><h2 id="next-title">次の予定</h2><div className="travel-next-card"><time>{nextItem.time || "時刻未定"}</time><strong>{nextItem.name}</strong>{nextItem.memo && <p>{nextItem.memo}</p>}</div>
         {day.items[nextIndex + 1] && <p className="travel-after-next">その次：{day.items[nextIndex + 1].time || "時刻未定"} {day.items[nextIndex + 1].name}</p>}</> : <><h2 id="next-title">今日の予定はすべて完了しました 🎉</h2><p>おつかれさまでした。予定外の立ち寄りも記録できます。</p></>}
+    </section>
+
+    <section className="travel-log" aria-labelledby="travel-log-title">
+      <div className="travel-log-heading">
+        <div><p className="section-kicker">TRAVEL LOG</p><h2 id="travel-log-title">{travelLogTitle}</h2></div>
+        <strong>{travelLog.length}件</strong>
+      </div>
+      {travelLog.length === 0 ? <p className="travel-log-empty">まだ旅ログはありません。チェックインや立ち寄りを記録すると、ここに時刻順で追加されます。</p> : <ol className="travel-log-list">
+        {travelLog.map(entry => <li key={entry.id}>
+          <time dateTime={entry.at}>{formatTime(entry.at)}</time>
+          <div className="travel-log-dot" aria-hidden="true" />
+          <div className="travel-log-card">
+            <div className="travel-log-card-heading"><span>{entry.kind}</span><h3>{entry.name}</h3></div>
+            {entry.memo && <p>「{entry.memo}」</p>}
+            {entry.photoCount > 0 && <small>📷 写真 {entry.photoCount}枚</small>}
+          </div>
+        </li>)}
+      </ol>}
     </section>
 
     <ol className="travel-timeline">
