@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { newId, todayLocal } from "./tripPlans.js";
 import { MAX_PREFECTURE_PHOTOS, compressTravelPhoto, countPrefecturePhotos, saveTravelPhoto } from "./travelPhotos.js";
 import TravelLogShare from "./TravelLogShare.jsx";
+import TravelSummary from "./TravelSummary.jsx";
 import "./travelMode.css";
 
 function formatTime(iso) {
@@ -48,7 +49,7 @@ function likelySamePlace(plannedName, nearbyName) {
   return a.length >= 3 && b.length >= 3 && (a.includes(b) || b.includes(a));
 }
 
-export default function TravelMode({ plan, onClose, onPersist, onFinish }) {
+export default function TravelMode({ plan, onClose, onPersist, onFinish, onOpenMemory }) {
   const today = todayLocal();
   const initialDayIndex = Math.max(0, plan.days.findIndex(day => day.date === today));
   const [dayIndex, setDayIndex] = useState(initialDayIndex);
@@ -71,6 +72,7 @@ export default function TravelMode({ plan, onClose, onPersist, onFinish }) {
   const [memoryStopMessage, setMemoryStopMessage] = useState("");
   const [finishBusy, setFinishBusy] = useState(false);
   const [finishMessage, setFinishMessage] = useState("");
+  const [finishedPlan, setFinishedPlan] = useState(null);
   const watchId = useRef(null);
   const lastNearbySearch = useRef({ at: 0, position: null });
   const nearbyAbort = useRef(null);
@@ -368,10 +370,17 @@ export default function TravelMode({ plan, onClose, onPersist, onFinish }) {
     setExtraOpen(false);
   }
 
+  function showSummary(targetPlan = plan) {
+    if (watchId.current !== null) stopLocation();
+    setFinishBusy(false);
+    setFinishMessage("");
+    setFinishedPlan(targetPlan);
+  }
+
   function finishTrip() {
     if (finishBusy) return;
     if (plan.travelBookSavedAt) {
-      onClose();
+      showSummary(plan);
       return;
     }
     if (!window.confirm("旅行を終了して、旅ログ・写真・ひとことを旅図帳の思い出に保存しますか？")) return;
@@ -381,13 +390,17 @@ export default function TravelMode({ plan, onClose, onPersist, onFinish }) {
     if (!result || result.error) {
       setFinishBusy(false);
       setFinishMessage(result?.error || "旅行を終了できませんでした。もう一度お試しください。");
+      return;
     }
+    showSummary(result.saved || plan);
   }
 
   const dateRange = useMemo(() => {
     if (!plan.startDate && !plan.endDate) return "日程未設定";
     return `${plan.startDate || "未定"} 〜 ${plan.endDate || "未定"}`;
   }, [plan.startDate, plan.endDate]);
+
+  if (finishedPlan) return <TravelSummary plan={finishedPlan} onClose={onClose} onOpenMemory={() => onOpenMemory?.(finishedPlan.prefectureId)} />;
 
   return <section className="travel-mode" aria-labelledby="travel-mode-title">
     <header className="travel-mode-header">
@@ -514,7 +527,7 @@ export default function TravelMode({ plan, onClose, onPersist, onFinish }) {
       <h2 id="travel-finish-title">旅行を終了</h2>
       {plan.travelBookSavedAt ? <>
         <p className="travel-finish-saved">✓ この旅行は旅図帳の思い出に保存済みです。</p>
-        <button type="button" onClick={onClose}>計画に戻る</button>
+        <div className="travel-event-actions"><button type="button" className="travel-primary" onClick={() => showSummary(plan)}>旅のまとめを見る</button><button type="button" onClick={onClose}>計画に戻る</button></div>
       </> : <>
         <p>旅行が終わったら、ここから旅ログ・写真・ひとことをまとめて旅図帳の思い出へ保存できます。</p>
         <button type="button" className="travel-finish-primary" disabled={finishBusy} onClick={finishTrip}>{finishBusy ? "保存中…" : "旅行を終了して旅図帳に保存"}</button>

@@ -137,14 +137,12 @@ export default function TripPlans({ onImport, onOpenMemory, initialPlanId, onIni
     if (!planToFinish?.title?.trim()) return { error: "旅行タイトルを入力してください。" };
     if (!Number.isInteger(planToFinish.prefectureId) || planToFinish.prefectureId < 1 || planToFinish.prefectureId > 47) return { error: "行き先の都道府県を設定してください。" };
     if (planToFinish.travelBookSavedAt) {
-      setTravelOpen(false);
       setImportedPrefecture(planToFinish.prefectureId);
       setMessage("この旅行はすでに旅図帳に保存されています。");
-      return { error: "", already: true, prefectureId: planToFinish.prefectureId };
+      return { error: "", already: true, prefectureId: planToFinish.prefectureId, saved: planToFinish };
     }
     const result = saveTripToBook(planToFinish, importDefaults(planToFinish));
     if (result.error) return result;
-    setTravelOpen(false);
     setMessage(result.already ? "この旅行はすでに旅図帳に保存されています。" : "旅行を終了し、旅ログ・写真・ひとことを旅図帳の思い出に保存しました。");
     return result;
   }
@@ -152,7 +150,7 @@ export default function TripPlans({ onImport, onOpenMemory, initialPlanId, onIni
     if (!window.confirm(`「${draft.title || "この旅行"}」を削除しますか？`)) return;
     if (commit(store.plans.filter(plan => plan.id !== draft.id), "旅行計画を削除しました。")) { setDraft(null); setDirty(false); }
   }
-  if (travelOpen && draft) return <TravelMode plan={draft} onClose={() => setTravelOpen(false)} onPersist={persistTravelPlan} onFinish={finishTravel} />;
+  if (travelOpen && draft) return <TravelMode plan={draft} onClose={() => setTravelOpen(false)} onPersist={persistTravelPlan} onFinish={finishTravel} onOpenMemory={prefectureId => { setTravelOpen(false); onOpenMemory(prefectureId); }} />;
   return <section className="trip-plans" aria-labelledby="trip-plans-title">
     <div className={saveFeedback ? "trip-toast" : "sr-only"} role="status" aria-live="polite" aria-atomic="true">{saveFeedback ? toast : ""}</div>
     <div className="trip-heading"><div><p className="section-kicker">PLAN YOUR NEXT TRIP</p><h1 id="trip-plans-title" ref={heading} tabIndex={-1}>{draft ? "旅の計画を編集" : "旅の計画"}</h1></div>
