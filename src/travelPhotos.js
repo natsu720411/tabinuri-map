@@ -47,6 +47,15 @@ export function saveTravelPhoto({ prefectureId, planId, dayId, itemId, blob }) {
   }));
 }
 
+export async function listTravelLogPhotos({ planId, entryIds = [] }) {
+  if (!planId) return [];
+  const wanted = new Set(entryIds.filter(Boolean).map(id => String(id).replace(/^(?:item|stop):/, "")));
+  const rows = await photoRequest("readonly", store => store.getAll());
+  return rows
+    .filter(row => row.planId === planId && row.blob && (!wanted.size || wanted.has(String(row.itemId || ""))))
+    .sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+}
+
 export async function compressTravelPhoto(file) {
   if (!file?.type?.startsWith("image/") || /heic|heif/i.test(file.type) || /\.hei[cf]$/i.test(file.name || "")) {
     throw new Error("この画像形式には対応していません。JPEG、PNG、WebPなどを選択してください。");
