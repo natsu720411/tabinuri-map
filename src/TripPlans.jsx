@@ -174,6 +174,8 @@ export default function TripPlans({ onImport, onOpenMemory, initialPlanId, onIni
           <label>行き先（必須）<select required value={draft.prefectureId} onChange={event => update("prefectureId", Number(event.target.value))}><option value="">都道府県を選択</option>{prefectures.map(prefecture => <option key={prefecture.id} value={prefecture.id}>{prefecture.name}</option>)}</select></label>
           <label>出発日<input type="date" value={draft.startDate} onChange={event => update("startDate", event.target.value)} /></label>
           <label>帰宅日<input type="date" min={draft.startDate || undefined} value={draft.endDate} onChange={event => update("endDate", event.target.value)} /></label>
+          <label>出発地点（AI旅程用）<input maxLength={200} value={draft.departureLocation || ""} onChange={event => update("departureLocation", event.target.value)} placeholder="例：名古屋駅、自宅最寄りの○○駅" /></label>
+          <label>最終到着地点（AI旅程用）<input maxLength={200} value={draft.returnLocation || ""} onChange={event => update("returnLocation", event.target.value)} placeholder="例：名古屋駅、自宅最寄りの○○駅" /></label>
           <label>人数<input type="number" min="1" step="1" value={draft.people} onChange={event => update("people", event.target.value)} /></label>
           <label>誰と行くか<input maxLength={200} value={draft.companions} onChange={event => update("companions", event.target.value)} placeholder="友達、家族、一人旅など" /></label>
           <label>旅行全体の予算（円）<input type="number" min="0" step="1" value={draft.budget} onChange={event => update("budget", event.target.value)} /></label>
@@ -182,7 +184,7 @@ export default function TripPlans({ onImport, onOpenMemory, initialPlanId, onIni
         </div>
         <section className="trip-schedule" aria-labelledby="trip-schedule-title"><h2 id="trip-schedule-title">日ごとのスケジュール</h2><p>日付は未定でも作れます。予定は矢印で並び替えられます。</p>
           <button type="button" aria-haspopup="dialog" onClick={() => setAiOpen(true)}>✨ AIで旅程を作る</button>
-          <p className="trip-storage-note">AI作成には行き先・出発日・帰宅日が必要です。生成結果を確認してから反映できます。</p>
+          <p className="trip-storage-note">AI作成には行き先・出発日・帰宅日・出発地点・最終到着地点が必要です。駅名や空港名まで入れると、電車・バス・徒歩などの移動を詳しく提案しやすくなります。</p>
           {draft.days.map((day, dayIndex) => <section key={day.id} className="trip-day" aria-labelledby={`day-${day.id}`}>
             <div className="trip-day-heading"><h3 id={`day-${day.id}`}>{dayIndex + 1}日目</h3><button type="button" onClick={() => { if (window.confirm(`${dayIndex + 1}日目の予定をすべて削除しますか？`)) update("days", draft.days.filter(value => value.id !== day.id)); }}>この日を削除</button></div>
             <label>{dayIndex + 1}日目の日付<input type="date" min={draft.startDate || undefined} max={draft.endDate || undefined} value={day.date} onChange={event => updateDay(day.id, value => ({ ...value, date: event.target.value }))} /></label>

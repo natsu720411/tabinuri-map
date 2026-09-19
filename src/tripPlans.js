@@ -5,7 +5,7 @@ export function todayLocal() {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 }
 export function newPlan() {
-  return { id: newId(), title: "", prefectureId: "", startDate: "", endDate: "", people: "1", companions: "", budget: "", places: "", foods: "", activities: "", accommodation: "", transport: "", notes: "", status: "planning", days: [], createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+  return { id: newId(), title: "", prefectureId: "", startDate: "", endDate: "", departureLocation: "", returnLocation: "", people: "1", companions: "", budget: "", places: "", foods: "", activities: "", accommodation: "", transport: "", notes: "", status: "planning", days: [], createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
 }
 const fields = ["id", "title", "startDate", "endDate", "people", "companions", "budget", "places", "foods", "activities", "accommodation", "transport", "notes", "createdAt", "updatedAt"];
 const optionalIso = value => typeof value === "string" ? value : "";
@@ -62,6 +62,8 @@ export function loadPlans() {
     }
     const plans = data.plans.map(plan => ({
       ...plan,
+      departureLocation: typeof plan.departureLocation === "string" ? plan.departureLocation : "",
+      returnLocation: typeof plan.returnLocation === "string" ? plan.returnLocation : "",
       travelBookSavedAt: typeof plan.travelBookSavedAt === "string" ? plan.travelBookSavedAt : "",
       sharedSourceId: typeof plan.sharedSourceId === "string" && /^sha256:[a-f0-9]{64}$/.test(plan.sharedSourceId) ? plan.sharedSourceId : "",
       days: plan.days.map(day => ({ ...day, items: day.items.map(normalizeItem), extraStops: Array.isArray(day.extraStops) ? day.extraStops.map(normalizeExtraStop).filter(stop => stop.name) : [] })),
