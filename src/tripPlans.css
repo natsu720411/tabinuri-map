@@ -43,6 +43,10 @@
 .trip-actions { justify-content: flex-start; margin-top: 12px; }
 .trip-save { justify-content: flex-start; margin-top: 24px; }
 .trip-save span { font-size: 13px; }
+.trip-reuse { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:16px; align-items:center; margin-top:22px; padding:16px 18px; border:1px solid #dfe7dc; border-radius:14px; background:#f8faf7; }
+.trip-reuse h2 { margin:0; font-size:17px; }
+.trip-reuse p { margin:4px 0 0; color:#596e5e; font-size:13px; line-height:1.65; }
+.trip-reuse button { min-width:150px; }
 .trip-plans .trip-delete { color: #8a3027; margin-top: 24px; }
 .view-tabs { flex-wrap: wrap; }
 .trip-toast { position: fixed; z-index: 100; bottom: max(20px, env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); width: max-content; max-width: calc(100vw - 24px); padding: 14px 20px; border: 1px solid #c9d6c5; border-radius: 14px; background: #355c42; color: white; box-shadow: 0 6px 24px #20362933; pointer-events: none; text-align: center; font-size: 15px; }
@@ -78,3 +82,5 @@
   .trip-ai-ready{grid-template-columns:1fr;padding:15px}
   .trip-ai-ready .trip-primary{width:100%;min-width:0}
 }
+
+@media (max-width:640px){.trip-reuse{grid-template-columns:1fr;padding:15px}.trip-reuse button{width:100%;min-width:0}}

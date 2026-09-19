@@ -183,6 +183,43 @@ export default function TripPlans({ onImport, onOpenMemory, initialPlanId, onIni
     setMessage(result.already ? "この旅行はすでに旅図帳に保存されています。" : "旅行を終了し、旅ログ・写真・ひとことを旅図帳の思い出に保存しました。");
     return result;
   }
+  function duplicatePlan() {
+    if (!draft || blocked) return;
+    const now = new Date().toISOString();
+    const copy = structuredClone(draft);
+    copy.id = newId();
+    copy.title = `${draft.title || "旅行"}（コピー）`;
+    copy.startDate = "";
+    copy.endDate = "";
+    copy.status = "planning";
+    copy.travelBookSavedAt = "";
+    copy.createdAt = now;
+    copy.updatedAt = now;
+    copy.days = (draft.days || []).map(day => ({
+      ...day,
+      id: newId(),
+      date: "",
+      extraStops: [],
+      items: (day.items || []).map(item => ({
+        ...item,
+        id: newId(),
+        completedAt: "",
+        checkedInAt: "",
+        checkinLat: null,
+        checkinLng: null,
+        checkinAccuracy: null,
+        travelMemo: "",
+        travelPhotoCount: 0,
+      })),
+    }));
+    clearFeedback();
+    setImportedPrefecture(null);
+    setDraft(copy);
+    setDirty(true);
+    setMessage("この計画を新しい旅行として複製しました。日程を入れ直して「計画を保存」を押してください。");
+    setError("");
+    trackEvent("trip_plan_duplicated", { source: "trip_editor" });
+  }
   function removePlan() {
     if (!window.confirm(`「${draft.title || "この旅行"}」を削除しますか？`)) return;
     if (commit(store.plans.filter(plan => plan.id !== draft.id), "旅行計画を削除しました。")) { setDraft(null); setDirty(false); }
@@ -269,6 +306,10 @@ export default function TripPlans({ onImport, onOpenMemory, initialPlanId, onIni
           {draft.travelBookSavedAt ? <p>✓ 旅図帳に保存済み。この旅行はすでに旅図帳に保存されています。</p> : <><button type="button" aria-haspopup="dialog" disabled={!draft.endDate || draft.endDate > todayLocal()} onClick={openImport}>この旅行を旅図帳に保存</button><p>帰宅日を設定すると、その日以降に利用できます。入力中の計画も一緒に保存します。</p></>}
           {importedPrefecture && <button type="button" onClick={() => onOpenMemory(importedPrefecture)}>{prefectures.find(p => p.id === importedPrefecture)?.name}の思い出を見る</button>}
         </section>
+        {store.plans.some(plan => plan.id === draft.id) && <section className="trip-reuse">
+          <div><h2>この計画をもう一度使う</h2><p>場所や予定を残したまま、新しい旅行としてコピーできます。日程と旅行中の記録は引き継ぎません。</p></div>
+          <button type="button" onClick={duplicatePlan}>この計画を複製</button>
+        </section>}
         {store.plans.some(plan => plan.id === draft.id) && <button className="trip-delete" type="button" onClick={removePlan}>旅行計画を削除</button>}
       </fieldset>
     </form>}
