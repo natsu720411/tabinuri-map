@@ -435,6 +435,10 @@ function App({ initialPlanId }) {
     return "日程を確認";
   })();
   const nextTripIsOngoing = Boolean(nextTrip?.startDate && nextTrip.startDate <= today && (!nextTrip.endDate || nextTrip.endDate >= today));
+  const nextTripTodayDay = nextTripIsOngoing ? (nextTrip?.days || []).find(day => day.date === today) || null : null;
+  const nextTripTodayItems = nextTripTodayDay?.items || [];
+  const nextTripTodayDoneCount = nextTripTodayItems.filter(item => item.completedAt || item.checkedInAt).length;
+  const nextTripTodayNextItem = nextTripTodayItems.find(item => !item.completedAt && !item.checkedInAt) || null;
 
   const recentTrip = allPlans
     .filter(plan => plan.status === "completed" || plan.travelBookSavedAt)
@@ -605,6 +609,15 @@ function App({ initialPlanId }) {
       <span className="next-trip-prefecture">{prefectures.find(prefecture => prefecture.id === nextTrip.prefectureId)?.name || "行き先未設定"}</span>
     </div>
     <p>{nextTrip.startDate || "出発日未定"}{nextTrip.endDate ? ` 〜 ${nextTrip.endDate}` : ""}</p>
+    {nextTripIsOngoing && nextTripTodayDay && <div className="next-trip-today" aria-label="今日の予定">
+      <div className="next-trip-today-head">
+        <strong>今日の予定</strong>
+        <span>{nextTripTodayDoneCount} / {nextTripTodayItems.length} 完了</span>
+      </div>
+      {nextTripTodayNextItem
+        ? <p><time>{nextTripTodayNextItem.time || "時刻未定"}</time><span>次：{nextTripTodayNextItem.name}</span></p>
+        : <p className="complete"><span>✓ 今日の予定はすべて完了しました</span></p>}
+    </div>}
   </div>
   <div className="next-trip-actions">
     {nextTripIsOngoing && <button type="button" className="next-trip-travel" onClick={() => {
