@@ -53,3 +53,5 @@
 .trip-ai-request{grid-column:1/-1}.trip-ai-request small{color:#65766b;text-align:right;font-size:12px}.trip-ai-request textarea{min-height:96px}
 
 .trip-ai-refine{margin:20px 0;padding:16px;border:1px solid #cfe0d2;border-radius:14px;background:#f3f8f3}.trip-ai-refine h4{margin:0 0 10px;color:#365947;font-size:17px}.trip-ai-refine label{display:grid;gap:6px}.trip-ai-refine textarea{min-height:96px}.trip-ai-refine small{text-align:right;color:#65766b;font-size:12px}.trip-ai-refine button{width:100%;margin-top:10px;background:#fff}
+
+.trip-ai-refine .trip-ai-undo{margin-top:8px;background:transparent;color:#527f61;border-style:dashed}

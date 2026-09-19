@@ -11,6 +11,7 @@ export default function TripAI({ plan, blocked, onApply, onClose }) {
   const [mood, setMood] = useState("おまかせ"), [pace, setPace] = useState("普通"), [transportStyle, setTransportStyle] = useState("おまかせ");
   const [requestNote, setRequestNote] = useState("");
   const [revisionRequest, setRevisionRequest] = useState("");
+  const [previousResult, setPreviousResult] = useState(null);
   const [busy, setBusy] = useState(false), [error, setError] = useState(""), [result, setResult] = useState(null);
   const [ready, setReady] = useState(null), [readinessAttempt, setReadinessAttempt] = useState(0);
   useEffect(() => {
@@ -41,7 +42,7 @@ export default function TripAI({ plan, blocked, onApply, onClose }) {
     let request;
     try { request = validateRequest({ mood, pace, transportStyle, requestNote, plan: Object.fromEntries(["prefectureId", ...PLAN_FIELDS].map(key => [key, plan[key]])) }); }
     catch (err) { setError(err.message); return; }
-    busyRef.current = true; setBusy(true); setResult(null);
+    busyRef.current = true; setBusy(true); setResult(null); setPreviousResult(null);
     const abort = new AbortController(); controller.current = abort;
     const timeout = setTimeout(() => abort.abort(), 55000);
     try {
@@ -83,13 +84,23 @@ export default function TripAI({ plan, blocked, onApply, onClose }) {
       const payload = await response.json();
       if (!response.ok) throw new Error([400, 413, 415, 429, 503].includes(response.status) && typeof payload.error === "string" ? payload.error : "AI旅程の修正に失敗しました。もう一度お試しください。");
       const checked = validateItinerary(payload, request.dates.length);
-      setResult({ days: checked.days.map((day, index) => ({ id: newId(), date: request.dates[index], items: day.items.map(item => ({ id: newId(), time: item.time, name: item.title, memo: item.memo })) })) });
+      const revised = { days: checked.days.map((day, index) => ({ id: newId(), date: request.dates[index], items: day.items.map(item => ({ id: newId(), time: item.time, name: item.title, memo: item.memo })) })) };
+      setPreviousResult(result);
+      setResult(revised);
       setRevisionRequest("");
     } catch (err) {
       if (dialog.current?.open) setError(err.name === "AbortError" ? "修正に時間がかかっています。もう一度お試しください。" : (err.message.startsWith("AI") || err.message.includes("入力") || err.message.includes("修正") || err.message.includes("時間をおいて") ? err.message : "AI旅程の修正に失敗しました。もう一度お試しください。"));
     } finally {
       clearTimeout(timeout); busyRef.current = false; if (dialog.current?.open) setBusy(false);
     }
+  }
+  function restorePrevious() {
+    if (busy || !previousResult || !result) return;
+    const current = result;
+    setResult(previousResult);
+    setPreviousResult(current);
+    setError("");
+    setRevisionRequest("");
   }
   return <dialog ref={dialog} className="trip-ai-dialog" aria-labelledby="trip-ai-title" onCancel={event => { event.preventDefault(); onClose(); }}>
     <h2 id="trip-ai-title">✨ AIで旅程を作る</h2>
@@ -112,10 +123,11 @@ export default function TripAI({ plan, blocked, onApply, onClose }) {
         <h4>この旅程をAIで修正</h4>
         <label>どう変えたいですか？<textarea rows={3} maxLength={1000} disabled={busy} value={revisionRequest} onChange={e => setRevisionRequest(e.target.value)} placeholder="例：2日目をゆっくりにして、観光を1か所減らして" /><small>{revisionRequest.length} / 1000文字</small></label>
         <button type="button" disabled={busy || blocked || !revisionRequest.trim()} onClick={refine}>{busy ? "修正中…" : "この希望でAIに修正してもらう"}</button>
+        {previousResult && <button type="button" className="trip-ai-undo" disabled={busy} onClick={restorePrevious}>↶ 1つ前の旅程に戻す</button>}
       </div>
       <p>{AI_NOTICE}</p><p>適用後も未保存です。内容を調整して「計画を保存」を押してください。</p></>}
     <div className="trip-ai-actions">
-      {result ? <><button type="button" className="trip-primary" disabled={blocked || busy} onClick={() => onApply(result.days)}>この旅程を使う</button><button type="button" disabled={busy} onClick={() => { setResult(null); setError(""); setRevisionRequest(""); }}>最初からやり直す</button></> : <button type="button" className="trip-primary" disabled={busy || blocked || ready !== true} onClick={generate}>{busy ? "作成中…" : "AIで作成"}</button>}
+      {result ? <><button type="button" className="trip-primary" disabled={blocked || busy} onClick={() => onApply(result.days)}>この旅程を使う</button><button type="button" disabled={busy} onClick={() => { setResult(null); setPreviousResult(null); setError(""); setRevisionRequest(""); }}>最初からやり直す</button></> : <button type="button" className="trip-primary" disabled={busy || blocked || ready !== true} onClick={generate}>{busy ? "作成中…" : "AIで作成"}</button>}
       <button type="button" onClick={onClose}>キャンセル</button>
     </div>
   </dialog>;
