@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-TLPNKXBB7T"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-TLPNKXBB7T');
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f8f9f5" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="apple-touch-icon" href="/favicon.png" />
+    <meta name="description" content="行き先・日程・予算・行きたい場所などを入力すると、AIが1〜14日間の旅行スケジュールを提案する無料の旅行計画ツール「旅図帳」。作成した旅程は編集・保存して旅のしおりとして共有できます。" />
+    <title>AI旅行計画を無料で作成｜日程・予算から旅行プランを提案する旅図帳</title>
+    <link rel="canonical" href="https://tabinuri-map.vercel.app/ai-trip-planner.html" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
+    <meta property="og:title" content="AI旅行計画を無料で作成｜日程・予算から旅行プランを提案する旅図帳" />
+    <meta property="og:description" content="行き先・日程・予算・行きたい場所などを入力すると、AIが1〜14日間の旅行スケジュールを提案する無料の旅行計画ツール「旅図帳」。作成した旅程は編集・保存して旅のしおりとして共有できます。" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://tabinuri-map.vercel.app/ai-trip-planner.html" />
+    <meta property="og:site_name" content="旅図帳" />
+    <meta property="og:locale" content="ja_JP" />
+    <meta property="og:image" content="https://tabinuri-map.vercel.app/og-image.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="AI旅行計画を無料で作成｜日程・予算から旅行プランを提案する旅図帳" />
+    <meta name="twitter:description" content="行き先・日程・予算・行きたい場所などを入力すると、AIが1〜14日間の旅行スケジュールを提案する無料の旅行計画ツール「旅図帳」。作成した旅程は編集・保存して旅のしおりとして共有できます。" />
+    <meta name="twitter:image" content="https://tabinuri-map.vercel.app/og-image.png" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "WebPage",
+            "@id": "https://tabinuri-map.vercel.app/ai-trip-planner.html#webpage",
+            "url": "https://tabinuri-map.vercel.app/ai-trip-planner.html",
+            "name": "AI旅行計画を無料で作成",
+            "description": "行き先・日程・予算・行きたい場所などを入力すると、AIが1〜14日間の旅行スケジュールを提案する無料の旅行計画ツール「旅図帳」。作成した旅程は編集・保存して旅のしおりとして共有できます。",
+            "isPartOf": {
+              "@type": "WebSite",
+              "name": "旅図帳",
+              "url": "https://tabinuri-map.vercel.app/"
+            },
+            "inLanguage": "ja"
+          },
+          {
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+              {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "旅図帳",
+                "item": "https://tabinuri-map.vercel.app/"
+              },
+              {
+                "@type": "ListItem",
+                "position": 2,
+                "name": "AI旅行計画を無料で作成",
+                "item": "https://tabinuri-map.vercel.app/ai-trip-planner.html"
+              }
+            ]
+          }
+        ]
+      }
+    </script>
+    <style>
+      * { box-sizing: border-box; }
+      body { margin: 0; background: #f8f9f5; color: #293f36; font-family: "Noto Sans JP", system-ui, sans-serif; line-height: 1.9; }
+      a { color: #427859; text-underline-offset: 4px; overflow-wrap: anywhere; }
+      a:focus-visible { outline: 3px solid #217453; outline-offset: 4px; }
+      header, main, footer { width: min(100%, 820px); margin: auto; padding: 24px 16px; }
+      .brand { font-size: 24px; font-weight: 800; text-decoration: none; color: #293f36; }
+      article { padding: 32px; background: #fff; border: 1px solid #e2e8df; border-radius: 20px; overflow-wrap: anywhere; }
+      .kicker { color: #65766b; font-size: 12px; letter-spacing: .12em; font-weight: 700; }
+      h1 { margin: 8px 0 20px; font-size: clamp(24px, 5vw, 32px); line-height: 1.5; }
+      h2 { margin: 32px 0 12px; color: #427859; font-size: 20px; line-height: 1.6; }
+      h3 { margin: 24px 0 8px; color: #427859; font-size: 17px; }
+      p { margin: 12px 0; }
+      ul, ol { padding-left: 24px; }
+      li { margin: 10px 0; }
+      .cta { display: inline-flex; justify-content: center; align-items: center; min-height: 50px; padding: 12px 24px; border-radius: 12px; background: #527f61; color: #fff; font-weight: 700; text-decoration: none; max-width: 100%; }
+      .cta:hover { background: #427859; }
+      .point-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 18px 0; }
+      .point-grid div { padding: 14px; border: 1px solid #e2e8df; border-radius: 14px; background: #f8faf7; }
+      .point-grid strong { display: block; color: #365947; margin-bottom: 4px; }
+      .note { padding: 14px 16px; border-left: 4px solid #8fb49b; background: #f3f7f3; border-radius: 0 12px 12px 0; color: #56685e; }
+      .related { margin-top: 32px; padding-top: 24px; border-top: 1px solid #e2e8df; }
+      .related-links { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; padding: 0; list-style: none; }
+      .related-links li { margin: 0; }
+      .related-links a { display: block; height: 100%; padding: 14px; border: 1px solid #dfe7dc; border-radius: 12px; background: #f8faf7; text-decoration: none; font-weight: 700; }
+      .related-links small { display: block; margin-top: 4px; color: #65766b; font-weight: 400; line-height: 1.6; }
+      footer nav { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-bottom: 16px; }
+      footer nav a { display: inline-flex; align-items: center; min-height: 44px; }
+      footer { color: #65766b; font-size: 14px; }
+      @media (max-width: 600px) {
+        header, main, footer { padding: 20px 12px; }
+        article { padding: 24px 18px; }
+        .point-grid, .related-links { grid-template-columns: 1fr; }
+        .cta { width: 100%; }
+      }
+    </style>
+  </head>
+  <body>
+    <header><a class="brand" href="/">旅図帳<span aria-hidden="true">.</span></a></header>
+    <main>
+      <article aria-labelledby="ai-planner-title">
+        <p class="kicker">AI TRIP PLANNER</p>
+        <h1 id="ai-planner-title">AIで旅行計画を無料作成。旅程づくりのたたき台に</h1>
+        <p>「行きたい場所は決まったけれど、何時にどこへ行けばいいか分からない」。そんなとき、旅図帳では行き先・日程・予算・やりたいことなどをもとに、AIが旅行スケジュールの案を作ります。</p>
+        <p>AIが作った内容はそのまま確定するのではなく、まずプレビューで確認できます。使いたい案だけ旅行計画へ反映し、時間や場所を自分で直してから保存できます。</p>
+        <p><a class="cta" href="/">AIで旅行計画を作ってみる</a></p>
+
+        <section>
+          <h2>入力した希望から1〜14日間の旅程を提案</h2>
+          <div class="point-grid">
+            <div><strong>行き先と旅行日程</strong><span>都道府県と出発日・帰宅日を旅行の基本条件にします。</span></div>
+            <div><strong>予算や人数</strong><span>入力している旅行条件を提案の参考にできます。</span></div>
+            <div><strong>行きたい場所・食べたいもの</strong><span>候補を入力して、希望を旅行スケジュールへ反映しやすくします。</span></div>
+            <div><strong>旅行の雰囲気とペース</strong><span>どんな旅にしたいかを選んで、提案の方向を調整できます。</span></div>
+          </div>
+        </section>
+
+        <section>
+          <h2>AIの提案を確認してから使える</h2>
+          <p>AIで作成した結果はプレビューとして表示されます。内容を確認し、「この旅程を使う」を選んだ場合だけ現在のスケジュールへ反映されます。その後も予定の追加・削除・並び替え・メモの編集ができます。</p>
+          <p>反映しただけでは保存完了ではありません。内容を整えたあとに「計画を保存」を押すと、ブラウザに旅行計画として残ります。</p>
+        </section>
+
+        <section>
+          <h2>作った旅行プランを旅のしおりに</h2>
+          <p>保存した旅行計画は、そのまま旅のしおりとして使えます。LINEやURLで同行者へ送り、日ごとの予定を共有できます。届いたしおりを自分用にコピーして編集することも可能です。</p>
+          <p>旅行当日は旅行中モードを開き、予定の完了、チェックイン、写真、ひとことを旅ログとして残せます。旅行終了後は、日本地図の思い出へまとめて保存できます。</p>
+        </section>
+
+        <section>
+          <h2>AI旅行計画を使うときの注意点</h2>
+          <p>AIが提案する営業時間、料金、休業日、移動時間、施設情報などは、最新情報と異なる場合があります。旅行前には、利用する施設や交通機関の公式サイトなどで最新情報を確認してください。</p>
+          <p>AI旅程を作成するときは、提案に必要な旅行計画の情報を旅図帳のサーバー経由でGoogle Geminiへ送信します。詳しくは<a href="/privacy.html">プライバシーポリシー</a>をご確認ください。</p>
+          <p class="note">AIは「旅行を決める人」の代わりではなく、予定を考えるためのたたき台として使うのがおすすめです。移動時間や予約状況を確認し、自分の旅に合わせて編集してください。</p>
+        </section>
+
+        <section>
+          <h2>無料・会員登録不要</h2>
+          <p>旅図帳はスマートフォン・PCのブラウザから利用できます。現在は会員登録不要で、旅行計画は主に利用中のブラウザへ保存されます。別端末への自動同期はありません。</p>
+        </section>
+
+        <section class="related" aria-labelledby="ai-related-title">
+          <h2 id="ai-related-title">AIで作った旅を次のステップへ</h2>
+          <ul class="related-links">
+            <li><a href="/travel-itinerary.html">旅のしおりを作って共有する<small>日程をまとめてLINEやURLで同行者へ送る</small></a></li>
+            <li><a href="/how-to-use.html">AI旅程の詳しい使い方<small>作成・確認・反映・保存の順番を確認</small></a></li>
+            <li><a href="/travel-record.html">旅行中の旅ログを残す<small>チェックイン、写真、ひとことを記録する</small></a></li>
+            <li><a href="/japan-map.html">旅行後は日本地図へ<small>訪れた都道府県と思い出を残す</small></a></li>
+          </ul>
+        </section>
+
+        <p><a class="cta" href="/">無料でAI旅行計画を作る</a></p>
+      </article>
+    </main>
+    <footer><nav aria-label="サイト情報"><a href="/how-to-use.html">使い方</a><a href="/privacy.html">プライバシーポリシー</a><a href="/contact.html">お問い合わせ</a><a href="/about.html">運営者情報</a></nav><a href="/">旅図帳に戻る</a></footer>
+  </body>
+</html>

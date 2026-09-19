@@ -757,6 +757,8 @@ function App({ initialPlanId }) {
     <a href="/japan-map.html"><strong>日本地図で旅行記録をつける</strong><span>行った都道府県を地図で塗りつぶして振り返る</span></a>
     <a href="/prefecture-check.html"><strong>行った都道府県をチェックする</strong><span>47都道府県の訪問状況と行きたい県を整理する</span></a>
     <a href="/travel-record.html"><strong>旅行の思い出を写真付きで残す</strong><span>訪問日・写真・食べたもの・旅のメモを記録する</span></a>
+    <a href="/travel-itinerary.html"><strong>旅のしおりを作って共有する</strong><span>日程・時間・場所をまとめてLINEやURLで共有する</span></a>
+    <a href="/ai-trip-planner.html"><strong>AIで旅行計画を作る</strong><span>行き先・日程・予算から旅行スケジュールを考える</span></a>
     <a href="/how-to-use.html"><strong>旅図帳の詳しい使い方</strong><span>旅行計画から旅行中モード、旅行後の保存まで確認する</span></a>
   </div>
 </section>
@@ -793,7 +795,7 @@ function App({ initialPlanId }) {
   </details>
   <details>
     <summary>旅行後に何ができますか？</summary>
-  <p>帰宅日以降に「この旅行を旅図帳に保存」から内容を確認し、行き先の県を訪問済みにして、訪問日・同行者・食べたもの・スポット・思い出を追記できます。写真は県の思い出画面から別途追加します。</p>
+  <p>旅行中モードの「旅行を終了して旅図帳に保存」から、旅ログ・旅行中に追加した写真やひとこと・旅行計画の内容を行き先の県の思い出へ保存できます。保存後は「旅のまとめ」で足あとを振り返り、旅行全体の記念カード画像も作れます。</p>
   </details>
   <details>
     <summary>写真はどこに保存されますか？</summary>
