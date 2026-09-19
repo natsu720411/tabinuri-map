@@ -48,9 +48,9 @@ export function createHandler({ fetchImpl = fetch, env = process.env, rateLimit 
 
     const params = new URLSearchParams({
       categories: "catering,commercial,tourism,entertainment,leisure",
-      filter: `circle:${lng},${lat},150`,
+      filter: `circle:${lng},${lat},1000`,
       bias: `proximity:${lng},${lat}`,
-      limit: "12",
+      limit: "30",
       lang: "ja",
       apiKey: key,
     });
@@ -71,9 +71,11 @@ export function createHandler({ fetchImpl = fetch, env = process.env, rateLimit 
           lng: Number.isFinite(p.lon) ? p.lon : (Number.isFinite(coordinates[0]) ? coordinates[0] : null),
           categories: Array.isArray(p.categories) ? p.categories.filter(value => typeof value === "string").slice(0, 6) : [],
         };
-      }).filter(place => place.id && place.name && place.lat !== null && place.lng !== null).slice(0, 8);
-      cache.set(cacheKey, { until: Date.now() + 90000, places });
-      return send(res, 200, { places });
+      }).filter(place => place.id && place.name && place.lat !== null && place.lng !== null).sort((a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity));
+      const closePlaces = places.filter(place => place.distance === null || place.distance <= 300);
+      const selected = (closePlaces.length ? closePlaces : places).slice(0, 8);
+      cache.set(cacheKey, { until: Date.now() + 90000, places: selected });
+      return send(res, 200, { places: selected });
     } catch {
       return send(res, 502, { error: "周辺スポットを取得できませんでした。" });
     }
