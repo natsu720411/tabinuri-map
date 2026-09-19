@@ -1,6 +1,7 @@
 import { SHARE_URL } from "./share.js";
 
-export const SHARE_FIELDS = [["places", "行きたい場所", true], ["foods", "食べたいもの", true], ["activities", "やりたいこと", true], ["companions", "誰と行くか", false], ["budget", "予算", false], ["accommodation", "宿泊先メモ", false], ["transport", "移動メモ", false], ["notes", "その他メモ", false]];
+export const SHARE_FIELDS = [["places", "行きたい場所", true], ["foods", "食べたいもの", true], ["activities", "やりたいこと", true], ["departureLocation", "出発地点", false], ["departureTime", "出発したい時刻", false], ["returnLocation", "最終到着地点", false], ["returnTime", "最終到着したい時刻", false], ["companions", "誰と行くか", false], ["budget", "予算", false], ["accommodation", "宿泊先メモ", false], ["transport", "移動メモ", false], ["notes", "その他メモ", false]];
+export const SHARE_ROUTE_FIELDS = new Set(["departureLocation", "departureTime", "returnLocation", "returnTime"]);
 const MAX_BYTES = 160000;
 const MAX_URL = 20000;
 const fail = () => { throw new Error("共有する日程・文字数を確認してください。最大14日、1日30件、予定名200文字、メモ1000文字までです。"); };
@@ -31,7 +32,11 @@ export function validateSharedTrip(payload) {
       return { time, name: text(item.name, 200, true), memo: text(item.memo, 1000) };
     }) };
   });
-  for (const [key] of SHARE_FIELDS) if (Object.hasOwn(p, key)) plan[key] = text(p[key], key === "budget" ? 30 : 2000);
+  for (const [key] of SHARE_FIELDS) if (Object.hasOwn(p, key)) {
+    const max = key === "budget" ? 30 : (key === "departureLocation" || key === "returnLocation" ? 200 : 2000);
+    plan[key] = text(p[key], max);
+  }
+  for (const key of ["departureTime", "returnTime"]) if (plan[key] && !/^([01]\d|2[0-3]):[0-5]\d$/.test(plan[key])) fail();
   return { version: 1, type: "trip-plan", plan };
 }
 export function selectSharedTrip(plan, selected) {

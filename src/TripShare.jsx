@@ -33,7 +33,7 @@ export default function TripShare({ plan, onClose }) {
     <h2 id="trip-share-title">共有する内容</h2>
     <p>✓ 旅行タイトル　✓ 行き先　✓ 日程　✓ スケジュール</p>
     <p>チェックした内容は共有URLを知っている人が閲覧できます。</p>
-    <p className="trip-storage-note">予定名・予定のメモも必ず共有されます。住所などの個人情報が含まれていないか確認してください。入力中の内容を使いますが、計画の保存は行いません。</p>
+    <p className="trip-storage-note">予定名・予定のメモも必ず共有されます。出発地点・最終到着地点は自宅住所などになる可能性があるため初期状態では共有しません。共有してよい場合だけチェックしてください。入力中の内容を使いますが、計画の保存は行いません。</p>
     <fieldset disabled={busy} className="trip-share-checks"><legend>追加で共有する項目</legend>{SHARE_FIELDS.map(([key, label]) => <label key={key}><input type="checkbox" checked={selected[key]} onChange={e => { reset(); setSelected({ ...selected, [key]: e.target.checked }); }} />{label}</label>)}</fieldset>
     <label className="trip-share-compat"><input type="checkbox" disabled={busy} checked={plain} onChange={e => { reset(); setPlain(e.target.checked); }} />圧縮しない互換リンク（古いブラウザ向け）</label>
     <p className="trip-storage-note">リンクは作成時の内容です。編集後は作り直してください。送信済みリンクの内容変更・取り消しはできません。</p>
