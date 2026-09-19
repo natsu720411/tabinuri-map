@@ -439,6 +439,23 @@ function App({ initialPlanId }) {
     <br />
     日本地図に残す、あなただけの旅の記録。
   </p>
+  <p className="intro-free">無料・会員登録なしですぐ使えます</p>
+  <div className="intro-actions" aria-label="旅図帳をはじめる">
+    <button type="button" className="intro-primary" onClick={() => setView("plans")}>
+      <span>これから旅行する</span>
+      <strong>旅の計画を作る</strong>
+    </button>
+    <a className="intro-secondary" href="#map-heading" onClick={(event) => {
+      const heading = document.getElementById("map-heading");
+      if (!heading) return;
+      event.preventDefault();
+      heading.focus({ preventScroll: true });
+      heading.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth", block: "start" });
+    }}>
+      <span>過去の旅行を残したい</span>
+      <strong>日本地図から記録する</strong>
+    </a>
+  </div>
 </section>
 <section className="progress-card" aria-label="旅の進捗">
   <div className="progress-heading">
