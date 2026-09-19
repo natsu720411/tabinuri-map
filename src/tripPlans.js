@@ -34,6 +34,8 @@ function normalizeExtraStop(stop) {
     placeId: typeof stop?.placeId === "string" ? stop.placeId : "",
     placeName: typeof stop?.placeName === "string" ? stop.placeName : "",
     placeSource: typeof stop?.placeSource === "string" ? stop.placeSource : "manual",
+    travelMemo: typeof stop?.travelMemo === "string" ? stop.travelMemo : "",
+    travelPhotoCount: Number.isInteger(stop?.travelPhotoCount) && stop.travelPhotoCount >= 0 ? stop.travelPhotoCount : 0,
   };
 }
 // Keep the version and stable IDs separate from prefecture memories for future linking.
