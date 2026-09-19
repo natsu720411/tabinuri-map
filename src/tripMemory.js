@@ -13,12 +13,18 @@ export function importDefaults(plan) {
     const label = [item.dayDate, item.name].filter(Boolean).join(" ");
     return `${label ? `【${label}】\n` : ""}${item.travelMemo.trim()}`;
   });
+  const extraStopNotes = (plan.days || []).flatMap(day => (day.extraStops || []).map(stop => ({ ...stop, dayDate: day.date || "" })))
+    .filter(stop => stop.travelMemo?.trim())
+    .map(stop => {
+      const label = [stop.dayDate, stop.name].filter(Boolean).join(" ");
+      return `${label ? `【${label}】\n` : ""}${stop.travelMemo.trim()}`;
+    });
   return {
     visitDate: plan.startDate || "",
     companions: plan.companions || "",
     foods: plan.foods || "",
     recommendedSpots: appendUnique("", [plan.places || "", ...names].join("\n")),
-    memory: [plan.notes || "", ...travelNotes].filter(Boolean).join("\n\n"),
+    memory: [plan.notes || "", ...travelNotes, ...extraStopNotes].filter(Boolean).join("\n\n"),
   };
 }
 export function mergeTripMemory(existing, plan, values) {
