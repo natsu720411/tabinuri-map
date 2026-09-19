@@ -84,6 +84,25 @@ export default function TripPlans({ onImport, onOpenMemory, initialPlanId, onIni
       setError("旅行中の記録を保存できませんでした。ブラウザの保存容量や設定をご確認ください。");
     }
   }
+  function openTravelMode() {
+    if (dirty || blocked || !store.plans.some(plan => plan.id === draft.id)) return;
+    if (draft.days.length > 0) { setTravelOpen(true); return; }
+    const today = todayLocal();
+    const date = draft.startDate && draft.endDate && today >= draft.startDate && today <= draft.endDate ? today : (draft.startDate || today);
+    const updated = { ...draft, days: [{ id: newId(), date, items: [], extraStops: [] }], updatedAt: new Date().toISOString() };
+    const plans = store.plans.map(plan => plan.id === updated.id ? updated : plan);
+    try {
+      persistPlans(plans);
+      setStore({ plans, error: "" });
+      setDraft(updated);
+      setDirty(false);
+      setError("");
+      setMessage("旅行中モード用に1日目を作成しました。");
+      setTravelOpen(true);
+    } catch {
+      setError("旅行中モードを開始できませんでした。ブラウザの保存容量や設定をご確認ください。");
+    }
+  }
   function close() { if (dirty && !window.confirm("未保存の変更を破棄して一覧に戻りますか？")) return; clearFeedback(); setDraft(null); setDirty(false); setError(""); }
   function openImport() {
     if (blocked || !form.current.reportValidity()) return;
@@ -154,7 +173,7 @@ export default function TripPlans({ onImport, onOpenMemory, initialPlanId, onIni
         <div className="trip-save"><button className="trip-primary" type="submit">{saveFeedback ? "✓ 保存しました" : "計画を保存"}</button><span>{dirty ? "未保存の変更があります" : ""}</span>
           {store.plans.find(plan => plan.id === draft.id)?.updatedAt && <small>最終保存：<time dateTime={store.plans.find(plan => plan.id === draft.id).updatedAt}>{new Date(store.plans.find(plan => plan.id === draft.id).updatedAt).toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" })}</time></small>}
         </div>
-        <section className="trip-travel-mode"><h2>旅行中モード</h2><p>今日の予定を見ながら、完了チェックや現在地付きチェックインを記録できます。</p><div className="trip-travel-mode-actions"><button type="button" className="trip-primary" disabled={dirty || !store.plans.some(plan => plan.id === draft.id) || draft.days.length === 0} onClick={() => setTravelOpen(true)}>旅行中モードを開く</button></div>{dirty && <p className="trip-storage-note">旅行中モードを使う前に「計画を保存」してください。</p>}</section>
+        <section className="trip-travel-mode"><h2>旅行中モード</h2><p>今日の予定を見ながら、完了チェックや現在地付きチェックインを記録できます。予定がまだなくても開始できます。</p><div className="trip-travel-mode-actions"><button type="button" className="trip-primary" disabled={dirty || blocked || !store.plans.some(plan => plan.id === draft.id)} onClick={openTravelMode}>旅行中モードを開く</button></div>{dirty && <p className="trip-storage-note">旅行中モードを使う前に「計画を保存」してください。</p>}</section>
         <section className="trip-finish"><h2>友達と予定をチェック</h2><p>共有する項目を選んで、閲覧専用の旅のしおりを送れます。</p><button type="button" aria-haspopup="dialog" onClick={() => setShareOpen(true)}>しおりを共有</button></section>
         <section className="trip-finish"><h2>旅が終わったら</h2><p>実際の旅の内容を確認して、行き先の都道府県に思い出を追記できます。</p>
           {draft.travelBookSavedAt ? <p>✓ 旅図帳に保存済み。この旅行はすでに旅図帳に保存されています。</p> : <><button type="button" aria-haspopup="dialog" disabled={!draft.endDate || draft.endDate > todayLocal()} onClick={openImport}>この旅行を旅図帳に保存</button><p>帰宅日を設定すると、その日以降に利用できます。入力中の計画も一緒に保存します。</p></>}
