@@ -22,3 +22,13 @@ export function googleMapsRouteForItem(item) {
   });
   return `https://www.google.com/maps/dir/?${params.toString()}`;
 }
+
+export function googleMapsPlaceForItem(item) {
+  const name = typeof item?.name === "string" ? item.name.trim() : "";
+  if (!name || /^移動\s*[：:]/.test(name)) return "";
+  const params = new URLSearchParams({
+    api: "1",
+    query: name,
+  });
+  return `https://www.google.com/maps/search/?${params.toString()}`;
+}

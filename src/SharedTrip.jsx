@@ -3,7 +3,7 @@ import prefectures from "./prefectures.json";
 import { readTripFragment, SHARE_FIELDS, SHARE_ROUTE_FIELDS, tripDuration } from "./tripShare.js";
 import "./tripShare.css";
 import CopySharedTrip from "./CopySharedTrip.jsx";
-import { googleMapsRouteForItem } from "./tripRoute.js";
+import { googleMapsPlaceForItem, googleMapsRouteForItem } from "./tripRoute.js";
 
 export default function SharedTrip() {
   const [copyOpen, setCopyOpen] = useState(false);
@@ -25,7 +25,7 @@ export default function SharedTrip() {
       {plan.days.length === 0 && <p>スケジュールはまだ登録されていません。</p>}
       {plan.days.map((day, index) => <section className="shared-day" key={index} aria-labelledby={`shared-day-${index}`}><h2 id={`shared-day-${index}`}>DAY {index + 1} <small>{day.date || "日付未定"}</small></h2>
         {day.items.length === 0 && <p>この日の予定は未定です。</p>}
-        <ol>{day.items.map((item, i) => { const routeUrl = googleMapsRouteForItem(item); return <li key={i}><time>{item.time || "時刻未定"}</time><div><h3>{item.name}</h3>{item.memo && <p>{item.memo}</p>}{routeUrl && <a className="shared-route-link" href={routeUrl} target="_blank" rel="noopener noreferrer">Googleマップで経路を確認 ↗</a>}</div></li>; })}</ol>
+        <ol>{day.items.map((item, i) => { const routeUrl = googleMapsRouteForItem(item); const placeUrl = googleMapsPlaceForItem(item); return <li key={i}><time>{item.time || "時刻未定"}</time><div><h3>{item.name}</h3>{item.memo && <p>{item.memo}</p>}{routeUrl ? <a className="shared-route-link" href={routeUrl} target="_blank" rel="noopener noreferrer">Googleマップで経路を確認 ↗</a> : placeUrl && <a className="shared-route-link" href={placeUrl} target="_blank" rel="noopener noreferrer">Googleマップで場所を確認 ↗</a>}</div></li>; })}</ol>
       </section>)}
       {(plan.departureLocation || plan.departureTime || plan.returnLocation || plan.returnTime) && <section className="shared-day shared-route-summary"><h2>出発・帰着</h2>
         {(plan.departureLocation || plan.departureTime) && <p><strong>出発：</strong>{plan.departureLocation || "地点未共有"}{plan.departureTime ? `　${plan.departureTime}ごろ` : ""}</p>}

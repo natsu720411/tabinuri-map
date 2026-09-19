@@ -7,7 +7,7 @@ import TripImport from "./TripImport.jsx";
 import TripShare from "./TripShare.jsx";
 import TravelMode from "./TravelMode.jsx";
 import { importDefaults } from "./tripMemory.js";
-import { googleMapsRouteForItem } from "./tripRoute.js";
+import { googleMapsPlaceForItem, googleMapsRouteForItem } from "./tripRoute.js";
 
 const notes = [["places", "行きたい場所"], ["foods", "食べたいもの"], ["activities", "やりたいこと"], ["accommodation", "宿泊先メモ"], ["transport", "移動メモ"], ["notes", "その他メモ"]];
 
@@ -194,7 +194,7 @@ export default function TripPlans({ onImport, onOpenMemory, initialPlanId, onIni
             {day.items.map((item, index) => <fieldset className="trip-item" key={item.id}><legend>予定 {index + 1}</legend>
               <div className="trip-item-fields"><label>時刻<input type="time" value={item.time} onChange={event => updateItem(day.id, item.id, "time", event.target.value)} /></label><label>場所・予定名（必須）<input required value={item.name} onChange={event => updateItem(day.id, item.id, "name", event.target.value)} placeholder="清水寺を散策" /></label></div>
               <label>メモ<textarea rows={2} value={item.memo} onChange={event => updateItem(day.id, item.id, "memo", event.target.value)} /></label>
-              {googleMapsRouteForItem(item) && <a className="trip-route-link" href={googleMapsRouteForItem(item)} target="_blank" rel="noopener noreferrer">Googleマップで経路を確認 ↗</a>}
+              {googleMapsRouteForItem(item) ? <a className="trip-route-link" href={googleMapsRouteForItem(item)} target="_blank" rel="noopener noreferrer">Googleマップで経路を確認 ↗</a> : googleMapsPlaceForItem(item) && <a className="trip-route-link" href={googleMapsPlaceForItem(item)} target="_blank" rel="noopener noreferrer">Googleマップで場所を確認 ↗</a>}
               <div className="trip-actions"><button type="button" disabled={index === 0} aria-label={`${dayIndex + 1}日目の予定${index + 1}を上へ`} onClick={() => move(day.id, index, -1)}>↑ 上へ</button><button type="button" disabled={index === day.items.length - 1} aria-label={`${dayIndex + 1}日目の予定${index + 1}を下へ`} onClick={() => move(day.id, index, 1)}>↓ 下へ</button><button type="button" onClick={() => { if (window.confirm("この予定を削除しますか？")) updateDay(day.id, value => ({ ...value, items: value.items.filter(value => value.id !== item.id) })); }}>予定を削除</button></div>
             </fieldset>)}
             <button type="button" onClick={() => updateDay(day.id, value => ({ ...value, items: [...value.items, { id: newId(), time: "", name: "", memo: "" }] }))}>予定を追加</button>
