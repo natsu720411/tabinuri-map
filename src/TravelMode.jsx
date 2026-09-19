@@ -435,7 +435,7 @@ export default function TravelMode({ plan, onClose, onPersist }) {
         </li>)}
       </ol>}
       <div className="travel-log-share-wrap">
-        <TravelLogShare title={plan.title} dayLabel={travelLogTitle} dayDate={day.date} entries={travelLog} />
+        <TravelLogShare title={plan.title} dayLabel={travelLogTitle} dayDate={day.date} entries={travelLog} planId={plan.id} />
       </div>
     </section>
 
