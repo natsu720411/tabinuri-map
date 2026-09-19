@@ -537,7 +537,7 @@ function App({ initialPlanId }) {
   <button type="button" className={view === "map" ? "active" : ""} aria-current={view === "map" ? "page" : undefined} onClick={() => setView("map")}>地図</button>
   <button type="button" className={view === "memories" ? "active" : ""} aria-current={view === "memories" ? "page" : undefined} onClick={() => setView("memories")}>思い出</button>
   <button type="button" className={view === "want" ? "active" : ""} aria-current={view === "want" ? "page" : undefined} onClick={() => setView("want")}>行きたい</button>
-  <button type="button" className={view === "plans" ? "active" : ""} aria-current={view === "plans" ? "page" : undefined} onClick={() => { trackEvent("home_plan_cta", { source: "hero" }); setView("plans"); }}>旅の計画</button>
+  <button type="button" className={view === "plans" ? "active" : ""} aria-current={view === "plans" ? "page" : undefined} onClick={() => { trackEvent("nav_trip_plans_open", { source: "main_nav" }); setView("plans"); }}>旅の計画</button>
   <details className={["ranking", "year", "timeline"].includes(view) ? "view-more active" : "view-more"}>
     <summary aria-label="その他の表示を開く">その他</summary>
     <div className="view-more-menu">
@@ -564,7 +564,7 @@ function App({ initialPlanId }) {
   </p>
   <p className="intro-free">無料・会員登録なしですぐ使えます</p>
   <div className="intro-actions" aria-label="旅図帳をはじめる">
-    <button type="button" className="intro-primary" onClick={() => setView("plans")}>
+    <button type="button" className="intro-primary" onClick={() => { trackEvent("home_plan_cta", { source: "hero" }); setView("plans"); }}>
       <span>これから旅行する</span>
       <strong>旅の計画を作る</strong>
     </button>
