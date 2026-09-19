@@ -428,6 +428,19 @@ function App({ initialPlanId }) {
   const travelLogCount = Object.values(visits.records).reduce((total, record) =>
     total + (record.travelLogs || []).reduce((tripTotal, log) =>
       tripTotal + (log.days || []).reduce((dayTotal, logDay) => dayTotal + (logDay.entries || []).length, 0), 0), 0);
+  const currentYear = today.slice(0, 4);
+  const currentMonth = today.slice(0, 7);
+  const completedPlans = allPlans.filter(plan => plan.status === "completed" || plan.travelBookSavedAt);
+  const planActivityDate = plan => plan.endDate || plan.startDate || (typeof plan.travelBookSavedAt === "string" ? plan.travelBookSavedAt.slice(0, 10) : "");
+  const thisMonthTrips = completedPlans.filter(plan => planActivityDate(plan).startsWith(currentMonth)).length;
+  const thisYearTrips = completedPlans.filter(plan => planActivityDate(plan).startsWith(currentYear)).length;
+  const thisYearPrefectureIds = new Set([
+    ...completedPlans.filter(plan => planActivityDate(plan).startsWith(currentYear) && validIds.has(plan.prefectureId)).map(plan => plan.prefectureId),
+    ...Object.entries(visits.records)
+      .filter(([, record]) => record.visited && typeof record.visitDate === "string" && record.visitDate.startsWith(currentYear))
+      .map(([id]) => Number(id)),
+  ]);
+  const hasThisYearActivity = thisYearTrips > 0 || thisYearPrefectureIds.size > 0;
   const firstUse = Object.keys(visits.records).length === 0 && allPlans.length === 0;
   const wantedPreview = prefectures.filter(({ id }) => wantToVisitIds.includes(id)).slice(0, 3);
 
@@ -587,6 +600,18 @@ function App({ initialPlanId }) {
   <div><strong>{travelLogCount}</strong><span>旅ログ</span></div>
   <div><strong>{wantToVisitIds.length}</strong><span>行きたい県</span></div>
 </section>
+
+{hasThisYearActivity && <section className="home-period-stats" aria-labelledby="home-period-stats-title">
+  <div className="home-period-heading">
+    <div><p className="section-kicker">THIS YEAR</p><h2 id="home-period-stats-title">{currentYear}年の旅</h2></div>
+    <button type="button" onClick={() => setView("year")}>旅行年表を見る</button>
+  </div>
+  <div className="home-period-grid">
+    <div><span>今月の旅</span><strong>{thisMonthTrips}<small>回</small></strong></div>
+    <div><span>今年の旅</span><strong>{thisYearTrips}<small>回</small></strong></div>
+    <div><span>今年行った県</span><strong>{thisYearPrefectureIds.size}<small>県</small></strong></div>
+  </div>
+</section>}
 
 <section className="progress-card" aria-label="旅の進捗">
   <div className="progress-heading">
