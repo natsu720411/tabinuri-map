@@ -399,6 +399,7 @@ function App({ initialPlanId }) {
   const [pickerOpen, setPickerOpen] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
   const [homePhotoCount, setHomePhotoCount] = useState(0);
+  const [homePhotoCounts, setHomePhotoCounts] = useState({});
   const [summaryPlan, setSummaryPlan] = useState(null);
   const [view, setView] = useState(initialPlanId ? "plans" : "map");
   const visited = prefectures.filter(({ id }) => visits.records[id]?.visited).map(({ id }) => id);
@@ -464,11 +465,30 @@ function App({ initialPlanId }) {
   const hasThisYearActivity = thisYearTrips > 0 || thisYearPrefectureIds.size > 0;
   const firstUse = Object.keys(visits.records).length === 0 && allPlans.length === 0;
   const wantedPreview = prefectures.filter(({ id }) => wantToVisitIds.includes(id)).slice(0, 3);
+  const memorySuggestions = prefectures
+    .filter(({ id }) => visits.records[id]?.visited)
+    .map(prefecture => {
+      const record = visits.records[prefecture.id] || {};
+      const needsText = !record.memory?.trim();
+      const needsPhoto = !homePhotoCounts[prefecture.id];
+      return { ...prefecture, visitDate: record.visitDate || "", needsText, needsPhoto };
+    })
+    .filter(item => item.needsText || item.needsPhoto)
+    .sort((a, b) => b.visitDate.localeCompare(a.visitDate) || a.id - b.id)
+    .slice(0, 3);
 
   useEffect(() => {
     let active = true;
     photoRequest("readonly", store => store.getAll())
-      .then(rows => { if (active) setHomePhotoCount(rows.length); })
+      .then(rows => {
+        if (!active) return;
+        setHomePhotoCount(rows.length);
+        const counts = {};
+        rows.forEach(row => {
+          if (validIds.has(Number(row.prefectureId))) counts[row.prefectureId] = (counts[row.prefectureId] || 0) + 1;
+        });
+        setHomePhotoCounts(counts);
+      })
       .catch(() => {});
     return () => { active = false; };
   }, [visits.records]);
@@ -616,6 +636,21 @@ function App({ initialPlanId }) {
       <span>{record.wantToVisitPlaces || record.wantToVisitReason || "次の旅の候補"}</span>
     </button>;
   })}</div>
+</section>}
+
+{memorySuggestions.length > 0 && <section className="home-memory-suggestions" aria-labelledby="home-memory-suggestions-title">
+  <div className="home-memory-suggestions-heading">
+    <div><p className="section-kicker">COMPLETE YOUR MEMORIES</p><h2 id="home-memory-suggestions-title">思い出をもう少し残しませんか？</h2></div>
+    <span>{memorySuggestions.length}件</span>
+  </div>
+  <div className="home-memory-suggestions-list">{memorySuggestions.map(item => <article key={item.id}>
+    <div>
+      <strong>{item.name}</strong>
+      {item.visitDate && <small>{item.visitDate}</small>}
+      <p>{item.needsPhoto && <span>📷 写真を追加</span>}{item.needsText && <span>✍️ ひとことを書く</span>}</p>
+    </div>
+    <button type="button" onClick={() => setSelectedId(item.id)}>思い出を仕上げる</button>
+  </article>)}</div>
 </section>}
 
 <section className="home-record-stats" aria-label="旅図帳に保存した記録">
