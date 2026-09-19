@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { newId, todayLocal } from "./tripPlans.js";
+import { MAX_PREFECTURE_PHOTOS, compressTravelPhoto, countPrefecturePhotos, saveTravelPhoto } from "./travelPhotos.js";
 import "./travelMode.css";
 
 function formatTime(iso) {
@@ -59,6 +60,10 @@ export default function TravelMode({ plan, onClose, onPersist }) {
   const [nearbyPlaces, setNearbyPlaces] = useState([]);
   const [nearbyState, setNearbyState] = useState("idle");
   const [nearbyMessage, setNearbyMessage] = useState("");
+  const [memoryItemId, setMemoryItemId] = useState("");
+  const [memoryMemo, setMemoryMemo] = useState("");
+  const [memoryBusy, setMemoryBusy] = useState(false);
+  const [memoryMessage, setMemoryMessage] = useState("");
   const watchId = useRef(null);
   const lastNearbySearch = useRef({ at: 0, position: null });
   const nearbyAbort = useRef(null);
@@ -179,6 +184,59 @@ export default function TravelMode({ plan, onClose, onPersist }) {
         checkinAccuracy: position.accuracy,
       } : value),
     }));
+    setMemoryItemId(item.id);
+    setMemoryMemo(item.travelMemo || "");
+    setMemoryMessage("到着を記録しました。写真やひとことを残せます。");
+  }
+
+  function openTravelMemory(item) {
+    setMemoryItemId(item.id);
+    setMemoryMemo(item.travelMemo || "");
+    setMemoryMessage("");
+  }
+
+  async function saveTravelMemory(item, event) {
+    event.preventDefault();
+    if (memoryBusy) return;
+    setMemoryBusy(true);
+    setMemoryMessage("");
+    try {
+      const input = event.currentTarget.elements.namedItem("travelPhoto");
+      const file = input?.files?.[0] || null;
+      let photoAdded = 0;
+      if (file) {
+        const currentCount = await countPrefecturePhotos(plan.prefectureId);
+        if (currentCount >= MAX_PREFECTURE_PHOTOS) {
+          throw new Error(`この都道府県には写真を${MAX_PREFECTURE_PHOTOS}枚まで保存できます。`);
+        }
+        const blob = await compressTravelPhoto(file);
+        await saveTravelPhoto({
+          prefectureId: plan.prefectureId,
+          planId: plan.id,
+          dayId: day.id,
+          itemId: item.id,
+          blob,
+        });
+        photoAdded = 1;
+      }
+
+      const memo = memoryMemo.trim();
+      persistDay(current => ({
+        ...current,
+        items: current.items.map(value => value.id === item.id ? {
+          ...value,
+          travelMemo: memo,
+          travelPhotoCount: Math.max(0, Number(value.travelPhotoCount) || 0) + photoAdded,
+        } : value),
+      }));
+      setMemoryMessage(photoAdded ? "✓ 写真とひとことを保存しました。" : "✓ ひとことを保存しました。");
+      setMemoryItemId("");
+      setMemoryMemo("");
+    } catch (error) {
+      setMemoryMessage(error.message || "写真・ひとことを保存できませんでした。");
+    } finally {
+      setMemoryBusy(false);
+    }
   }
 
   function saveSuggestedPlace(place) {
@@ -287,10 +345,20 @@ export default function TravelMode({ plan, onClose, onPersist }) {
           <div className="travel-event"><div className="travel-event-title"><span className="travel-step">{index + 1}</span><h3>{item.name}</h3></div>{item.memo && <p>{item.memo}</p>}
             {item.checkedInAt && <p className="travel-success">✓ {formatTime(item.checkedInAt)}にチェックイン</p>}
             {!item.checkedInAt && item.completedAt && <p className="travel-success">✓ {formatTime(item.completedAt)}に完了</p>}
+            {item.travelMemo && <p className="travel-memory-summary">ひとこと：{item.travelMemo}</p>}
+            {item.travelPhotoCount > 0 && <p className="travel-memory-summary">📷 写真 {item.travelPhotoCount}枚保存済み</p>}
             <div className="travel-event-actions">
               {!done && <button type="button" onClick={() => completeItem(item)}>完了</button>}
               {!item.checkedInAt && <button type="button" className="travel-primary" onClick={() => checkIn(item)}>この場所に到着</button>}
+              {item.checkedInAt && <button type="button" onClick={() => openTravelMemory(item)}>写真・ひとこと</button>}
             </div>
+            {memoryItemId === item.id && <form className="travel-memory-form" onSubmit={event => saveTravelMemory(item, event)}>
+              <label>ひとこと<textarea rows={3} maxLength={500} value={memoryMemo} onChange={event => setMemoryMemo(event.target.value)} placeholder="景色がきれいだった、○○がおいしかった など" /></label>
+              <label>写真（1枚）<input name="travelPhoto" type="file" accept="image/jpeg,image/png,image/webp,image/gif" /></label>
+              <p className="travel-memory-note">写真はこの都道府県の「思い出」にも保存されます。1県につき最大{MAX_PREFECTURE_PHOTOS}枚です。</p>
+              {memoryMessage && <p className="travel-memory-status" role="status">{memoryMessage}</p>}
+              <div className="travel-event-actions"><button className="travel-primary" type="submit" disabled={memoryBusy}>{memoryBusy ? "保存中…" : "保存する"}</button><button type="button" disabled={memoryBusy} onClick={() => { setMemoryItemId(""); setMemoryMemo(""); setMemoryMessage(""); }}>閉じる</button></div>
+            </form>}
           </div>
         </li>;
       })}
