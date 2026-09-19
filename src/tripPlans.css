@@ -47,3 +47,5 @@
 @media (prefers-reduced-motion: reduce) { .trip-ai-spinner { animation: none; } }
 @media (max-width: 600px) { .trip-ai-dialog { padding: 18px 12px; } .trip-toast { font-size: 14px; } }
 @media (max-width: 600px) { .trip-heading { align-items: stretch; flex-direction: column; } .trip-fields, .trip-list, .trip-item-fields { grid-template-columns: 1fr; } .trip-editor { padding: 18px 12px; } .trip-day { padding: 12px; } .trip-item { padding: 10px; } .trip-save .trip-primary { width: 100%; } .trip-heading h1 { font-size: 24px; } }
+
+.trip-route-link{display:inline-flex;align-items:center;justify-content:center;min-height:42px;margin-top:8px;padding:8px 12px;border:1px solid #a8bea9;border-radius:10px;background:#f4f8f3;color:#356449;font-size:13px;font-weight:700;text-decoration:none}.trip-route-link:hover{background:#eaf2e9}.trip-route-link:focus-visible{outline:3px solid #217453;outline-offset:3px}

@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { AI_NOTICE, MOODS, PACES, PLAN_FIELDS, validateRequest, validateItinerary } from "../lib/tripItinerary.js";
 import { newId } from "./tripPlans.js";
+import { googleMapsRouteForItem } from "./tripRoute.js";
 const PREPARING = "AI機能は準備中です。管理者によるAPI設定が必要です。";
 const PREFECTURE_NAMES = ["", "北海道", "青森県", "岩手県", "宮城県", "秋田県", "山形県", "福島県", "茨城県", "栃木県", "群馬県", "埼玉県", "千葉県", "東京都", "神奈川県", "新潟県", "富山県", "石川県", "福井県", "山梨県", "長野県", "岐阜県", "静岡県", "愛知県", "三重県", "滋賀県", "京都府", "大阪府", "兵庫県", "奈良県", "和歌山県", "鳥取県", "島根県", "岡山県", "広島県", "山口県", "徳島県", "香川県", "愛媛県", "高知県", "福岡県", "佐賀県", "長崎県", "熊本県", "大分県", "宮崎県", "鹿児島県", "沖縄県"];
 const prefectureNameForAI = id => PREFECTURE_NAMES[Number(id)] || "行き先";
@@ -65,7 +66,7 @@ export default function TripAI({ plan, blocked, onApply, onClose }) {
     {error && <p role="alert" className="trip-error">{error}</p>}
     {blocked && <p role="alert">保存データに変更があるため反映できません。一度閉じて画面の案内をご確認ください。</p>}
     {result && <><h3 tabIndex={-1} ref={previewHeading}>AIが作成した旅程</h3>
-      {result.days.map((day, index) => <section key={day.id} className="trip-day"><h4>{index + 1}日目 · {day.date}</h4><ol className="trip-ai-items">{day.items.map(item => <li key={item.id}><time>{item.time}</time><strong>{item.name}</strong><p>{item.memo}</p></li>)}</ol></section>)}
+      {result.days.map((day, index) => <section key={day.id} className="trip-day"><h4>{index + 1}日目 · {day.date}</h4><ol className="trip-ai-items">{day.items.map(item => { const routeUrl = googleMapsRouteForItem(item); return <li key={item.id}><time>{item.time}</time><strong>{item.name}</strong><p>{item.memo}</p>{routeUrl && <a className="trip-route-link" href={routeUrl} target="_blank" rel="noopener noreferrer">Googleマップで経路を確認 ↗</a>}</li>; })}</ol></section>)}
       <p>{AI_NOTICE}</p><p>適用後も未保存です。内容を調整して「計画を保存」を押してください。</p></>}
     <div className="trip-ai-actions">
       {result ? <><button type="button" className="trip-primary" disabled={blocked} onClick={() => onApply(result.days)}>この旅程を使う</button><button type="button" onClick={() => { setResult(null); setError(""); }}>やり直す</button></> : <button type="button" className="trip-primary" disabled={busy || blocked || ready !== true} onClick={generate}>{busy ? "作成中…" : "AIで作成"}</button>}
