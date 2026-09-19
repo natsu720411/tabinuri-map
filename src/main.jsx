@@ -3,6 +3,7 @@ import SharedTrip from "./SharedTrip.jsx";
 import { importedIds, mergeTripMemory, normalizeTravelLogs } from "./tripMemory.js";
 import { getTravelAchievement } from "./achievement.js";
 import ShareTravel from "./ShareTravel.jsx";
+import TravelLogShare from "./TravelLogShare.jsx";
 import React, { useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import "./style.css";
@@ -203,6 +204,14 @@ function MemoryPanel({ prefecture, record, onSave, onClose, readError }) {
               <time dateTime={entry.at}>{entry.at ? new Date(entry.at).toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" }) : "--:--"}</time>
               <div><strong>{entry.name}</strong><span>{entry.kind}</span>{entry.memo && <p>「{entry.memo}」</p>}{entry.photoCount > 0 && <small>📷 写真 {entry.photoCount}枚</small>}</div>
             </li>)}</ol>
+            <div className="memory-log-share">
+              <TravelLogShare
+                title={log.title}
+                dayLabel={logDay.label || `${dayIndex + 1}日目の旅ログ`}
+                dayDate={logDay.date}
+                entries={logDay.entries}
+              />
+            </div>
           </section>)}</div>
         </details>)}</div>
       </div>}
