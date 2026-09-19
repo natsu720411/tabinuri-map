@@ -6,9 +6,20 @@ export function appendUnique(existing, added) {
   return [existing || "", ...extra].filter(Boolean).join("\n");
 }
 export function importDefaults(plan) {
-  const names = (plan.days || []).flatMap(day => (day.items || []).map(item => item.name || ""))
+  const items = (plan.days || []).flatMap(day => (day.items || []).map(item => ({ ...item, dayDate: day.date || "" })));
+  const names = items.map(item => item.name || "")
     .filter(name => !/^(出発|到着|移動|ホテル(?:へ移動|へ|に移動)?|朝食|昼食|夕食|昼ごはん|夜ごはん|休憩|チェックイン|チェックアウト)$/.test(name.trim()));
-  return { visitDate: plan.startDate || "", companions: plan.companions || "", foods: plan.foods || "", recommendedSpots: appendUnique("", [plan.places || "", ...names].join("\n")), memory: plan.notes || "" };
+  const travelNotes = items.filter(item => item.travelMemo?.trim()).map(item => {
+    const label = [item.dayDate, item.name].filter(Boolean).join(" ");
+    return `${label ? `【${label}】\n` : ""}${item.travelMemo.trim()}`;
+  });
+  return {
+    visitDate: plan.startDate || "",
+    companions: plan.companions || "",
+    foods: plan.foods || "",
+    recommendedSpots: appendUnique("", [plan.places || "", ...names].join("\n")),
+    memory: [plan.notes || "", ...travelNotes].filter(Boolean).join("\n\n"),
+  };
 }
 export function mergeTripMemory(existing, plan, values) {
   const ids = importedIds(existing.importedTripPlanIds);
