@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { newId, todayLocal } from "./tripPlans.js";
 import { MAX_PREFECTURE_PHOTOS, compressTravelPhoto, countPrefecturePhotos, saveTravelPhoto } from "./travelPhotos.js";
+import TravelLogShare from "./TravelLogShare.jsx";
 import "./travelMode.css";
 
 function formatTime(iso) {
@@ -433,6 +434,9 @@ export default function TravelMode({ plan, onClose, onPersist }) {
           </div>
         </li>)}
       </ol>}
+      <div className="travel-log-share-wrap">
+        <TravelLogShare title={plan.title} dayLabel={travelLogTitle} dayDate={day.date} entries={travelLog} />
+      </div>
     </section>
 
     <ol className="travel-timeline">
