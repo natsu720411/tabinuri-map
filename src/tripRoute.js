@@ -32,3 +32,13 @@ export function googleMapsPlaceForItem(item) {
   });
   return `https://www.google.com/maps/search/?${params.toString()}`;
 }
+
+export function googleMapsNavigationForItem(item) {
+  const name = typeof item?.name === "string" ? item.name.trim() : "";
+  if (!name || /^移動\s*[：:]/.test(name)) return "";
+  const params = new URLSearchParams({
+    api: "1",
+    destination: name,
+  });
+  return `https://www.google.com/maps/dir/?${params.toString()}`;
+}

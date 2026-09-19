@@ -3,7 +3,7 @@ import { newId, todayLocal } from "./tripPlans.js";
 import { MAX_PREFECTURE_PHOTOS, compressTravelPhoto, countPrefecturePhotos, saveTravelPhoto } from "./travelPhotos.js";
 import TravelLogShare from "./TravelLogShare.jsx";
 import TravelSummary from "./TravelSummary.jsx";
-import { googleMapsPlaceForItem, googleMapsRouteForItem } from "./tripRoute.js";
+import { googleMapsNavigationForItem, googleMapsRouteForItem } from "./tripRoute.js";
 import "./travelMode.css";
 
 function formatTime(iso) {
@@ -446,7 +446,7 @@ export default function TravelMode({ plan, onClose, onPersist, onFinish, onOpenM
 
     <section className="travel-next" aria-labelledby="next-title">
       <p className="section-kicker">NEXT</p>
-      {nextItem ? <><h2 id="next-title">次の予定</h2><div className="travel-next-card"><time>{nextItem.time || "時刻未定"}</time><strong>{nextItem.name}</strong>{nextItem.memo && <p>{nextItem.memo}</p>}{googleMapsRouteForItem(nextItem) ? <a className="travel-route-link" href={googleMapsRouteForItem(nextItem)} target="_blank" rel="noopener noreferrer">Googleマップで経路を確認 ↗</a> : googleMapsPlaceForItem(nextItem) && <a className="travel-route-link" href={googleMapsPlaceForItem(nextItem)} target="_blank" rel="noopener noreferrer">Googleマップで場所を確認 ↗</a>}</div>
+      {nextItem ? <><h2 id="next-title">次の予定</h2><div className="travel-next-card"><time>{nextItem.time || "時刻未定"}</time><strong>{nextItem.name}</strong>{nextItem.memo && <p>{nextItem.memo}</p>}{googleMapsRouteForItem(nextItem) ? <a className="travel-route-link" href={googleMapsRouteForItem(nextItem)} target="_blank" rel="noopener noreferrer">Googleマップで経路を確認 ↗</a> : googleMapsNavigationForItem(nextItem) && <a className="travel-route-link" href={googleMapsNavigationForItem(nextItem)} target="_blank" rel="noopener noreferrer">現在地からナビ ↗</a>}</div>
         {day.items[nextIndex + 1] && <p className="travel-after-next">その次：{day.items[nextIndex + 1].time || "時刻未定"} {day.items[nextIndex + 1].name}</p>}</> : <><h2 id="next-title">今日の予定はすべて完了しました 🎉</h2><p>おつかれさまでした。予定外の立ち寄りも記録できます。</p></>}
     </section>
 
@@ -477,7 +477,7 @@ export default function TravelMode({ plan, onClose, onPersist, onFinish, onOpenM
         return <li key={item.id} className={done ? "done" : ""}>
           <div className="travel-time">{item.time || "--:--"}</div>
           <div className="travel-event"><div className="travel-event-title"><span className="travel-step">{index + 1}</span><h3>{item.name}</h3></div>{item.memo && <p>{item.memo}</p>}
-            {googleMapsRouteForItem(item) ? <a className="travel-route-link" href={googleMapsRouteForItem(item)} target="_blank" rel="noopener noreferrer">Googleマップで経路を確認 ↗</a> : googleMapsPlaceForItem(item) && <a className="travel-route-link" href={googleMapsPlaceForItem(item)} target="_blank" rel="noopener noreferrer">Googleマップで場所を確認 ↗</a>}
+            {googleMapsRouteForItem(item) ? <a className="travel-route-link" href={googleMapsRouteForItem(item)} target="_blank" rel="noopener noreferrer">Googleマップで経路を確認 ↗</a> : googleMapsNavigationForItem(item) && <a className="travel-route-link" href={googleMapsNavigationForItem(item)} target="_blank" rel="noopener noreferrer">現在地からナビ ↗</a>}
             {item.checkedInAt && <p className="travel-success">✓ {formatTime(item.checkedInAt)}にチェックイン</p>}
             {!item.checkedInAt && item.completedAt && <p className="travel-success">✓ {formatTime(item.completedAt)}に完了</p>}
             {item.travelMemo && <p className="travel-memory-summary">ひとこと：{item.travelMemo}</p>}
