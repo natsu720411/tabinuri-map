@@ -8,6 +8,7 @@ import TripShare from "./TripShare.jsx";
 import TravelMode from "./TravelMode.jsx";
 import { importDefaults } from "./tripMemory.js";
 import { googleMapsPlaceForItem, googleMapsRouteForItem } from "./tripRoute.js";
+import { trackEvent } from "./analytics.js";
 
 const notes = [["places", "行きたい場所"], ["foods", "食べたいもの"], ["activities", "やりたいこと"], ["accommodation", "宿泊先メモ"], ["transport", "移動メモ"], ["notes", "その他メモ"]];
 
@@ -69,8 +70,12 @@ export default function TripPlans({ onImport, onOpenMemory, initialPlanId, onIni
     if (draft.days.some(day => day.date && ((draft.startDate && day.date < draft.startDate) || (draft.endDate && day.date > draft.endDate)))) { setError("日ごとの日付は旅行の日程内にしてください。"); return; }
     if (draft.days.some(day => day.items.some(item => !item.name.trim()))) { setError("予定名を入力してください。"); return; }
     const saved = { ...draft, title: draft.title.trim(), updatedAt: new Date().toISOString() };
-    const plans = store.plans.some(plan => plan.id === saved.id) ? store.plans.map(plan => plan.id === saved.id ? saved : plan) : [...store.plans, saved];
-    if (commit(plans, "")) { setDraft(saved); setDirty(false); showSaved(); }
+    const existed = store.plans.some(plan => plan.id === saved.id);
+    const plans = existed ? store.plans.map(plan => plan.id === saved.id ? saved : plan) : [...store.plans, saved];
+    if (commit(plans, "")) {
+      setDraft(saved); setDirty(false); showSaved();
+      trackEvent(existed ? "trip_plan_saved" : "trip_plan_created", { result: "success" });
+    }
   }
   function persistTravelPlan(updated) {
     if (blocked) return;
@@ -88,6 +93,7 @@ export default function TripPlans({ onImport, onOpenMemory, initialPlanId, onIni
   }
   function openTravelMode() {
     if (dirty || blocked || !store.plans.some(plan => plan.id === draft.id)) return;
+    trackEvent("travel_mode_opened", { source: "trip_plan" });
     if (draft.days.length > 0) { setTravelOpen(true); return; }
     const today = todayLocal();
     const date = draft.startDate && draft.endDate && today >= draft.startDate && today <= draft.endDate ? today : (draft.startDate || today);

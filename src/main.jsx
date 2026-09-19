@@ -6,6 +6,7 @@ import { getTravelAchievement } from "./achievement.js";
 import ShareTravel from "./ShareTravel.jsx";
 import TravelLogShare from "./TravelLogShare.jsx";
 import TravelSummary from "./TravelSummary.jsx";
+import { trackEvent } from "./analytics.js";
 import React, { useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import "./style.css";
@@ -536,7 +537,7 @@ function App({ initialPlanId }) {
   <button type="button" className={view === "map" ? "active" : ""} aria-current={view === "map" ? "page" : undefined} onClick={() => setView("map")}>地図</button>
   <button type="button" className={view === "memories" ? "active" : ""} aria-current={view === "memories" ? "page" : undefined} onClick={() => setView("memories")}>思い出</button>
   <button type="button" className={view === "want" ? "active" : ""} aria-current={view === "want" ? "page" : undefined} onClick={() => setView("want")}>行きたい</button>
-  <button type="button" className={view === "plans" ? "active" : ""} aria-current={view === "plans" ? "page" : undefined} onClick={() => setView("plans")}>旅の計画</button>
+  <button type="button" className={view === "plans" ? "active" : ""} aria-current={view === "plans" ? "page" : undefined} onClick={() => { trackEvent("home_plan_cta", { source: "hero" }); setView("plans"); }}>旅の計画</button>
   <details className={["ranking", "year", "timeline"].includes(view) ? "view-more active" : "view-more"}>
     <summary aria-label="その他の表示を開く">その他</summary>
     <div className="view-more-menu">
@@ -619,7 +620,7 @@ function App({ initialPlanId }) {
     </div>
   </div>
   <div className="recent-trip-actions">
-    <button type="button" className="recent-trip-summary-button" onClick={() => setSummaryPlan(recentTrip)}>旅のまとめを見る</button>
+    <button type="button" className="recent-trip-summary-button" onClick={() => { trackEvent("home_trip_summary_open", { source: "recent_trip" }); setSummaryPlan(recentTrip); }}>旅のまとめを見る</button>
     <button type="button" onClick={() => setSelectedId(recentTrip.prefectureId)}>思い出を見る</button>
   </div>
 </section>}
@@ -649,7 +650,7 @@ function App({ initialPlanId }) {
       {item.visitDate && <small>{item.visitDate}</small>}
       <p>{item.needsPhoto && <span>📷 写真を追加</span>}{item.needsText && <span>✍️ ひとことを書く</span>}</p>
     </div>
-    <button type="button" onClick={() => setSelectedId(item.id)}>思い出を仕上げる</button>
+    <button type="button" onClick={() => { trackEvent("home_memory_finish_open", { source: "home_prompt" }); setSelectedId(item.id); }}>思い出を仕上げる</button>
   </article>)}</div>
 </section>}
 

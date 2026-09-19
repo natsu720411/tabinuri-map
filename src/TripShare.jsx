@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { createTripLink, lineTripLink, SHARE_FIELDS } from "./tripShare.js";
+import { trackEvent } from "./analytics.js";
 import "./tripShare.css";
 
 export default function TripShare({ plan, onClose }) {
@@ -15,17 +16,17 @@ export default function TripShare({ plan, onClose }) {
   function reset() { setUrl(""); setStatus(""); setError(""); setCopied(false); clearTimeout(timer.current); }
   async function generate() {
     setBusy(true); setError("");
-    try { const result = await createTripLink(plan, selected, { compress: !plain }); if (active.current) { setUrl(result); setStatus("共有リンクを作りました。"); } }
+    try { const result = await createTripLink(plan, selected, { compress: !plain }); if (active.current) { setUrl(result); setStatus("共有リンクを作りました。"); trackEvent("trip_share_link_created", { result: "success" }); } }
     catch (e) { if (active.current) setError(e.message || "共有リンクを作れませんでした。"); }
     finally { if (active.current) setBusy(false); }
   }
   async function copy() {
-    try { await navigator.clipboard.writeText(url); if (!active.current) return; setCopied(true); setStatus(""); clearTimeout(timer.current); timer.current = setTimeout(() => setCopied(false), 2800); }
+    try { await navigator.clipboard.writeText(url); if (!active.current) return; trackEvent("trip_share_link_copied", { result: "success" }); setCopied(true); setStatus(""); clearTimeout(timer.current); timer.current = setTimeout(() => setCopied(false), 2800); }
     catch { link.current?.focus(); link.current?.select(); setStatus("自動コピーできませんでした。選択されたリンクを手動でコピーしてください。"); }
   }
   async function share() {
     setBusy(true); setStatus("");
-    try { await navigator.share({ title: plan.title, text: "旅図帳で旅行のしおりを共有しました。", url }); }
+    try { await navigator.share({ title: plan.title, text: "旅図帳で旅行のしおりを共有しました。", url }); trackEvent("trip_share_native_opened", { result: "success" }); }
     catch (e) { if (e.name !== "AbortError" && active.current) setStatus("共有メニューを開けませんでした。リンクコピーをご利用ください。"); }
     finally { if (active.current) setBusy(false); }
   }

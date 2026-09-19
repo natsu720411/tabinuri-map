@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { AI_NOTICE, MOODS, PACES, PLAN_FIELDS, TRANSPORT_STYLES, validateRequest, validateItinerary } from "../lib/tripItinerary.js";
 import { newId } from "./tripPlans.js";
 import { googleMapsPlaceForItem, googleMapsRouteForItem } from "./tripRoute.js";
+import { trackEvent } from "./analytics.js";
 const PREPARING = "AI機能は準備中です。管理者によるAPI設定が必要です。";
 const PREFECTURE_NAMES = ["", "北海道", "青森県", "岩手県", "宮城県", "秋田県", "山形県", "福島県", "茨城県", "栃木県", "群馬県", "埼玉県", "千葉県", "東京都", "神奈川県", "新潟県", "富山県", "石川県", "福井県", "山梨県", "長野県", "岐阜県", "静岡県", "愛知県", "三重県", "滋賀県", "京都府", "大阪府", "兵庫県", "奈良県", "和歌山県", "鳥取県", "島根県", "岡山県", "広島県", "山口県", "徳島県", "香川県", "愛媛県", "高知県", "福岡県", "佐賀県", "長崎県", "熊本県", "大分県", "宮崎県", "鹿児島県", "沖縄県"];
 const prefectureNameForAI = id => PREFECTURE_NAMES[Number(id)] || "行き先";
@@ -54,6 +55,7 @@ export default function TripAI({ plan, blocked, onApply, onClose }) {
       if (!response.ok) throw new Error([400, 413, 415, 429, 503].includes(response.status) && typeof payload.error === "string" ? payload.error : "AI旅程の作成に失敗しました。もう一度お試しください。");
       const checked = validateItinerary(payload, request.dates.length);
       setResult({ days: checked.days.map((day, index) => ({ id: newId(), date: request.dates[index], items: day.items.map(item => ({ id: newId(), time: item.time, name: item.title, memo: item.memo })) })) });
+      trackEvent("ai_itinerary_generated", { result: "success" });
     } catch (err) { if (dialog.current?.open) setError(err.name === "AbortError" ? "作成に時間がかかっています。もう一度お試しください。" : (err.message.startsWith("AI") || err.message.includes("入力") || err.message.includes("設定") || err.message.includes("時間をおいて") ? err.message : "AI旅程の作成に失敗しました。もう一度お試しください。")); }
     finally { clearTimeout(timeout); busyRef.current = false; if (dialog.current?.open) setBusy(false); }
   }
@@ -94,6 +96,7 @@ export default function TripAI({ plan, blocked, onApply, onClose }) {
       setPreviousResult(result);
       setResult(revised);
       setRevisionRequest("");
+      trackEvent("ai_itinerary_refined", { result: "success" });
     } catch (err) {
       if (dialog.current?.open) setError(err.name === "AbortError" ? "修正に時間がかかっています。もう一度お試しください。" : (err.message.startsWith("AI") || err.message.includes("入力") || err.message.includes("修正") || err.message.includes("時間をおいて") ? err.message : "AI旅程の修正に失敗しました。もう一度お試しください。"));
     } finally {
@@ -137,7 +140,7 @@ export default function TripAI({ plan, blocked, onApply, onClose }) {
       </div>
       <p>{AI_NOTICE}</p><p>適用後も未保存です。内容を調整して「計画を保存」を押してください。</p></>}
     <div className="trip-ai-actions">
-      {result ? <><button type="button" className="trip-primary" disabled={blocked || busy} onClick={() => onApply(result.days)}>この旅程を使う</button><button type="button" disabled={busy} onClick={() => { setResult(null); setPreviousResult(null); setLockedKeys([]); setError(""); setRevisionRequest(""); }}>最初からやり直す</button></> : <button type="button" className="trip-primary" disabled={busy || blocked || ready !== true} onClick={generate}>{busy ? "作成中…" : "AIで作成"}</button>}
+      {result ? <><button type="button" className="trip-primary" disabled={blocked || busy} onClick={() => { trackEvent("ai_itinerary_applied", { source: "preview" }); onApply(result.days); }}>この旅程を使う</button><button type="button" disabled={busy} onClick={() => { setResult(null); setPreviousResult(null); setLockedKeys([]); setError(""); setRevisionRequest(""); }}>最初からやり直す</button></> : <button type="button" className="trip-primary" disabled={busy || blocked || ready !== true} onClick={generate}>{busy ? "作成中…" : "AIで作成"}</button>}
       <button type="button" onClick={onClose}>キャンセル</button>
     </div>
   </dialog>;
