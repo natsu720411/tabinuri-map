@@ -6,6 +6,7 @@ import TripAI from "./TripAI.jsx";
 import TripImport from "./TripImport.jsx";
 import TripShare from "./TripShare.jsx";
 import TravelMode from "./TravelMode.jsx";
+import { importDefaults } from "./tripMemory.js";
 
 const notes = [["places", "行きたい場所"], ["foods", "食べたいもの"], ["activities", "やりたいこと"], ["accommodation", "宿泊先メモ"], ["transport", "移動メモ"], ["notes", "その他メモ"]];
 
@@ -111,21 +112,47 @@ export default function TripPlans({ onImport, onOpenMemory, initialPlanId, onIni
     if (draft.days.some(day => day.items.some(item => !item.name.trim()))) { setError("予定名を入力してください。"); return; }
     clearFeedback(); setImportOpen(true);
   }
-  function confirmImport(values) {
-    if (blocked) return "保存を停止しています。再読み込みしてください。";
-    const result = onImport(draft, values);
-    if (result.error) return result.error;
-    const saved = { ...draft, title: draft.title.trim(), status: "completed", travelBookSavedAt: draft.travelBookSavedAt || new Date().toISOString(), updatedAt: new Date().toISOString() };
+  function saveTripToBook(planToSave, values) {
+    if (blocked) return { error: "保存を停止しています。再読み込みしてください。" };
+    const result = onImport(planToSave, values);
+    if (result.error) return { error: result.error };
+    const saved = { ...planToSave, title: planToSave.title.trim(), status: "completed", travelBookSavedAt: planToSave.travelBookSavedAt || new Date().toISOString(), updatedAt: new Date().toISOString() };
     const plans = store.plans.some(plan => plan.id === saved.id) ? store.plans.map(plan => plan.id === saved.id ? saved : plan) : [...store.plans, saved];
-    if (!commit(plans, result.already ? "この旅行はすでに旅図帳に保存されています" : `${prefectures.find(p => p.id === result.prefectureId)?.name}を訪問済みにしました。`)) return "思い出への保存は完了しましたが、旅行計画の保存に失敗しました。空き容量をご確認のうえ再度保存してください。思い出は重複しません。";
-    setDraft(saved); setDirty(false); setImportOpen(false); setImportedPrefecture(result.prefectureId); showSaved("✓ 旅図帳に保存しました");
+    if (!commit(plans, result.already ? "この旅行はすでに旅図帳に保存されています" : `${prefectures.find(p => p.id === result.prefectureId)?.name}を訪問済みにしました。`)) {
+      return { error: "思い出への保存は完了しましたが、旅行計画の保存に失敗しました。空き容量をご確認のうえ再度保存してください。思い出は重複しません。" };
+    }
+    setDraft(saved);
+    setDirty(false);
+    setImportedPrefecture(result.prefectureId);
+    showSaved("✓ 旅図帳に保存しました");
+    return { error: "", already: result.already, prefectureId: result.prefectureId, saved };
+  }
+  function confirmImport(values) {
+    const result = saveTripToBook(draft, values);
+    if (result.error) return result.error;
+    setImportOpen(false);
     return "";
+  }
+  function finishTravel(planToFinish) {
+    if (!planToFinish?.title?.trim()) return { error: "旅行タイトルを入力してください。" };
+    if (!Number.isInteger(planToFinish.prefectureId) || planToFinish.prefectureId < 1 || planToFinish.prefectureId > 47) return { error: "行き先の都道府県を設定してください。" };
+    if (planToFinish.travelBookSavedAt) {
+      setTravelOpen(false);
+      setImportedPrefecture(planToFinish.prefectureId);
+      setMessage("この旅行はすでに旅図帳に保存されています。");
+      return { error: "", already: true, prefectureId: planToFinish.prefectureId };
+    }
+    const result = saveTripToBook(planToFinish, importDefaults(planToFinish));
+    if (result.error) return result;
+    setTravelOpen(false);
+    setMessage(result.already ? "この旅行はすでに旅図帳に保存されています。" : "旅行を終了し、旅ログ・写真・ひとことを旅図帳の思い出に保存しました。");
+    return result;
   }
   function removePlan() {
     if (!window.confirm(`「${draft.title || "この旅行"}」を削除しますか？`)) return;
     if (commit(store.plans.filter(plan => plan.id !== draft.id), "旅行計画を削除しました。")) { setDraft(null); setDirty(false); }
   }
-  if (travelOpen && draft) return <TravelMode plan={draft} onClose={() => setTravelOpen(false)} onPersist={persistTravelPlan} />;
+  if (travelOpen && draft) return <TravelMode plan={draft} onClose={() => setTravelOpen(false)} onPersist={persistTravelPlan} onFinish={finishTravel} />;
   return <section className="trip-plans" aria-labelledby="trip-plans-title">
     <div className={saveFeedback ? "trip-toast" : "sr-only"} role="status" aria-live="polite" aria-atomic="true">{saveFeedback ? toast : ""}</div>
     <div className="trip-heading"><div><p className="section-kicker">PLAN YOUR NEXT TRIP</p><h1 id="trip-plans-title" ref={heading} tabIndex={-1}>{draft ? "旅の計画を編集" : "旅の計画"}</h1></div>

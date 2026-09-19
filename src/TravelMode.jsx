@@ -48,7 +48,7 @@ function likelySamePlace(plannedName, nearbyName) {
   return a.length >= 3 && b.length >= 3 && (a.includes(b) || b.includes(a));
 }
 
-export default function TravelMode({ plan, onClose, onPersist }) {
+export default function TravelMode({ plan, onClose, onPersist, onFinish }) {
   const today = todayLocal();
   const initialDayIndex = Math.max(0, plan.days.findIndex(day => day.date === today));
   const [dayIndex, setDayIndex] = useState(initialDayIndex);
@@ -69,6 +69,8 @@ export default function TravelMode({ plan, onClose, onPersist }) {
   const [memoryStopMemo, setMemoryStopMemo] = useState("");
   const [memoryStopBusy, setMemoryStopBusy] = useState(false);
   const [memoryStopMessage, setMemoryStopMessage] = useState("");
+  const [finishBusy, setFinishBusy] = useState(false);
+  const [finishMessage, setFinishMessage] = useState("");
   const watchId = useRef(null);
   const lastNearbySearch = useRef({ at: 0, position: null });
   const nearbyAbort = useRef(null);
@@ -366,6 +368,22 @@ export default function TravelMode({ plan, onClose, onPersist }) {
     setExtraOpen(false);
   }
 
+  function finishTrip() {
+    if (finishBusy) return;
+    if (plan.travelBookSavedAt) {
+      onClose();
+      return;
+    }
+    if (!window.confirm("旅行を終了して、旅ログ・写真・ひとことを旅図帳の思い出に保存しますか？")) return;
+    setFinishBusy(true);
+    setFinishMessage("旅図帳に保存しています…");
+    const result = onFinish?.(plan);
+    if (!result || result.error) {
+      setFinishBusy(false);
+      setFinishMessage(result?.error || "旅行を終了できませんでした。もう一度お試しください。");
+    }
+  }
+
   const dateRange = useMemo(() => {
     if (!plan.startDate && !plan.endDate) return "日程未設定";
     return `${plan.startDate || "未定"} 〜 ${plan.endDate || "未定"}`;
@@ -489,6 +507,20 @@ export default function TravelMode({ plan, onClose, onPersist }) {
           <div className="travel-event-actions"><button className="travel-primary" type="submit" disabled={memoryStopBusy}>{memoryStopBusy ? "保存中…" : "保存する"}</button><button type="button" disabled={memoryStopBusy} onClick={() => { setMemoryStopId(""); setMemoryStopMemo(""); setMemoryStopMessage(""); }}>閉じる</button></div>
         </form>}
       </li>)}</ul>}
+    </section>
+
+    <section className="travel-finish" aria-labelledby="travel-finish-title">
+      <p className="section-kicker">FINISH TRIP</p>
+      <h2 id="travel-finish-title">旅行を終了</h2>
+      {plan.travelBookSavedAt ? <>
+        <p className="travel-finish-saved">✓ この旅行は旅図帳の思い出に保存済みです。</p>
+        <button type="button" onClick={onClose}>計画に戻る</button>
+      </> : <>
+        <p>旅行が終わったら、ここから旅ログ・写真・ひとことをまとめて旅図帳の思い出へ保存できます。</p>
+        <button type="button" className="travel-finish-primary" disabled={finishBusy} onClick={finishTrip}>{finishBusy ? "保存中…" : "旅行を終了して旅図帳に保存"}</button>
+        <small>保存後も、都道府県の思い出画面から文章や写真を編集できます。</small>
+      </>}
+      {finishMessage && <p className="travel-finish-status" role="status">{finishMessage}</p>}
     </section>
   </section>;
 }
