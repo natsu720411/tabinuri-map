@@ -74,6 +74,7 @@ export default function TravelMode({ plan, onClose, onPersist, onFinish, onOpenM
   const [finishBusy, setFinishBusy] = useState(false);
   const [finishMessage, setFinishMessage] = useState("");
   const [finishedPlan, setFinishedPlan] = useState(null);
+  const [scheduleMessage, setScheduleMessage] = useState("");
   const [clockNow, setClockNow] = useState(() => Date.now());
   const watchId = useRef(null);
   const lastNearbySearch = useRef({ at: 0, position: null });
@@ -100,9 +101,9 @@ export default function TravelMode({ plan, onClose, onPersist, onFinish, onOpenM
     const current = new Date(clockNow);
     const target = new Date(current.getFullYear(), current.getMonth(), current.getDate(), hours, minutes, 0, 0).getTime();
     const diff = Math.round((target - clockNow) / 60000);
-    if (diff > 1) return { kind: "ahead", text: `予定まであと${diff}分` };
-    if (diff >= -1) return { kind: "now", text: "まもなく予定時刻です" };
-    return { kind: "late", text: `予定時刻を${Math.abs(diff)}分過ぎています` };
+    if (diff > 1) return { kind: "ahead", minutes: diff, text: `予定まであと${diff}分` };
+    if (diff >= -1) return { kind: "now", minutes: 0, text: "まもなく予定時刻です" };
+    return { kind: "late", minutes: Math.abs(diff), text: `予定時刻を${Math.abs(diff)}分過ぎています` };
   }, [nextItem, day.date, today, clockNow]);
 
   const plannedArrival = useMemo(() => {
@@ -149,6 +150,34 @@ export default function TravelMode({ plan, onClose, onPersist, onFinish, onOpenM
     const days = plan.days.map((value, index) => index === dayIndex ? transform(value) : value);
     onPersist({ ...plan, days, updatedAt: new Date().toISOString() });
   };
+
+  function shiftTime(value, minutes) {
+    if (!/^([01]\\d|2[0-3]):[0-5]\\d$/.test(value || "")) return value;
+    const [hour, minute] = value.split(":").map(Number);
+    const total = hour * 60 + minute + minutes;
+    if (total < 0 || total >= 1440) return null;
+    return `${String(Math.floor(total / 60)).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
+  }
+
+  function delayRemainingItems(minutes) {
+    if (!Number.isInteger(minutes) || minutes < 5 || day.date !== today) return;
+    const remaining = day.items.filter(item => !item.completedAt && !item.checkedInAt && /^([01]\\d|2[0-3]):[0-5]\\d$/.test(item.time || ""));
+    if (!remaining.length) return;
+    if (remaining.some(item => shiftTime(item.time, minutes) === null)) {
+      setScheduleMessage("このままずらすと日付をまたぐ予定があるため、自動調整できません。計画画面で時刻を調整してください。");
+      return;
+    }
+    if (!window.confirm(`未完了の予定をすべて${minutes}分後ろへずらしますか？`)) return;
+    persistDay(current => ({
+      ...current,
+      items: current.items.map(item => {
+        if (item.completedAt || item.checkedInAt) return item;
+        const shifted = shiftTime(item.time, minutes);
+        return shifted ? { ...item, time: shifted } : item;
+      }),
+    }));
+    setScheduleMessage(`✓ この後の予定を${minutes}分後ろへずらしました。`);
+  }
 
   async function searchNearby(currentPosition, { force = false } = {}) {
     if (!currentPosition) return;
@@ -461,7 +490,8 @@ export default function TravelMode({ plan, onClose, onPersist, onFinish, onOpenM
 
     <section className="travel-next" aria-labelledby="next-title">
       <p className="section-kicker">NEXT</p>
-      {nextItem ? <><h2 id="next-title">次の予定</h2><div className="travel-next-card"><time>{nextItem.time || "時刻未定"}</time><strong>{nextItem.name}</strong>{nextTiming && <span className={`travel-next-timing ${nextTiming.kind}`}>{nextTiming.text}</span>}{nextItem.memo && <p>{nextItem.memo}</p>}{googleMapsRouteForItem(nextItem) ? <a className="travel-route-link" href={googleMapsRouteForItem(nextItem)} target="_blank" rel="noopener noreferrer">Googleマップで経路を確認 ↗</a> : googleMapsNavigationForItem(nextItem) && <a className="travel-route-link" href={googleMapsNavigationForItem(nextItem)} target="_blank" rel="noopener noreferrer">現在地からナビ ↗</a>}</div>
+      {nextItem ? <><h2 id="next-title">次の予定</h2><div className="travel-next-card"><time>{nextItem.time || "時刻未定"}</time><strong>{nextItem.name}</strong>{nextTiming && <span className={`travel-next-timing ${nextTiming.kind}`}>{nextTiming.text}</span>}{nextTiming?.kind === "late" && nextTiming.minutes >= 5 && <button type="button" className="travel-delay-button" onClick={() => delayRemainingItems(nextTiming.minutes)}>この後の予定を +{nextTiming.minutes}分ずらす</button>}{nextItem.memo && <p>{nextItem.memo}</p>}{googleMapsRouteForItem(nextItem) ? <a className="travel-route-link" href={googleMapsRouteForItem(nextItem)} target="_blank" rel="noopener noreferrer">Googleマップで経路を確認 ↗</a> : googleMapsNavigationForItem(nextItem) && <a className="travel-route-link" href={googleMapsNavigationForItem(nextItem)} target="_blank" rel="noopener noreferrer">現在地からナビ ↗</a>}</div>
+        {scheduleMessage && <p className="travel-schedule-message" role="status">{scheduleMessage}</p>}
         {day.items[nextIndex + 1] && <p className="travel-after-next">その次：{day.items[nextIndex + 1].time || "時刻未定"} {day.items[nextIndex + 1].name}</p>}</> : <><h2 id="next-title">今日の予定はすべて完了しました 🎉</h2><p>おつかれさまでした。予定外の立ち寄りも記録できます。</p></>}
     </section>
 
