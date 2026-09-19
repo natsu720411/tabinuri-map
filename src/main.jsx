@@ -378,6 +378,7 @@ function App({ initialPlanId }) {
   const [visits, setVisits] = useState(readVisits);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
+  const [homePhotoCount, setHomePhotoCount] = useState(0);
   const [view, setView] = useState(initialPlanId ? "plans" : "map");
   const visited = prefectures.filter(({ id }) => visits.records[id]?.visited).map(({ id }) => id);
   const count = visited.length;
@@ -385,7 +386,8 @@ function App({ initialPlanId }) {
   const { percent, title: travelTitle } = getTravelAchievement(count);
   const completedRegions = REGIONS.filter(([, ids]) => ids.every(id => visited.includes(id)));
   const today = todayLocal();
-  const planningPlans = loadPlans().plans.filter(plan => plan.status === "planning");
+  const allPlans = loadPlans().plans;
+  const planningPlans = allPlans.filter(plan => plan.status === "planning");
   const nextTrip = [...planningPlans].sort((a, b) => {
     const aOngoing = a.startDate && a.startDate <= today && (!a.endDate || a.endDate >= today);
     const bOngoing = b.startDate && b.startDate <= today && (!b.endDate || b.endDate >= today);
@@ -407,6 +409,35 @@ function App({ initialPlanId }) {
     if (!nextTrip.endDate || nextTrip.endDate >= today) return "旅行中";
     return "日程を確認";
   })();
+
+  const recentTrip = allPlans
+    .filter(plan => plan.status === "completed" || plan.travelBookSavedAt)
+    .sort((a, b) => (b.travelBookSavedAt || b.endDate || b.updatedAt || "").localeCompare(a.travelBookSavedAt || a.endDate || a.updatedAt || ""))[0] || null;
+  const recentTripEntries = recentTrip ? (recentTrip.days || []).flatMap(day => [
+    ...(day.items || []).filter(item => item.checkedInAt || item.completedAt).map(item => ({
+      name: item.name || "",
+      photoCount: Math.max(0, Number(item.travelPhotoCount) || 0),
+    })),
+    ...(day.extraStops || []).filter(stop => stop.visitedAt).map(stop => ({
+      name: stop.name || "",
+      photoCount: Math.max(0, Number(stop.travelPhotoCount) || 0),
+    })),
+  ]) : [];
+  const recentTripPlaceCount = new Set(recentTripEntries.map(entry => entry.name.trim()).filter(Boolean)).size;
+  const recentTripPhotoCount = recentTripEntries.reduce((sum, entry) => sum + entry.photoCount, 0);
+  const travelLogCount = Object.values(visits.records).reduce((total, record) =>
+    total + (record.travelLogs || []).reduce((tripTotal, log) =>
+      tripTotal + (log.days || []).reduce((dayTotal, logDay) => dayTotal + (logDay.entries || []).length, 0), 0), 0);
+  const firstUse = Object.keys(visits.records).length === 0 && allPlans.length === 0;
+  const wantedPreview = prefectures.filter(({ id }) => wantToVisitIds.includes(id)).slice(0, 3);
+
+  useEffect(() => {
+    let active = true;
+    photoRequest("readonly", store => store.getAll())
+      .then(rows => { if (active) setHomePhotoCount(rows.length); })
+      .catch(() => {});
+    return () => { active = false; };
+  }, [visits.records]);
 
   function saveMemory(id, draft, source = visits) {
     if (visits.error) return visits.error;
@@ -494,6 +525,17 @@ function App({ initialPlanId }) {
     </a>
   </div>
 </section>
+{firstUse && <section className="home-start-guide" aria-labelledby="home-start-guide-title">
+  <div className="home-start-guide-heading">
+    <div><p className="section-kicker">START HERE</p><h2 id="home-start-guide-title">旅図帳は3ステップで使えます</h2></div>
+    <a href="/how-to-use.html">詳しい使い方</a>
+  </div>
+  <ol>
+    <li><span>1</span><div><strong>行き先を決める</strong><p>地図で「行きたい」を残すか、旅の計画を作ります。</p></div></li>
+    <li><span>2</span><div><strong>旅行中に記録する</strong><p>チェックイン、写真、ひとことを旅ログに残せます。</p></div></li>
+    <li><span>3</span><div><strong>思い出として保存</strong><p>旅行終了後、日本地図と旅のまとめで振り返れます。</p></div></li>
+  </ol>
+</section>}
 {nextTrip && <section className="next-trip-card" aria-labelledby="next-trip-title">
   <div className="next-trip-copy">
     <p className="section-kicker">NEXT TRIP</p>
@@ -508,6 +550,44 @@ function App({ initialPlanId }) {
   </div>
   <button type="button" onClick={() => { setRequestedPlanId(nextTrip.id); setView("plans"); }}>旅の計画を開く</button>
 </section>}
+{recentTrip && <section className="recent-trip-card" aria-labelledby="recent-trip-title">
+  <div>
+    <p className="section-kicker">RECENT TRIP</p>
+    <div className="recent-trip-heading">
+      <h2 id="recent-trip-title">{recentTrip.title || "最近の旅"}</h2>
+      <span>{prefectures.find(prefecture => prefecture.id === recentTrip.prefectureId)?.name || "旅行"}</span>
+    </div>
+    <p>{recentTrip.startDate || "日程未定"}{recentTrip.endDate ? ` 〜 ${recentTrip.endDate}` : ""}</p>
+    <div className="recent-trip-mini-stats">
+      <span><strong>{recentTripPlaceCount}</strong>か所</span>
+      <span><strong>{recentTripPhotoCount}</strong>枚の写真</span>
+      <span><strong>{recentTripEntries.length}</strong>件の旅ログ</span>
+    </div>
+  </div>
+  <button type="button" onClick={() => setSelectedId(recentTrip.prefectureId)}>思い出を見る</button>
+</section>}
+
+{wantedPreview.length > 0 && <section className="home-wanted-card" aria-labelledby="home-wanted-title">
+  <div className="home-wanted-heading">
+    <div><p className="section-kicker">WANT TO VISIT</p><h2 id="home-wanted-title">次に行きたい場所</h2></div>
+    <button type="button" onClick={() => setView("want")}>すべて見る</button>
+  </div>
+  <div className="home-wanted-list">{wantedPreview.map(prefecture => {
+    const record = visits.records[prefecture.id] || {};
+    return <button type="button" key={prefecture.id} onClick={() => setSelectedId(prefecture.id)}>
+      <strong>{prefecture.name}</strong>
+      <span>{record.wantToVisitPlaces || record.wantToVisitReason || "次の旅の候補"}</span>
+    </button>;
+  })}</div>
+</section>}
+
+<section className="home-record-stats" aria-label="旅図帳に保存した記録">
+  <div><strong>{count}</strong><span>訪問県</span></div>
+  <div><strong>{homePhotoCount}</strong><span>写真</span></div>
+  <div><strong>{travelLogCount}</strong><span>旅ログ</span></div>
+  <div><strong>{wantToVisitIds.length}</strong><span>行きたい県</span></div>
+</section>
+
 <section className="progress-card" aria-label="旅の進捗">
   <div className="progress-heading">
     <span className="section-kicker">
