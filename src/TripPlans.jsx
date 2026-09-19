@@ -12,7 +12,7 @@ import { trackEvent } from "./analytics.js";
 
 const notes = [["places", "行きたい場所"], ["foods", "食べたいもの"], ["activities", "やりたいこと"], ["accommodation", "宿泊先メモ"], ["transport", "移動メモ"], ["notes", "その他メモ"]];
 
-export default function TripPlans({ onImport, onOpenMemory, initialPlanId, onInitialPlanOpened }) {
+export default function TripPlans({ onImport, onOpenMemory, initialPlanId, onInitialPlanOpened, initialPrefectureId, initialPrefecturePlaces = "", initialPrefectureReason = "", onInitialPrefectureOpened }) {
   const [shareOpen, setShareOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const [travelOpen, setTravelOpen] = useState(false);
@@ -40,6 +40,24 @@ export default function TripPlans({ onImport, onOpenMemory, initialPlanId, onIni
     else setError("計画が見つかりませんでした。旅行計画の一覧をご確認ください。");
     onInitialPlanOpened?.();
   }, [initialPlanId]);
+  useEffect(() => {
+    if (!initialPrefectureId) return;
+    const prefecture = prefectures.find(item => item.id === Number(initialPrefectureId));
+    if (!prefecture) {
+      setError("選択した都道府県から旅行計画を作成できませんでした。");
+      onInitialPrefectureOpened?.();
+      return;
+    }
+    const plan = newPlan();
+    plan.prefectureId = prefecture.id;
+    plan.title = `${prefecture.name}旅行`;
+    plan.places = typeof initialPrefecturePlaces === "string" ? initialPrefecturePlaces.trim() : "";
+    const reason = typeof initialPrefectureReason === "string" ? initialPrefectureReason.trim() : "";
+    plan.notes = reason ? `行きたい理由：${reason}` : "";
+    edit(plan);
+    setMessage(`${prefecture.name}の「行きたい」メモを引き継ぎました。内容を確認して「計画を保存」を押してください。`);
+    onInitialPrefectureOpened?.();
+  }, [initialPrefectureId]);
   useEffect(() => {
     const warn = event => { if (dirty) { event.preventDefault(); event.returnValue = ""; } };
     const changed = event => { if (event.key === TRIP_PLANS_KEY || event.key === null) setConflict(true); };

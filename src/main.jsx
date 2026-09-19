@@ -396,6 +396,7 @@ function HomeTravelSummary({ plan, onClose, onOpenMemory }) {
 
 function App({ initialPlanId }) {
   const [requestedPlanId, setRequestedPlanId] = useState(initialPlanId);
+  const [requestedPrefectureId, setRequestedPrefectureId] = useState(null);
   const [visits, setVisits] = useState(readVisits);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
@@ -547,7 +548,7 @@ function App({ initialPlanId }) {
     </div>
   </details>
 </nav>
-{view === "plans" ? <TripPlans onImport={importTrip} onOpenMemory={setSelectedId} initialPlanId={requestedPlanId} onInitialPlanOpened={() => setRequestedPlanId(null)} /> : view === "year" ? <YearTable visits={visits} onSelect={setSelectedId} /> : view === "ranking" ? <Ranking visits={visits} onSelect={setSelectedId} /> : view === "timeline" ? <Timeline visits={visits} onSelect={setSelectedId} /> : view === "want" ? <WantList visits={visits} onSelect={setSelectedId} /> : view === "memories" ? <MemoriesList visits={visits} onSelect={(id) => { if (id === null) setView("map"); else setSelectedId(id); }} /> : <>
+{view === "plans" ? <TripPlans onImport={importTrip} onOpenMemory={setSelectedId} initialPlanId={requestedPlanId} onInitialPlanOpened={() => setRequestedPlanId(null)} initialPrefectureId={requestedPrefectureId} initialPrefecturePlaces={requestedPrefectureId ? visits.records[requestedPrefectureId]?.wantToVisitPlaces || "" : ""} initialPrefectureReason={requestedPrefectureId ? visits.records[requestedPrefectureId]?.wantToVisitReason || "" : ""} onInitialPrefectureOpened={() => setRequestedPrefectureId(null)} /> : view === "year" ? <YearTable visits={visits} onSelect={setSelectedId} /> : view === "ranking" ? <Ranking visits={visits} onSelect={setSelectedId} /> : view === "timeline" ? <Timeline visits={visits} onSelect={setSelectedId} /> : view === "want" ? <WantList visits={visits} onSelect={setSelectedId} /> : view === "memories" ? <MemoriesList visits={visits} onSelect={(id) => { if (id === null) setView("map"); else setSelectedId(id); }} /> : <>
 <section className="intro" aria-labelledby="home-title">
   <p className="eyebrow">
     <span /> YOUR TRAVEL, YOUR COLORS
@@ -632,10 +633,17 @@ function App({ initialPlanId }) {
   </div>
   <div className="home-wanted-list">{wantedPreview.map(prefecture => {
     const record = visits.records[prefecture.id] || {};
-    return <button type="button" key={prefecture.id} onClick={() => setSelectedId(prefecture.id)}>
-      <strong>{prefecture.name}</strong>
-      <span>{record.wantToVisitPlaces || record.wantToVisitReason || "次の旅の候補"}</span>
-    </button>;
+    return <article key={prefecture.id}>
+      <button type="button" className="home-wanted-open" onClick={() => setSelectedId(prefecture.id)} aria-label={`${prefecture.name}の行きたいメモを見る`}>
+        <strong>{prefecture.name}</strong>
+        <span>{record.wantToVisitPlaces || record.wantToVisitReason || "次の旅の候補"}</span>
+      </button>
+      <button type="button" className="home-wanted-plan" onClick={() => {
+        trackEvent("home_wanted_plan_start", { source: "wanted_card" });
+        setRequestedPrefectureId(prefecture.id);
+        setView("plans");
+      }}>この県で旅を計画</button>
+    </article>;
   })}</div>
 </section>}
 
