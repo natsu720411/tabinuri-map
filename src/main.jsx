@@ -749,6 +749,17 @@ function App({ initialPlanId }) {
     <a href="/how-to-use.html">詳しい使い方を見る</a>
   </div>
 </section>
+<section className="home-guide home-discover" aria-labelledby="home-discover-title">
+  <p className="section-kicker">DISCOVER</p>
+  <h2 id="home-discover-title">旅行の記録方法から探す</h2>
+  <p>旅図帳では、日本地図で訪問県をチェックするだけでも、写真や旅ログまで残す使い方でも始められます。</p>
+  <div className="home-discover-grid">
+    <a href="/japan-map.html"><strong>日本地図で旅行記録をつける</strong><span>行った都道府県を地図で塗りつぶして振り返る</span></a>
+    <a href="/prefecture-check.html"><strong>行った都道府県をチェックする</strong><span>47都道府県の訪問状況と行きたい県を整理する</span></a>
+    <a href="/travel-record.html"><strong>旅行の思い出を写真付きで残す</strong><span>訪問日・写真・食べたもの・旅のメモを記録する</span></a>
+    <a href="/how-to-use.html"><strong>旅図帳の詳しい使い方</strong><span>旅行計画から旅行中モード、旅行後の保存まで確認する</span></a>
+  </div>
+</section>
 <section className="home-guide home-faq" aria-labelledby="faq-title">
   <h2 id="faq-title">よくある質問</h2>
   <details>
