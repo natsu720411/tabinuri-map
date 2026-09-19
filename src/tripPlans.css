@@ -17,6 +17,18 @@
 .trip-empty { padding: 24px; background: #fff; border-radius: 16px; grid-column: 1 / -1; }
 .trip-editor { min-width: 0; padding: 24px; margin: 0; border: 1px solid #e2e8df; border-radius: 20px; background: #fff; }
 .trip-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.trip-ai-ready { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:18px; align-items:center; margin:22px 0 0; padding:18px 20px; border:1px solid #d8e2d3; border-radius:16px; background:#f8faf7; }
+.trip-ai-ready.ready { border-color:#a9c8b2; background:#f2f8f3; }
+.trip-ai-ready .section-kicker { margin:0 0 4px; }
+.trip-ai-ready h2 { margin:0; font-size:20px; }
+.trip-ai-ready p:not(.section-kicker) { margin:6px 0 0; color:#596e5e; font-size:13px; line-height:1.65; }
+.trip-ai-ready p strong { color:#365947; }
+.trip-ai-ready .trip-primary { min-width:180px; }
+.trip-extra-settings { margin-top:14px; padding:0; border:1px solid #e0e7dd; border-radius:14px; background:#fff; overflow:hidden; }
+.trip-extra-settings > summary { padding:14px 16px; color:#427859; font-weight:800; cursor:pointer; list-style-position:inside; }
+.trip-extra-settings[open] > summary { border-bottom:1px solid #e0e7dd; background:#f8faf7; }
+.trip-extra-settings > p { margin:14px 16px 0; color:#596e5e; font-size:13px; }
+.trip-fields-extra { padding:16px; }
 .trip-plans label { display: grid; gap: 6px; min-width: 0; font-size: 14px; }
 .trip-plans input, .trip-plans select, .trip-plans textarea { display: block; box-sizing: border-box; width: 100%; min-width: 0; max-width: 100%; min-height: 48px; padding: 10px; border: 1px solid #c9d6c5; border-radius: 9px; background: #fff; color: #293f36; font: inherit; font-size: 16px; }
 .trip-plans textarea { resize: vertical; }
@@ -57,3 +69,8 @@
 .trip-ai-refine .trip-ai-undo{margin-top:8px;background:transparent;color:#527f61;border-style:dashed}
 
 .trip-ai-item-tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.trip-ai-lock{min-height:42px!important;margin-top:8px;padding:8px 12px!important;font-size:13px!important}.trip-ai-lock[aria-pressed="true"]{background:#e6f1e8!important;border-color:#7aa187!important;color:#315c43!important}.trip-ai-item-locked{padding:10px;border:1px solid #bcd3c1;border-radius:10px;background:#f5faf5}.trip-ai-refine-note{margin:0 0 10px;color:#596e5e;font-size:13px}@media(max-width:600px){.trip-ai-item-tools>*{width:100%}}
+
+@media (max-width: 640px) {
+  .trip-ai-ready{grid-template-columns:1fr;padding:15px}
+  .trip-ai-ready .trip-primary{width:100%;min-width:0}
+}

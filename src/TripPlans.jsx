@@ -68,6 +68,13 @@ export default function TripPlans({ onImport, onOpenMemory, initialPlanId, onIni
     return () => { window.removeEventListener("beforeunload", warn); window.removeEventListener("storage", changed); window.removeEventListener("trip-plan-leave", leave); };
   }, [dirty]);
   const blocked = Boolean(store.error || conflict);
+  const aiMissingFields = draft ? [
+    ["行き先", Number.isInteger(draft.prefectureId) && draft.prefectureId >= 1 && draft.prefectureId <= 47],
+    ["出発日", Boolean(draft.startDate)],
+    ["帰宅日", Boolean(draft.endDate)],
+    ["出発地点", Boolean(draft.departureLocation?.trim())],
+    ["最終到着地点", Boolean(draft.returnLocation?.trim())],
+  ].filter(([, ready]) => !ready).map(([label]) => label) : [];
   function edit(plan) { clearFeedback(); setImportedPrefecture(null); setDraft(structuredClone(plan)); setDirty(false); setMessage(""); setError(""); }
   function update(key, value) { clearFeedback(); setDraft(previous => ({ ...previous, [key]: value })); setDirty(true); }
   function updateDay(id, transform) { update("days", draft.days.map(day => day.id === id ? transform(day) : day)); }
@@ -194,24 +201,41 @@ export default function TripPlans({ onImport, onOpenMemory, initialPlanId, onIni
       </button>)}
     </div> : <form ref={form} onSubmit={event => { event.preventDefault(); save(); }}>
       <fieldset disabled={blocked} className="trip-editor"><legend className="sr-only">旅行計画の入力</legend>
-        <div className="trip-fields">
+        <div className="trip-fields trip-fields-primary">
           <label>旅行タイトル（必須）<input required maxLength={120} value={draft.title} onChange={event => update("title", event.target.value)} placeholder="京都2泊3日旅行" /></label>
           <label>行き先（必須）<select required value={draft.prefectureId} onChange={event => update("prefectureId", Number(event.target.value))}><option value="">都道府県を選択</option>{prefectures.map(prefecture => <option key={prefecture.id} value={prefecture.id}>{prefecture.name}</option>)}</select></label>
           <label>出発日<input type="date" value={draft.startDate} onChange={event => update("startDate", event.target.value)} /></label>
           <label>帰宅日<input type="date" min={draft.startDate || undefined} value={draft.endDate} onChange={event => update("endDate", event.target.value)} /></label>
           <label>出発地点（AI旅程用）<input maxLength={200} value={draft.departureLocation || ""} onChange={event => update("departureLocation", event.target.value)} placeholder="例：名古屋駅、自宅最寄りの○○駅" /></label>
-          <label>出発したい時刻（任意）<input type="time" value={draft.departureTime || ""} onChange={event => update("departureTime", event.target.value)} /></label>
           <label>最終到着地点（AI旅程用）<input maxLength={200} value={draft.returnLocation || ""} onChange={event => update("returnLocation", event.target.value)} placeholder="例：名古屋駅、自宅最寄りの○○駅" /></label>
-          <label>最終到着したい時刻（任意）<input type="time" value={draft.returnTime || ""} onChange={event => update("returnTime", event.target.value)} /></label>
-          <label>人数<input type="number" min="1" step="1" value={draft.people} onChange={event => update("people", event.target.value)} /></label>
-          <label>誰と行くか<input maxLength={200} value={draft.companions} onChange={event => update("companions", event.target.value)} placeholder="友達、家族、一人旅など" /></label>
-          <label>旅行全体の予算（円）<input type="number" min="0" step="1" value={draft.budget} onChange={event => update("budget", event.target.value)} /></label>
-          <label>ステータス<select value={draft.status} onChange={event => update("status", event.target.value)}><option value="planning">計画中</option><option value="completed">旅行済み</option></select></label>
-          {notes.map(([key, label]) => <label key={key}>{label}<textarea rows={3} value={draft[key]} onChange={event => update(key, event.target.value)} /></label>)}
         </div>
-        <section className="trip-schedule" aria-labelledby="trip-schedule-title"><h2 id="trip-schedule-title">日ごとのスケジュール</h2><p>日付は未定でも作れます。予定は矢印で並び替えられます。</p>
-          <button type="button" aria-haspopup="dialog" onClick={() => setAiOpen(true)}>✨ AIで旅程を作る</button>
-          <p className="trip-storage-note">AI作成には行き先・出発日・帰宅日・出発地点・最終到着地点が必要です。希望時刻も入れると「8:00ごろ出発」「20:00までに到着」のように旅程へ反映します。駅名や空港名まで入れると、電車・バス・徒歩などの移動を詳しく提案しやすくなります。</p>
+
+        <section className={`trip-ai-ready${aiMissingFields.length === 0 ? " ready" : ""}`} aria-labelledby="trip-ai-ready-title">
+          <div>
+            <p className="section-kicker">AI ITINERARY</p>
+            <h2 id="trip-ai-ready-title">AIに旅程を組んでもらう</h2>
+            {aiMissingFields.length === 0
+              ? <p>準備OKです。入力した条件から、日ごとの観光・移動をまとめて提案します。</p>
+              : <p>あと{aiMissingFields.length}項目入力すると使えます：<strong>{aiMissingFields.join("・")}</strong></p>}
+          </div>
+          <button type="button" className="trip-primary" aria-haspopup="dialog" disabled={blocked || aiMissingFields.length > 0} onClick={() => { trackEvent("ai_itinerary_opened", { source: "trip_editor" }); setAiOpen(true); }}>✨ AIで旅程を作る</button>
+        </section>
+
+        <details className="trip-extra-settings">
+          <summary>時間・人数・予算などの詳細条件を追加</summary>
+          <p>ここは任意です。必要な項目だけ入力できます。</p>
+          <div className="trip-fields trip-fields-extra">
+            <label>出発したい時刻（任意）<input type="time" value={draft.departureTime || ""} onChange={event => update("departureTime", event.target.value)} /></label>
+            <label>最終到着したい時刻（任意）<input type="time" value={draft.returnTime || ""} onChange={event => update("returnTime", event.target.value)} /></label>
+            <label>人数<input type="number" min="1" step="1" value={draft.people} onChange={event => update("people", event.target.value)} /></label>
+            <label>誰と行くか<input maxLength={200} value={draft.companions} onChange={event => update("companions", event.target.value)} placeholder="友達、家族、一人旅など" /></label>
+            <label>旅行全体の予算（円）<input type="number" min="0" step="1" value={draft.budget} onChange={event => update("budget", event.target.value)} /></label>
+            <label>ステータス<select value={draft.status} onChange={event => update("status", event.target.value)}><option value="planning">計画中</option><option value="completed">旅行済み</option></select></label>
+            {notes.map(([key, label]) => <label key={key}>{label}<textarea rows={3} value={draft[key]} onChange={event => update(key, event.target.value)} /></label>)}
+          </div>
+        </details>
+
+        <section className="trip-schedule" aria-labelledby="trip-schedule-title"><h2 id="trip-schedule-title">日ごとのスケジュール</h2><p>AIで作った旅程を調整したり、自分で予定を追加できます。</p>
           {draft.days.map((day, dayIndex) => <section key={day.id} className="trip-day" aria-labelledby={`day-${day.id}`}>
             <div className="trip-day-heading"><h3 id={`day-${day.id}`}>{dayIndex + 1}日目</h3><button type="button" onClick={() => { if (window.confirm(`${dayIndex + 1}日目の予定をすべて削除しますか？`)) update("days", draft.days.filter(value => value.id !== day.id)); }}>この日を削除</button></div>
             <label>{dayIndex + 1}日目の日付<input type="date" min={draft.startDate || undefined} max={draft.endDate || undefined} value={day.date} onChange={event => updateDay(day.id, value => ({ ...value, date: event.target.value }))} /></label>
