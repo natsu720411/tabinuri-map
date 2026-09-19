@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { listTravelLogPhotos } from "./travelPhotos.js";
 
 function roundedRect(ctx, x, y, width, height, radius) {
   ctx.beginPath();
@@ -44,7 +45,21 @@ function formatDayLabel(dayLabel, dayDate) {
   return dayLabel || "旅の1日";
 }
 
-export async function createTravelLogImage({ title, dayLabel, dayDate, entries }) {
+function drawCoverPhoto(ctx, photo, x, y, width, height) {
+  const scale = Math.max(width / photo.width, height / photo.height);
+  const sourceWidth = width / scale;
+  const sourceHeight = height / scale;
+  const sourceX = (photo.width - sourceWidth) / 2;
+  const sourceY = (photo.height - sourceHeight) / 2;
+  ctx.save();
+  ctx.beginPath();
+  ctx.roundRect(x, y, width, height, 24);
+  ctx.clip();
+  ctx.drawImage(photo, sourceX, sourceY, sourceWidth, sourceHeight, x, y, width, height);
+  ctx.restore();
+}
+
+export async function createTravelLogImage({ title, dayLabel, dayDate, entries, photo = null }) {
   const canvas = document.createElement("canvas");
   canvas.width = 1080;
   canvas.height = 1350;
@@ -74,11 +89,23 @@ export async function createTravelLogImage({ title, dayLabel, dayDate, entries }
   ctx.fillStyle = "#e8f0e9";
   roundedRect(ctx, 92, 292 + titleOffset, 896, 2, 1);
 
-  const visibleEntries = entries.slice(0, 9);
-  let y = 340 + titleOffset;
-  const rowHeight = visibleEntries.length <= 6 ? 112 : 96;
+  let y;
+  let visibleEntries;
+  let rowHeight;
 
-  visibleEntries.forEach((entry, index) => {
+  if (photo) {
+    const photoY = 322 + titleOffset;
+    drawCoverPhoto(ctx, photo, 92, photoY, 896, 280);
+    y = photoY + 320;
+    visibleEntries = entries.slice(0, 5);
+    rowHeight = 94;
+  } else {
+    y = 340 + titleOffset;
+    visibleEntries = entries.slice(0, 9);
+    rowHeight = visibleEntries.length <= 6 ? 112 : 96;
+  }
+
+  visibleEntries.forEach(entry => {
     const time = entry.at
       ? new Date(entry.at).toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" })
       : "--:--";
@@ -105,7 +132,7 @@ export async function createTravelLogImage({ title, dayLabel, dayDate, entries }
     const meta = [entry.kind, entry.photoCount > 0 ? `📷 ${entry.photoCount}枚` : ""].filter(Boolean).join(" · ");
     if (meta) ctx.fillText(meta, 280, y + 58);
 
-    if (entry.memo && visibleEntries.length <= 6) {
+    if (!photo && entry.memo && visibleEntries.length <= 6) {
       ctx.fillStyle = "#566b60";
       ctx.font = "500 20px system-ui, sans-serif";
       const memo = wrapLines(ctx, `「${entry.memo}」`, 650, 1)[0];
@@ -118,7 +145,7 @@ export async function createTravelLogImage({ title, dayLabel, dayDate, entries }
   if (entries.length > visibleEntries.length) {
     ctx.fillStyle = "#65766b";
     ctx.font = "600 22px system-ui, sans-serif";
-    ctx.fillText(`ほか ${entries.length - visibleEntries.length}件の旅ログ`, 120, y + 24);
+    ctx.fillText(`ほか ${entries.length - visibleEntries.length}件の旅ログ`, 120, Math.min(y + 24, 1190));
   }
 
   ctx.fillStyle = "#527f61";
@@ -137,18 +164,21 @@ export async function createTravelLogImage({ title, dayLabel, dayDate, entries }
   });
 }
 
-export default function TravelLogShare({ title, dayLabel, dayDate, entries }) {
+export default function TravelLogShare({ title, dayLabel, dayDate, entries, planId = "" }) {
   const [image, setImage] = useState(null);
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState("");
+  const [photoLabel, setPhotoLabel] = useState("");
   const dialog = useRef(null);
+  const photoInput = useRef(null);
+  const open = Boolean(image);
 
   useEffect(() => () => {
     if (image?.url) URL.revokeObjectURL(image.url);
-  }, [image]);
+  }, []);
 
   useEffect(() => {
-    if (!image || !dialog.current) return;
+    if (!open || !dialog.current) return;
     const element = dialog.current;
     const opener = document.activeElement;
     const overflow = document.body.style.overflow;
@@ -159,7 +189,22 @@ export default function TravelLogShare({ title, dayLabel, dayDate, entries }) {
       document.body.style.overflow = overflow;
       opener?.focus?.();
     };
-  }, [image]);
+  }, [open]);
+
+  async function renderWithPhoto(photoBlob, label = "") {
+    let bitmap = null;
+    try {
+      if (photoBlob) bitmap = await createImageBitmap(photoBlob);
+      const blob = await createTravelLogImage({ title, dayLabel, dayDate, entries, photo: bitmap });
+      setImage(previous => {
+        if (previous?.url) URL.revokeObjectURL(previous.url);
+        return { blob, url: URL.createObjectURL(blob) };
+      });
+      setPhotoLabel(label);
+    } finally {
+      bitmap?.close();
+    }
+  }
 
   async function generate() {
     if (!entries.length) {
@@ -169,10 +214,46 @@ export default function TravelLogShare({ title, dayLabel, dayDate, entries }) {
     setBusy(true);
     setStatus("");
     try {
-      const blob = await createTravelLogImage({ title, dayLabel, dayDate, entries });
-      setImage({ blob, url: URL.createObjectURL(blob) });
+      let savedPhoto = null;
+      if (planId) {
+        try {
+          const rows = await listTravelLogPhotos({ planId, entryIds: entries.map(entry => entry.id) });
+          savedPhoto = rows[0]?.blob || null;
+        } catch {}
+      }
+      await renderWithPhoto(savedPhoto, savedPhoto ? "この日に旅図帳へ保存した写真を入れています。" : "");
     } catch (error) {
       setStatus(error.message || "画像を作成できませんでした。");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function updatePhoto(file) {
+    if (!file) return;
+    setBusy(true);
+    setStatus("");
+    try {
+      if (/\.hei[cf]$/i.test(file.name) || /heic|heif/i.test(file.type)) {
+        throw new Error("HEIC・HEIF形式には対応していません。JPEGやPNGなどを選んでください。");
+      }
+      if (!file.type.startsWith("image/")) throw new Error("写真ファイルを選んでください。");
+      await renderWithPhoto(file, "選んだ写真を共有画像に入れています。");
+    } catch (error) {
+      setStatus(error.message || "写真を読み込めませんでした。");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function removePhoto() {
+    setBusy(true);
+    setStatus("");
+    try {
+      await renderWithPhoto(null, "");
+      setStatus("写真なしの旅ログ画像に変更しました。");
+    } catch (error) {
+      setStatus(error.message || "画像を更新できませんでした。");
     } finally {
       setBusy(false);
     }
@@ -204,6 +285,7 @@ export default function TravelLogShare({ title, dayLabel, dayDate, entries }) {
     if (image?.url) URL.revokeObjectURL(image.url);
     setImage(null);
     setStatus("");
+    setPhotoLabel("");
   }
 
   return <>
@@ -214,7 +296,17 @@ export default function TravelLogShare({ title, dayLabel, dayDate, entries }) {
     {image && <dialog ref={dialog} className="travel-log-share-dialog" aria-labelledby="travel-log-share-title" onCancel={event => { event.preventDefault(); close(); }}>
       <h2 id="travel-log-share-title">旅ログを画像で共有</h2>
       <img src={image.url} alt={`${title || "旅行"}の${dayLabel || "旅ログ"}共有画像`} width="1080" height="1350" />
-      <p>LINEなどへ送る場合は「画像を共有」を押してください。対応していない端末ではPNG画像を保存できます。</p>
+      {photoLabel && <p className="travel-log-share-photo-status">{photoLabel}</p>}
+      <input ref={photoInput} type="file" accept="image/jpeg,image/png,image/webp,image/gif" hidden onChange={event => {
+        const file = event.target.files?.[0];
+        event.target.value = "";
+        if (file) updatePhoto(file);
+      }} />
+      <div className="travel-log-photo-actions">
+        <button type="button" onClick={() => photoInput.current?.click()} disabled={busy}>{photoLabel ? "写真を変更" : "写真を追加"}</button>
+        {photoLabel && <button type="button" onClick={removePhoto} disabled={busy}>写真なしにする</button>}
+      </div>
+      <p>LINEなどへ送る場合は「画像を共有」を押してください。選んだ写真は共有画像にだけ使われ、新たに旅行記録へ保存されません。</p>
       <div className="travel-log-share-actions">
         <a href={image.url} download="tabizucho-travel-log.png">PNG画像を保存</a>
         <button type="button" className="travel-primary" onClick={shareImage} disabled={busy}>{busy ? "処理中…" : "画像を共有"}</button>
