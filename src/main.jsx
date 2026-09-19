@@ -423,7 +423,20 @@ function App({ initialPlanId }) {
 <span className="header-note">わたしだけの、旅の地図。</span>
 </header>
 <main id="main">
-<nav className="view-tabs" aria-label="表示切り替え" onClickCapture={event => { if (view === "plans" && event.target.closest("button") && !window.dispatchEvent(new Event("trip-plan-leave", { cancelable: true }))) { event.preventDefault(); event.stopPropagation(); } }}><button type="button" className={view === "map" ? "active" : ""} aria-current={view === "map" ? "page" : undefined} onClick={() => setView("map")}>地図</button><button type="button" className={view === "memories" ? "active" : ""} aria-current={view === "memories" ? "page" : undefined} onClick={() => setView("memories")}>思い出一覧</button><button type="button" className={view === "want" ? "active" : ""} aria-current={view === "want" ? "page" : undefined} onClick={() => setView("want")}>行きたい</button><button type="button" className={view === "ranking" ? "active" : ""} aria-current={view === "ranking" ? "page" : undefined} onClick={() => setView("ranking")}>ランキング</button><button type="button" className={view === "year" ? "active" : ""} aria-current={view === "year" ? "page" : undefined} onClick={() => setView("year")}>旅行年表</button><button type="button" className={view === "timeline" ? "active" : ""} aria-current={view === "timeline" ? "page" : undefined} onClick={() => setView("timeline")}>タイムライン</button><button type="button" className={view === "plans" ? "active" : ""} aria-current={view === "plans" ? "page" : undefined} onClick={() => setView("plans")}>旅の計画</button></nav>
+<nav className="view-tabs" aria-label="表示切り替え" onClickCapture={event => { if (view === "plans" && event.target.closest("button") && !window.dispatchEvent(new Event("trip-plan-leave", { cancelable: true }))) { event.preventDefault(); event.stopPropagation(); } }}>
+  <button type="button" className={view === "map" ? "active" : ""} aria-current={view === "map" ? "page" : undefined} onClick={() => setView("map")}>地図</button>
+  <button type="button" className={view === "memories" ? "active" : ""} aria-current={view === "memories" ? "page" : undefined} onClick={() => setView("memories")}>思い出</button>
+  <button type="button" className={view === "want" ? "active" : ""} aria-current={view === "want" ? "page" : undefined} onClick={() => setView("want")}>行きたい</button>
+  <button type="button" className={view === "plans" ? "active" : ""} aria-current={view === "plans" ? "page" : undefined} onClick={() => setView("plans")}>旅の計画</button>
+  <details className={["ranking", "year", "timeline"].includes(view) ? "view-more active" : "view-more"}>
+    <summary aria-label="その他の表示を開く">その他</summary>
+    <div className="view-more-menu">
+      <button type="button" className={view === "ranking" ? "active" : ""} aria-current={view === "ranking" ? "page" : undefined} onClick={() => setView("ranking")}>ランキング</button>
+      <button type="button" className={view === "year" ? "active" : ""} aria-current={view === "year" ? "page" : undefined} onClick={() => setView("year")}>旅行年表</button>
+      <button type="button" className={view === "timeline" ? "active" : ""} aria-current={view === "timeline" ? "page" : undefined} onClick={() => setView("timeline")}>タイムライン</button>
+    </div>
+  </details>
+</nav>
 {view === "plans" ? <TripPlans onImport={importTrip} onOpenMemory={setSelectedId} initialPlanId={requestedPlanId} onInitialPlanOpened={() => setRequestedPlanId(null)} /> : view === "year" ? <YearTable visits={visits} onSelect={setSelectedId} /> : view === "ranking" ? <Ranking visits={visits} onSelect={setSelectedId} /> : view === "timeline" ? <Timeline visits={visits} onSelect={setSelectedId} /> : view === "want" ? <WantList visits={visits} onSelect={setSelectedId} /> : view === "memories" ? <MemoriesList visits={visits} onSelect={(id) => { if (id === null) setView("map"); else setSelectedId(id); }} /> : <>
 <section className="intro" aria-labelledby="home-title">
   <p className="eyebrow">
