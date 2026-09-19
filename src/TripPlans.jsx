@@ -210,6 +210,12 @@ export default function TripPlans({ onImport, onOpenMemory, initialPlanId, onIni
           <label>最終到着地点（AI旅程用）<input maxLength={200} value={draft.returnLocation || ""} onChange={event => update("returnLocation", event.target.value)} placeholder="例：名古屋駅、自宅最寄りの○○駅" /></label>
         </div>
 
+        <div className="trip-quick-fill" aria-label="入力をかんたんにする">
+          <span>よく使う入力</span>
+          <button type="button" disabled={!draft.startDate} onClick={() => { update("endDate", draft.startDate); trackEvent("trip_daytrip_fill", { source: "trip_editor" }); }}>日帰りにする</button>
+          <button type="button" disabled={!draft.departureLocation?.trim()} onClick={() => { update("returnLocation", draft.departureLocation.trim()); trackEvent("trip_return_same_fill", { source: "trip_editor" }); }}>帰りも出発地点と同じ</button>
+        </div>
+
         <section className={`trip-ai-ready${aiMissingFields.length === 0 ? " ready" : ""}`} aria-labelledby="trip-ai-ready-title">
           <div>
             <p className="section-kicker">AI ITINERARY</p>

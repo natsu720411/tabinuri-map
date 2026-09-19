@@ -17,6 +17,10 @@
 .trip-empty { padding: 24px; background: #fff; border-radius: 16px; grid-column: 1 / -1; }
 .trip-editor { min-width: 0; padding: 24px; margin: 0; border: 1px solid #e2e8df; border-radius: 20px; background: #fff; }
 .trip-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.trip-quick-fill { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-top:12px; }
+.trip-quick-fill > span { color:#65766b; font-size:12px; font-weight:700; margin-right:2px; }
+.trip-quick-fill > button { min-height:40px; padding:7px 12px; border-radius:999px; font-size:12px; background:#f8faf7; }
+.trip-quick-fill > button:not(:disabled):hover { background:#eef5ef; border-color:#a9c8b2; }
 .trip-ai-ready { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:18px; align-items:center; margin:22px 0 0; padding:18px 20px; border:1px solid #d8e2d3; border-radius:16px; background:#f8faf7; }
 .trip-ai-ready.ready { border-color:#a9c8b2; background:#f2f8f3; }
 .trip-ai-ready .section-kicker { margin:0 0 4px; }
