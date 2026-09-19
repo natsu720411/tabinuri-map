@@ -5,6 +5,7 @@ import { importedIds, mergeTripMemory, normalizeTravelLogs } from "./tripMemory.
 import { getTravelAchievement } from "./achievement.js";
 import ShareTravel from "./ShareTravel.jsx";
 import TravelLogShare from "./TravelLogShare.jsx";
+import TravelSummary from "./TravelSummary.jsx";
 import React, { useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import "./style.css";
@@ -373,12 +374,32 @@ function JapanMap({ onSelect, visited, wantToVisitIds }) {
   );
 }
 
+function HomeTravelSummary({ plan, onClose, onOpenMemory }) {
+  const dialog = useRef(null);
+  useEffect(() => {
+    const element = dialog.current;
+    const opener = document.activeElement;
+    const overflow = document.body.style.overflow;
+    element.showModal();
+    document.body.style.overflow = "hidden";
+    return () => {
+      element.close();
+      document.body.style.overflow = overflow;
+      if (opener instanceof Element && opener.isConnected) opener.focus?.();
+    };
+  }, []);
+  return <dialog ref={dialog} className="home-summary-dialog" aria-label="旅のまとめ" onCancel={event => { event.preventDefault(); onClose(); }}>
+    <TravelSummary plan={plan} onClose={onClose} closeLabel="ホームに戻る" onOpenMemory={onOpenMemory} />
+  </dialog>;
+}
+
 function App({ initialPlanId }) {
   const [requestedPlanId, setRequestedPlanId] = useState(initialPlanId);
   const [visits, setVisits] = useState(readVisits);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
   const [homePhotoCount, setHomePhotoCount] = useState(0);
+  const [summaryPlan, setSummaryPlan] = useState(null);
   const [view, setView] = useState(initialPlanId ? "plans" : "map");
   const visited = prefectures.filter(({ id }) => visits.records[id]?.visited).map(({ id }) => id);
   const count = visited.length;
@@ -577,7 +598,10 @@ function App({ initialPlanId }) {
       <span><strong>{recentTripEntries.length}</strong>件の旅ログ</span>
     </div>
   </div>
-  <button type="button" onClick={() => setSelectedId(recentTrip.prefectureId)}>思い出を見る</button>
+  <div className="recent-trip-actions">
+    <button type="button" className="recent-trip-summary-button" onClick={() => setSummaryPlan(recentTrip)}>旅のまとめを見る</button>
+    <button type="button" onClick={() => setSelectedId(recentTrip.prefectureId)}>思い出を見る</button>
+  </div>
 </section>}
 
 {wantedPreview.length > 0 && <section className="home-wanted-card" aria-labelledby="home-wanted-title">
@@ -839,6 +863,7 @@ function App({ initialPlanId }) {
 </>}
 </main>
 {selectedId !== null && <MemoryPanel key={selectedId} prefecture={prefectures.find(({ id }) => id === selectedId)} record={visits.records[selectedId]} readError={visits.error} onSave={(id, draft) => { const result = saveMemory(id, draft); if (!result) setView("memories"); return result; }} onClose={() => setSelectedId(null)} />}
+{summaryPlan && <HomeTravelSummary plan={summaryPlan} onClose={() => setSummaryPlan(null)} onOpenMemory={() => { const prefectureId = summaryPlan.prefectureId; setSummaryPlan(null); setSelectedId(prefectureId); }} />}
 <footer className="site-footer">
 <span className="footer-brand">
   旅図帳<span>.</span>

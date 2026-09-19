@@ -41,7 +41,7 @@ function entriesForDay(day) {
   return [...scheduled, ...extras].sort((a, b) => new Date(a.at).getTime() - new Date(b.at).getTime());
 }
 
-export default function TravelSummary({ plan, onClose, onOpenMemory }) {
+export default function TravelSummary({ plan, onClose, onOpenMemory, closeLabel = "計画に戻る" }) {
   const summary = useMemo(() => {
     const days = (plan.days || []).map((day, index) => ({
       id: day.id || String(index),
@@ -102,7 +102,7 @@ export default function TravelSummary({ plan, onClose, onOpenMemory }) {
 
     <div className="travel-summary-actions">
       <button type="button" className="travel-primary" onClick={onOpenMemory}>思い出を見る</button>
-      <button type="button" onClick={onClose}>計画に戻る</button>
+      <button type="button" onClick={onClose}>{closeLabel}</button>
     </div>
   </section>;
 }
