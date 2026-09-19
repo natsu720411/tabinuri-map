@@ -18,6 +18,8 @@ function normalizeItem(item) {
     checkinLat: optionalNumber(item.checkinLat),
     checkinLng: optionalNumber(item.checkinLng),
     checkinAccuracy: optionalNumber(item.checkinAccuracy),
+    travelMemo: typeof item.travelMemo === "string" ? item.travelMemo : "",
+    travelPhotoCount: Number.isInteger(item.travelPhotoCount) && item.travelPhotoCount >= 0 ? item.travelPhotoCount : 0,
   };
 }
 function normalizeExtraStop(stop) {
