@@ -32,3 +32,5 @@
 - [完了] sitemap.xml に主要更新ページの lastmod を追加
 - [完了] 「旅のしおり」「AI旅行計画」に特化した検索ページを追加する
 - 次候補：Search Consoleの実データを見て、表示回数が出始めた検索語ごとにタイトル・本文を調整する
+
+- done: fixed bottom mobile nav
