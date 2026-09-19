@@ -1,4 +1,5 @@
 import TripPlans from "./TripPlans.jsx";
+import { loadPlans, todayLocal } from "./tripPlans.js";
 import SharedTrip from "./SharedTrip.jsx";
 import { importedIds, mergeTripMemory, normalizeTravelLogs } from "./tripMemory.js";
 import { getTravelAchievement } from "./achievement.js";
@@ -383,6 +384,29 @@ function App({ initialPlanId }) {
   const wantToVisitIds = prefectures.filter(({ id }) => visits.records[id]?.wantToVisit && !visits.records[id]?.visited).map(({ id }) => id);
   const { percent, title: travelTitle } = getTravelAchievement(count);
   const completedRegions = REGIONS.filter(([, ids]) => ids.every(id => visited.includes(id)));
+  const today = todayLocal();
+  const planningPlans = loadPlans().plans.filter(plan => plan.status === "planning");
+  const nextTrip = [...planningPlans].sort((a, b) => {
+    const aOngoing = a.startDate && a.startDate <= today && (!a.endDate || a.endDate >= today);
+    const bOngoing = b.startDate && b.startDate <= today && (!b.endDate || b.endDate >= today);
+    if (aOngoing !== bOngoing) return aOngoing ? -1 : 1;
+    const aFuture = a.startDate && a.startDate >= today;
+    const bFuture = b.startDate && b.startDate >= today;
+    if (aFuture !== bFuture) return aFuture ? -1 : 1;
+    if (aFuture && bFuture) return a.startDate.localeCompare(b.startDate);
+    if (Boolean(a.startDate) !== Boolean(b.startDate)) return a.startDate ? -1 : 1;
+    return (b.updatedAt || "").localeCompare(a.updatedAt || "");
+  })[0] || null;
+  const nextTripCountdown = (() => {
+    if (!nextTrip?.startDate) return "出発日未定";
+    const start = new Date(`${nextTrip.startDate}T00:00:00`);
+    const current = new Date(`${today}T00:00:00`);
+    const days = Math.round((start - current) / 86400000);
+    if (days === 0) return "今日出発";
+    if (days > 0) return `出発まであと${days}日`;
+    if (!nextTrip.endDate || nextTrip.endDate >= today) return "旅行中";
+    return "日程を確認";
+  })();
 
   function saveMemory(id, draft, source = visits) {
     if (visits.error) return visits.error;
@@ -470,6 +494,20 @@ function App({ initialPlanId }) {
     </a>
   </div>
 </section>
+{nextTrip && <section className="next-trip-card" aria-labelledby="next-trip-title">
+  <div className="next-trip-copy">
+    <p className="section-kicker">NEXT TRIP</p>
+    <div className="next-trip-heading">
+      <div>
+        <span className="next-trip-countdown">{nextTripCountdown}</span>
+        <h2 id="next-trip-title">{nextTrip.title || "次の旅行"}</h2>
+      </div>
+      <span className="next-trip-prefecture">{prefectures.find(prefecture => prefecture.id === nextTrip.prefectureId)?.name || "行き先未設定"}</span>
+    </div>
+    <p>{nextTrip.startDate || "出発日未定"}{nextTrip.endDate ? ` 〜 ${nextTrip.endDate}` : ""}</p>
+  </div>
+  <button type="button" onClick={() => { setRequestedPlanId(nextTrip.id); setView("plans"); }}>旅の計画を開く</button>
+</section>}
 <section className="progress-card" aria-label="旅の進捗">
   <div className="progress-heading">
     <span className="section-kicker">
