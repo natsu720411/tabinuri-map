@@ -74,6 +74,7 @@ export default function TravelMode({ plan, onClose, onPersist, onFinish, onOpenM
   const [finishBusy, setFinishBusy] = useState(false);
   const [finishMessage, setFinishMessage] = useState("");
   const [finishedPlan, setFinishedPlan] = useState(null);
+  const [clockNow, setClockNow] = useState(() => Date.now());
   const watchId = useRef(null);
   const lastNearbySearch = useRef({ at: 0, position: null });
   const nearbyAbort = useRef(null);
@@ -82,6 +83,10 @@ export default function TravelMode({ plan, onClose, onPersist, onFinish, onOpenM
     if (watchId.current !== null && navigator.geolocation) navigator.geolocation.clearWatch(watchId.current);
     nearbyAbort.current?.abort();
   }, []);
+  useEffect(() => {
+    const timer = setInterval(() => setClockNow(Date.now()), 30000);
+    return () => clearInterval(timer);
+  }, []);
 
   const day = plan.days[dayIndex] || { id: "", date: "", items: [], extraStops: [] };
   const completedCount = day.items.filter(item => item.completedAt || item.checkedInAt).length;
@@ -89,6 +94,16 @@ export default function TravelMode({ plan, onClose, onPersist, onFinish, onOpenM
   const nextIndex = nextItem ? day.items.indexOf(nextItem) : -1;
   const dayLabel = day.date === today ? "今日" : day.date || `${dayIndex + 1}日目`;
   const progress = day.items.length ? Math.round((completedCount / day.items.length) * 100) : 0;
+  const nextTiming = useMemo(() => {
+    if (!nextItem || day.date !== today || !/^([01]\\d|2[0-3]):[0-5]\\d$/.test(nextItem.time || "")) return null;
+    const [hours, minutes] = nextItem.time.split(":").map(Number);
+    const current = new Date(clockNow);
+    const target = new Date(current.getFullYear(), current.getMonth(), current.getDate(), hours, minutes, 0, 0).getTime();
+    const diff = Math.round((target - clockNow) / 60000);
+    if (diff > 1) return { kind: "ahead", text: `予定まであと${diff}分` };
+    if (diff >= -1) return { kind: "now", text: "まもなく予定時刻です" };
+    return { kind: "late", text: `予定時刻を${Math.abs(diff)}分過ぎています` };
+  }, [nextItem, day.date, today, clockNow]);
 
   const plannedArrival = useMemo(() => {
     const matches = [];
@@ -446,7 +461,7 @@ export default function TravelMode({ plan, onClose, onPersist, onFinish, onOpenM
 
     <section className="travel-next" aria-labelledby="next-title">
       <p className="section-kicker">NEXT</p>
-      {nextItem ? <><h2 id="next-title">次の予定</h2><div className="travel-next-card"><time>{nextItem.time || "時刻未定"}</time><strong>{nextItem.name}</strong>{nextItem.memo && <p>{nextItem.memo}</p>}{googleMapsRouteForItem(nextItem) ? <a className="travel-route-link" href={googleMapsRouteForItem(nextItem)} target="_blank" rel="noopener noreferrer">Googleマップで経路を確認 ↗</a> : googleMapsNavigationForItem(nextItem) && <a className="travel-route-link" href={googleMapsNavigationForItem(nextItem)} target="_blank" rel="noopener noreferrer">現在地からナビ ↗</a>}</div>
+      {nextItem ? <><h2 id="next-title">次の予定</h2><div className="travel-next-card"><time>{nextItem.time || "時刻未定"}</time><strong>{nextItem.name}</strong>{nextTiming && <span className={`travel-next-timing ${nextTiming.kind}`}>{nextTiming.text}</span>}{nextItem.memo && <p>{nextItem.memo}</p>}{googleMapsRouteForItem(nextItem) ? <a className="travel-route-link" href={googleMapsRouteForItem(nextItem)} target="_blank" rel="noopener noreferrer">Googleマップで経路を確認 ↗</a> : googleMapsNavigationForItem(nextItem) && <a className="travel-route-link" href={googleMapsNavigationForItem(nextItem)} target="_blank" rel="noopener noreferrer">現在地からナビ ↗</a>}</div>
         {day.items[nextIndex + 1] && <p className="travel-after-next">その次：{day.items[nextIndex + 1].time || "時刻未定"} {day.items[nextIndex + 1].name}</p>}</> : <><h2 id="next-title">今日の予定はすべて完了しました 🎉</h2><p>おつかれさまでした。予定外の立ち寄りも記録できます。</p></>}
     </section>
 
