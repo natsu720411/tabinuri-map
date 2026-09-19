@@ -64,6 +64,10 @@ export default function TravelMode({ plan, onClose, onPersist }) {
   const [memoryMemo, setMemoryMemo] = useState("");
   const [memoryBusy, setMemoryBusy] = useState(false);
   const [memoryMessage, setMemoryMessage] = useState("");
+  const [memoryStopId, setMemoryStopId] = useState("");
+  const [memoryStopMemo, setMemoryStopMemo] = useState("");
+  const [memoryStopBusy, setMemoryStopBusy] = useState(false);
+  const [memoryStopMessage, setMemoryStopMessage] = useState("");
   const watchId = useRef(null);
   const lastNearbySearch = useRef({ at: 0, position: null });
   const nearbyAbort = useRef(null);
@@ -239,6 +243,56 @@ export default function TravelMode({ plan, onClose, onPersist }) {
     }
   }
 
+  function openStopMemory(stop) {
+    setMemoryStopId(stop.id);
+    setMemoryStopMemo(stop.travelMemo || "");
+    setMemoryStopMessage("");
+  }
+
+  async function saveStopMemory(stop, event) {
+    event.preventDefault();
+    if (memoryStopBusy) return;
+    setMemoryStopBusy(true);
+    setMemoryStopMessage("");
+    try {
+      const input = event.currentTarget.elements.namedItem("travelStopPhoto");
+      const file = input?.files?.[0] || null;
+      let photoAdded = 0;
+      if (file) {
+        const currentCount = await countPrefecturePhotos(plan.prefectureId);
+        if (currentCount >= MAX_PREFECTURE_PHOTOS) {
+          throw new Error(`この都道府県には写真を${MAX_PREFECTURE_PHOTOS}枚まで保存できます。`);
+        }
+        const blob = await compressTravelPhoto(file);
+        await saveTravelPhoto({
+          prefectureId: plan.prefectureId,
+          planId: plan.id,
+          dayId: day.id,
+          itemId: stop.id,
+          blob,
+        });
+        photoAdded = 1;
+      }
+
+      const memo = memoryStopMemo.trim();
+      persistDay(current => ({
+        ...current,
+        extraStops: (current.extraStops || []).map(value => value.id === stop.id ? {
+          ...value,
+          travelMemo: memo,
+          travelPhotoCount: Math.max(0, Number(value.travelPhotoCount) || 0) + photoAdded,
+        } : value),
+      }));
+      setMemoryStopMessage(photoAdded ? "✓ 写真とひとことを保存しました。" : "✓ ひとことを保存しました。");
+      setMemoryStopId("");
+      setMemoryStopMemo("");
+    } catch (error) {
+      setMemoryStopMessage(error.message || "写真・ひとことを保存できませんでした。");
+    } finally {
+      setMemoryStopBusy(false);
+    }
+  }
+
   function saveSuggestedPlace(place) {
     if (!window.confirm(`「${place.name}」に立ち寄った記録を保存しますか？`)) return;
     const existing = (day.extraStops || []).some(stop => stop.placeId && stop.placeId === place.id);
@@ -372,7 +426,21 @@ export default function TravelMode({ plan, onClose, onPersist }) {
         <label>メモ<textarea rows={3} maxLength={1000} value={extraMemo} onChange={event => setExtraMemo(event.target.value)} /></label>
         <div className="travel-event-actions"><button className="travel-primary" type="submit">立ち寄りを保存</button><button type="button" onClick={() => setExtraOpen(false)}>キャンセル</button></div>
       </form>}
-      {(day.extraStops || []).length > 0 && <ul className="travel-extra-list">{day.extraStops.map(stop => <li key={stop.id}><strong>{stop.name}</strong><span>{formatTime(stop.visitedAt)}</span>{stop.memo && <p>{stop.memo}</p>}{stop.lat !== null && <small>位置情報付きで保存済み{stop.placeSource === "geoapify" ? "・周辺候補から追加" : ""}</small>}</li>)}</ul>}
+      {(day.extraStops || []).length > 0 && <ul className="travel-extra-list">{day.extraStops.map(stop => <li key={stop.id}>
+        <strong>{stop.name}</strong><span>{formatTime(stop.visitedAt)}</span>
+        {stop.memo && <p>{stop.memo}</p>}
+        {stop.travelMemo && <p className="travel-memory-summary">ひとこと：{stop.travelMemo}</p>}
+        {stop.travelPhotoCount > 0 && <p className="travel-memory-summary">📷 写真 {stop.travelPhotoCount}枚保存済み</p>}
+        {stop.lat !== null && <small>位置情報付きで保存済み{stop.placeSource === "geoapify" ? "・周辺候補から追加" : ""}</small>}
+        <div className="travel-event-actions"><button type="button" onClick={() => openStopMemory(stop)}>写真・ひとこと</button></div>
+        {memoryStopId === stop.id && <form className="travel-memory-form" onSubmit={event => saveStopMemory(stop, event)}>
+          <label>ひとこと<textarea rows={3} maxLength={500} value={memoryStopMemo} onChange={event => setMemoryStopMemo(event.target.value)} placeholder="おいしかった、雰囲気がよかった など" /></label>
+          <label>写真（1枚）<input name="travelStopPhoto" type="file" accept="image/jpeg,image/png,image/webp,image/gif" /></label>
+          <p className="travel-memory-note">写真はこの都道府県の「思い出」にも保存されます。1県につき最大{MAX_PREFECTURE_PHOTOS}枚です。</p>
+          {memoryStopMessage && <p className="travel-memory-status" role="status">{memoryStopMessage}</p>}
+          <div className="travel-event-actions"><button className="travel-primary" type="submit" disabled={memoryStopBusy}>{memoryStopBusy ? "保存中…" : "保存する"}</button><button type="button" disabled={memoryStopBusy} onClick={() => { setMemoryStopId(""); setMemoryStopMemo(""); setMemoryStopMessage(""); }}>閉じる</button></div>
+        </form>}
+      </li>)}</ul>}
     </section>
   </section>;
 }
