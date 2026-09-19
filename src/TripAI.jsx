@@ -10,6 +10,7 @@ export default function TripAI({ plan, blocked, onApply, onClose }) {
   const dialog = useRef(null), controller = useRef(null), busyRef = useRef(false), previewHeading = useRef(null);
   const [mood, setMood] = useState("おまかせ"), [pace, setPace] = useState("普通"), [transportStyle, setTransportStyle] = useState("おまかせ");
   const [requestNote, setRequestNote] = useState("");
+  const [revisionRequest, setRevisionRequest] = useState("");
   const [busy, setBusy] = useState(false), [error, setError] = useState(""), [result, setResult] = useState(null);
   const [ready, setReady] = useState(null), [readinessAttempt, setReadinessAttempt] = useState(0);
   useEffect(() => {
@@ -53,6 +54,43 @@ export default function TripAI({ plan, blocked, onApply, onClose }) {
     } catch (err) { if (dialog.current?.open) setError(err.name === "AbortError" ? "作成に時間がかかっています。もう一度お試しください。" : (err.message.startsWith("AI") || err.message.includes("入力") || err.message.includes("設定") || err.message.includes("時間をおいて") ? err.message : "AI旅程の作成に失敗しました。もう一度お試しください。")); }
     finally { clearTimeout(timeout); busyRef.current = false; if (dialog.current?.open) setBusy(false); }
   }
+  async function refine() {
+    if (busyRef.current || blocked || ready !== true || !result || !revisionRequest.trim()) return;
+    setError("");
+    const existingItinerary = { days: result.days.map((day, index) => ({ day: index + 1, items: day.items.map(item => ({ time: item.time, title: item.name, memo: item.memo })) })) };
+    let request;
+    try {
+      request = validateRequest({ mood, pace, transportStyle, requestNote, revisionRequest, existingItinerary, plan: Object.fromEntries(["prefectureId", ...PLAN_FIELDS].map(key => [key, plan[key]])) });
+    } catch (err) { setError(err.message); return; }
+    busyRef.current = true; setBusy(true);
+    const abort = new AbortController(); controller.current = abort;
+    const timeout = setTimeout(() => abort.abort(), 55000);
+    try {
+      const response = await fetch("/api/generate-trip", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        signal: abort.signal,
+        body: JSON.stringify({
+          plan: request.plan,
+          mood,
+          pace,
+          transportStyle,
+          requestNote: request.requestNote,
+          revisionRequest: request.revisionRequest,
+          existingItinerary: request.existingItinerary,
+        }),
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error([400, 413, 415, 429, 503].includes(response.status) && typeof payload.error === "string" ? payload.error : "AI旅程の修正に失敗しました。もう一度お試しください。");
+      const checked = validateItinerary(payload, request.dates.length);
+      setResult({ days: checked.days.map((day, index) => ({ id: newId(), date: request.dates[index], items: day.items.map(item => ({ id: newId(), time: item.time, name: item.title, memo: item.memo })) })) });
+      setRevisionRequest("");
+    } catch (err) {
+      if (dialog.current?.open) setError(err.name === "AbortError" ? "修正に時間がかかっています。もう一度お試しください。" : (err.message.startsWith("AI") || err.message.includes("入力") || err.message.includes("修正") || err.message.includes("時間をおいて") ? err.message : "AI旅程の修正に失敗しました。もう一度お試しください。"));
+    } finally {
+      clearTimeout(timeout); busyRef.current = false; if (dialog.current?.open) setBusy(false);
+    }
+  }
   return <dialog ref={dialog} className="trip-ai-dialog" aria-labelledby="trip-ai-title" onCancel={event => { event.preventDefault(); onClose(); }}>
     <h2 id="trip-ai-title">✨ AIで旅程を作る</h2>
     {ready === null && <p role="status">AIの利用可否を確認中…</p>}
@@ -70,9 +108,14 @@ export default function TripAI({ plan, blocked, onApply, onClose }) {
     {blocked && <p role="alert">保存データに変更があるため反映できません。一度閉じて画面の案内をご確認ください。</p>}
     {result && <><h3 tabIndex={-1} ref={previewHeading}>AIが作成した旅程</h3>
       {result.days.map((day, index) => <section key={day.id} className="trip-day"><h4>{index + 1}日目 · {day.date}</h4><ol className="trip-ai-items">{day.items.map(item => { const routeUrl = googleMapsRouteForItem(item); const placeUrl = googleMapsPlaceForItem(item); return <li key={item.id}><time>{item.time}</time><strong>{item.name}</strong><p>{item.memo}</p>{routeUrl ? <a className="trip-route-link" href={routeUrl} target="_blank" rel="noopener noreferrer">Googleマップで経路を確認 ↗</a> : placeUrl && <a className="trip-route-link" href={placeUrl} target="_blank" rel="noopener noreferrer">Googleマップで場所を確認 ↗</a>}</li>; })}</ol></section>)}
+      <div className="trip-ai-refine">
+        <h4>この旅程をAIで修正</h4>
+        <label>どう変えたいですか？<textarea rows={3} maxLength={1000} disabled={busy} value={revisionRequest} onChange={e => setRevisionRequest(e.target.value)} placeholder="例：2日目をゆっくりにして、観光を1か所減らして" /><small>{revisionRequest.length} / 1000文字</small></label>
+        <button type="button" disabled={busy || blocked || !revisionRequest.trim()} onClick={refine}>{busy ? "修正中…" : "この希望でAIに修正してもらう"}</button>
+      </div>
       <p>{AI_NOTICE}</p><p>適用後も未保存です。内容を調整して「計画を保存」を押してください。</p></>}
     <div className="trip-ai-actions">
-      {result ? <><button type="button" className="trip-primary" disabled={blocked} onClick={() => onApply(result.days)}>この旅程を使う</button><button type="button" onClick={() => { setResult(null); setError(""); }}>やり直す</button></> : <button type="button" className="trip-primary" disabled={busy || blocked || ready !== true} onClick={generate}>{busy ? "作成中…" : "AIで作成"}</button>}
+      {result ? <><button type="button" className="trip-primary" disabled={blocked || busy} onClick={() => onApply(result.days)}>この旅程を使う</button><button type="button" disabled={busy} onClick={() => { setResult(null); setError(""); setRevisionRequest(""); }}>最初からやり直す</button></> : <button type="button" className="trip-primary" disabled={busy || blocked || ready !== true} onClick={generate}>{busy ? "作成中…" : "AIで作成"}</button>}
       <button type="button" onClick={onClose}>キャンセル</button>
     </div>
   </dialog>;
