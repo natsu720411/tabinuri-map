@@ -396,6 +396,7 @@ function HomeTravelSummary({ plan, onClose, onOpenMemory }) {
 
 function App({ initialPlanId }) {
   const [requestedPlanId, setRequestedPlanId] = useState(initialPlanId);
+  const [requestedTravelMode, setRequestedTravelMode] = useState(false);
   const [requestedPrefectureId, setRequestedPrefectureId] = useState(null);
   const [visits, setVisits] = useState(readVisits);
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -433,6 +434,7 @@ function App({ initialPlanId }) {
     if (!nextTrip.endDate || nextTrip.endDate >= today) return "旅行中";
     return "日程を確認";
   })();
+  const nextTripIsOngoing = Boolean(nextTrip?.startDate && nextTrip.startDate <= today && (!nextTrip.endDate || nextTrip.endDate >= today));
 
   const recentTrip = allPlans
     .filter(plan => plan.status === "completed" || plan.travelBookSavedAt)
@@ -548,7 +550,7 @@ function App({ initialPlanId }) {
     </div>
   </details>
 </nav>
-{view === "plans" ? <TripPlans onImport={importTrip} onOpenMemory={setSelectedId} initialPlanId={requestedPlanId} onInitialPlanOpened={() => setRequestedPlanId(null)} initialPrefectureId={requestedPrefectureId} initialPrefecturePlaces={requestedPrefectureId ? visits.records[requestedPrefectureId]?.wantToVisitPlaces || "" : ""} initialPrefectureReason={requestedPrefectureId ? visits.records[requestedPrefectureId]?.wantToVisitReason || "" : ""} onInitialPrefectureOpened={() => setRequestedPrefectureId(null)} /> : view === "year" ? <YearTable visits={visits} onSelect={setSelectedId} /> : view === "ranking" ? <Ranking visits={visits} onSelect={setSelectedId} /> : view === "timeline" ? <Timeline visits={visits} onSelect={setSelectedId} /> : view === "want" ? <WantList visits={visits} onSelect={setSelectedId} /> : view === "memories" ? <MemoriesList visits={visits} onSelect={(id) => { if (id === null) setView("map"); else setSelectedId(id); }} /> : <>
+{view === "plans" ? <TripPlans onImport={importTrip} onOpenMemory={setSelectedId} initialPlanId={requestedPlanId} onInitialPlanOpened={() => setRequestedPlanId(null)} initialTravelMode={requestedTravelMode} onInitialTravelModeOpened={() => setRequestedTravelMode(false)} initialPrefectureId={requestedPrefectureId} initialPrefecturePlaces={requestedPrefectureId ? visits.records[requestedPrefectureId]?.wantToVisitPlaces || "" : ""} initialPrefectureReason={requestedPrefectureId ? visits.records[requestedPrefectureId]?.wantToVisitReason || "" : ""} onInitialPrefectureOpened={() => setRequestedPrefectureId(null)} /> : view === "year" ? <YearTable visits={visits} onSelect={setSelectedId} /> : view === "ranking" ? <Ranking visits={visits} onSelect={setSelectedId} /> : view === "timeline" ? <Timeline visits={visits} onSelect={setSelectedId} /> : view === "want" ? <WantList visits={visits} onSelect={setSelectedId} /> : view === "memories" ? <MemoriesList visits={visits} onSelect={(id) => { if (id === null) setView("map"); else setSelectedId(id); }} /> : <>
 <section className="intro" aria-labelledby="home-title">
   <p className="eyebrow">
     <span /> YOUR TRAVEL, YOUR COLORS
@@ -604,7 +606,19 @@ function App({ initialPlanId }) {
     </div>
     <p>{nextTrip.startDate || "出発日未定"}{nextTrip.endDate ? ` 〜 ${nextTrip.endDate}` : ""}</p>
   </div>
-  <button type="button" onClick={() => { setRequestedPlanId(nextTrip.id); setView("plans"); }}>旅の計画を開く</button>
+  <div className="next-trip-actions">
+    {nextTripIsOngoing && <button type="button" className="next-trip-travel" onClick={() => {
+      trackEvent("home_travel_mode_cta", { source: "next_trip" });
+      setRequestedTravelMode(true);
+      setRequestedPlanId(nextTrip.id);
+      setView("plans");
+    }}>旅行中モードを開く</button>}
+    <button type="button" className={nextTripIsOngoing ? "next-trip-plan-secondary" : "next-trip-plan-primary"} onClick={() => {
+      setRequestedTravelMode(false);
+      setRequestedPlanId(nextTrip.id);
+      setView("plans");
+    }}>{nextTripIsOngoing ? "計画を見る" : "旅の計画を開く"}</button>
+  </div>
 </section>}
 {recentTrip && <section className="recent-trip-card" aria-labelledby="recent-trip-title">
   <div>

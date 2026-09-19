@@ -12,7 +12,7 @@ import { trackEvent } from "./analytics.js";
 
 const notes = [["places", "行きたい場所"], ["foods", "食べたいもの"], ["activities", "やりたいこと"], ["accommodation", "宿泊先メモ"], ["transport", "移動メモ"], ["notes", "その他メモ"]];
 
-export default function TripPlans({ onImport, onOpenMemory, initialPlanId, onInitialPlanOpened, initialPrefectureId, initialPrefecturePlaces = "", initialPrefectureReason = "", onInitialPrefectureOpened }) {
+export default function TripPlans({ onImport, onOpenMemory, initialPlanId, onInitialPlanOpened, initialTravelMode = false, onInitialTravelModeOpened, initialPrefectureId, initialPrefecturePlaces = "", initialPrefectureReason = "", onInitialPrefectureOpened }) {
   const [shareOpen, setShareOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const [travelOpen, setTravelOpen] = useState(false);
@@ -40,6 +40,11 @@ export default function TripPlans({ onImport, onOpenMemory, initialPlanId, onIni
     else setError("計画が見つかりませんでした。旅行計画の一覧をご確認ください。");
     onInitialPlanOpened?.();
   }, [initialPlanId]);
+  useEffect(() => {
+    if (!initialTravelMode) return;
+    if (draft && store.plans.some(plan => plan.id === draft.id)) openTravelMode();
+    onInitialTravelModeOpened?.();
+  }, [initialTravelMode]);
   useEffect(() => {
     if (!initialPrefectureId) return;
     const prefecture = prefectures.find(item => item.id === Number(initialPrefectureId));
