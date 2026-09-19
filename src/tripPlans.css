@@ -55,3 +55,5 @@
 .trip-ai-refine{margin:20px 0;padding:16px;border:1px solid #cfe0d2;border-radius:14px;background:#f3f8f3}.trip-ai-refine h4{margin:0 0 10px;color:#365947;font-size:17px}.trip-ai-refine label{display:grid;gap:6px}.trip-ai-refine textarea{min-height:96px}.trip-ai-refine small{text-align:right;color:#65766b;font-size:12px}.trip-ai-refine button{width:100%;margin-top:10px;background:#fff}
 
 .trip-ai-refine .trip-ai-undo{margin-top:8px;background:transparent;color:#527f61;border-style:dashed}
+
+.trip-ai-item-tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.trip-ai-lock{min-height:42px!important;margin-top:8px;padding:8px 12px!important;font-size:13px!important}.trip-ai-lock[aria-pressed="true"]{background:#e6f1e8!important;border-color:#7aa187!important;color:#315c43!important}.trip-ai-item-locked{padding:10px;border:1px solid #bcd3c1;border-radius:10px;background:#f5faf5}.trip-ai-refine-note{margin:0 0 10px;color:#596e5e;font-size:13px}@media(max-width:600px){.trip-ai-item-tools>*{width:100%}}

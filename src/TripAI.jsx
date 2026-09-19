@@ -5,6 +5,7 @@ import { googleMapsPlaceForItem, googleMapsRouteForItem } from "./tripRoute.js";
 const PREPARING = "AI機能は準備中です。管理者によるAPI設定が必要です。";
 const PREFECTURE_NAMES = ["", "北海道", "青森県", "岩手県", "宮城県", "秋田県", "山形県", "福島県", "茨城県", "栃木県", "群馬県", "埼玉県", "千葉県", "東京都", "神奈川県", "新潟県", "富山県", "石川県", "福井県", "山梨県", "長野県", "岐阜県", "静岡県", "愛知県", "三重県", "滋賀県", "京都府", "大阪府", "兵庫県", "奈良県", "和歌山県", "鳥取県", "島根県", "岡山県", "広島県", "山口県", "徳島県", "香川県", "愛媛県", "高知県", "福岡県", "佐賀県", "長崎県", "熊本県", "大分県", "宮崎県", "鹿児島県", "沖縄県"];
 const prefectureNameForAI = id => PREFECTURE_NAMES[Number(id)] || "行き先";
+const lockKeyForItem = (dayIndex, item) => JSON.stringify([dayIndex + 1, item.time, item.name, item.memo]);
 
 export default function TripAI({ plan, blocked, onApply, onClose }) {
   const dialog = useRef(null), controller = useRef(null), busyRef = useRef(false), previewHeading = useRef(null);
@@ -12,6 +13,7 @@ export default function TripAI({ plan, blocked, onApply, onClose }) {
   const [requestNote, setRequestNote] = useState("");
   const [revisionRequest, setRevisionRequest] = useState("");
   const [previousResult, setPreviousResult] = useState(null);
+  const [lockedKeys, setLockedKeys] = useState([]);
   const [busy, setBusy] = useState(false), [error, setError] = useState(""), [result, setResult] = useState(null);
   const [ready, setReady] = useState(null), [readinessAttempt, setReadinessAttempt] = useState(0);
   useEffect(() => {
@@ -42,7 +44,7 @@ export default function TripAI({ plan, blocked, onApply, onClose }) {
     let request;
     try { request = validateRequest({ mood, pace, transportStyle, requestNote, plan: Object.fromEntries(["prefectureId", ...PLAN_FIELDS].map(key => [key, plan[key]])) }); }
     catch (err) { setError(err.message); return; }
-    busyRef.current = true; setBusy(true); setResult(null); setPreviousResult(null);
+    busyRef.current = true; setBusy(true); setResult(null); setPreviousResult(null); setLockedKeys([]);
     const abort = new AbortController(); controller.current = abort;
     const timeout = setTimeout(() => abort.abort(), 55000);
     try {
@@ -59,9 +61,12 @@ export default function TripAI({ plan, blocked, onApply, onClose }) {
     if (busyRef.current || blocked || ready !== true || !result || !revisionRequest.trim()) return;
     setError("");
     const existingItinerary = { days: result.days.map((day, index) => ({ day: index + 1, items: day.items.map(item => ({ time: item.time, title: item.name, memo: item.memo })) })) };
+    const lockedItems = result.days.flatMap((day, dayIndex) => day.items
+      .filter(item => lockedKeys.includes(lockKeyForItem(dayIndex, item)))
+      .map(item => ({ day: dayIndex + 1, time: item.time, title: item.name, memo: item.memo })));
     let request;
     try {
-      request = validateRequest({ mood, pace, transportStyle, requestNote, revisionRequest, existingItinerary, plan: Object.fromEntries(["prefectureId", ...PLAN_FIELDS].map(key => [key, plan[key]])) });
+      request = validateRequest({ mood, pace, transportStyle, requestNote, revisionRequest, existingItinerary, lockedItems, plan: Object.fromEntries(["prefectureId", ...PLAN_FIELDS].map(key => [key, plan[key]])) });
     } catch (err) { setError(err.message); return; }
     busyRef.current = true; setBusy(true);
     const abort = new AbortController(); controller.current = abort;
@@ -79,6 +84,7 @@ export default function TripAI({ plan, blocked, onApply, onClose }) {
           requestNote: request.requestNote,
           revisionRequest: request.revisionRequest,
           existingItinerary: request.existingItinerary,
+          lockedItems: request.lockedItems,
         }),
       });
       const payload = await response.json();
@@ -102,6 +108,10 @@ export default function TripAI({ plan, blocked, onApply, onClose }) {
     setError("");
     setRevisionRequest("");
   }
+  function toggleLock(dayIndex, item) {
+    const key = lockKeyForItem(dayIndex, item);
+    setLockedKeys(current => current.includes(key) ? current.filter(value => value !== key) : [...current, key]);
+  }
   return <dialog ref={dialog} className="trip-ai-dialog" aria-labelledby="trip-ai-title" onCancel={event => { event.preventDefault(); onClose(); }}>
     <h2 id="trip-ai-title">✨ AIで旅程を作る</h2>
     {ready === null && <p role="status">AIの利用可否を確認中…</p>}
@@ -118,16 +128,16 @@ export default function TripAI({ plan, blocked, onApply, onClose }) {
     {error && <p role="alert" className="trip-error">{error}</p>}
     {blocked && <p role="alert">保存データに変更があるため反映できません。一度閉じて画面の案内をご確認ください。</p>}
     {result && <><h3 tabIndex={-1} ref={previewHeading}>AIが作成した旅程</h3>
-      {result.days.map((day, index) => <section key={day.id} className="trip-day"><h4>{index + 1}日目 · {day.date}</h4><ol className="trip-ai-items">{day.items.map(item => { const routeUrl = googleMapsRouteForItem(item); const placeUrl = googleMapsPlaceForItem(item); return <li key={item.id}><time>{item.time}</time><strong>{item.name}</strong><p>{item.memo}</p>{routeUrl ? <a className="trip-route-link" href={routeUrl} target="_blank" rel="noopener noreferrer">Googleマップで経路を確認 ↗</a> : placeUrl && <a className="trip-route-link" href={placeUrl} target="_blank" rel="noopener noreferrer">Googleマップで場所を確認 ↗</a>}</li>; })}</ol></section>)}
+      {result.days.map((day, index) => <section key={day.id} className="trip-day"><h4>{index + 1}日目 · {day.date}</h4><ol className="trip-ai-items">{day.items.map(item => { const routeUrl = googleMapsRouteForItem(item); const placeUrl = googleMapsPlaceForItem(item); const locked = lockedKeys.includes(lockKeyForItem(index, item)); return <li key={item.id} className={locked ? "trip-ai-item-locked" : ""}><time>{item.time}</time><strong>{item.name}</strong><p>{item.memo}</p><div className="trip-ai-item-tools"><button type="button" className="trip-ai-lock" disabled={busy} aria-pressed={locked} onClick={() => toggleLock(index, item)}>{locked ? "🔒 固定中" : "🔓 この予定を固定"}</button>{routeUrl ? <a className="trip-route-link" href={routeUrl} target="_blank" rel="noopener noreferrer">Googleマップで経路を確認 ↗</a> : placeUrl && <a className="trip-route-link" href={placeUrl} target="_blank" rel="noopener noreferrer">Googleマップで場所を確認 ↗</a>}</div></li>; })}</ol></section>)}
       <div className="trip-ai-refine">
-        <h4>この旅程をAIで修正</h4>
+        <h4>この旅程をAIで修正</h4><p className="trip-ai-refine-note">残したい予定は「この予定を固定」を押してから修正できます。{lockedKeys.length > 0 ? ` 現在${lockedKeys.length}件を固定中です。` : ""}</p>
         <label>どう変えたいですか？<textarea rows={3} maxLength={1000} disabled={busy} value={revisionRequest} onChange={e => setRevisionRequest(e.target.value)} placeholder="例：2日目をゆっくりにして、観光を1か所減らして" /><small>{revisionRequest.length} / 1000文字</small></label>
         <button type="button" disabled={busy || blocked || !revisionRequest.trim()} onClick={refine}>{busy ? "修正中…" : "この希望でAIに修正してもらう"}</button>
         {previousResult && <button type="button" className="trip-ai-undo" disabled={busy} onClick={restorePrevious}>↶ 1つ前の旅程に戻す</button>}
       </div>
       <p>{AI_NOTICE}</p><p>適用後も未保存です。内容を調整して「計画を保存」を押してください。</p></>}
     <div className="trip-ai-actions">
-      {result ? <><button type="button" className="trip-primary" disabled={blocked || busy} onClick={() => onApply(result.days)}>この旅程を使う</button><button type="button" disabled={busy} onClick={() => { setResult(null); setPreviousResult(null); setError(""); setRevisionRequest(""); }}>最初からやり直す</button></> : <button type="button" className="trip-primary" disabled={busy || blocked || ready !== true} onClick={generate}>{busy ? "作成中…" : "AIで作成"}</button>}
+      {result ? <><button type="button" className="trip-primary" disabled={blocked || busy} onClick={() => onApply(result.days)}>この旅程を使う</button><button type="button" disabled={busy} onClick={() => { setResult(null); setPreviousResult(null); setLockedKeys([]); setError(""); setRevisionRequest(""); }}>最初からやり直す</button></> : <button type="button" className="trip-primary" disabled={busy || blocked || ready !== true} onClick={generate}>{busy ? "作成中…" : "AIで作成"}</button>}
       <button type="button" onClick={onClose}>キャンセル</button>
     </div>
   </dialog>;
