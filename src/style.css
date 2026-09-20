@@ -1116,3 +1116,12 @@
   .view-tabs .view-more>summary>span{display:block;font-size:10px;line-height:1.1}
   .view-tabs .view-more>summary::after{display:none}
 }
+
+.want-list-card{cursor:default}
+.want-list-card:hover{transform:none}
+.want-list-open{display:block;width:100%;padding:0;border:0;background:transparent;color:inherit;text-align:left;cursor:pointer;font:inherit}
+.want-list-open:focus-visible{outline:3px solid #217453;outline-offset:-3px}
+.want-list-actions{padding:0 14px 14px}
+.want-list-actions>button{width:100%;min-height:44px;border:1px solid #527f61;border-radius:11px;background:#527f61;color:#fff;font:inherit;font-size:13px;font-weight:800;cursor:pointer}
+.want-list-actions>button:hover{background:#427859}
+.want-list-actions>button:focus-visible{outline:3px solid #8dc7a3;outline-offset:3px}

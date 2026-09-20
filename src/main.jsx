@@ -303,15 +303,21 @@ function MemoriesList({ visits, onSelect }) {
   });
   return <section className="memories-page" aria-labelledby="memories-title"><div className="memories-header"><div><p className="section-kicker">YOUR MEMORIES</p><h1 id="memories-title">思い出一覧</h1></div><p>{filtered.length} / {entries.length}件</p></div><div className="memory-controls"><label className="memory-search">検索<input type="search" value={query} onChange={event => setQuery(event.target.value)} placeholder="都道府県名や思い出を検索" /><button type="button" aria-label="検索をクリア" onClick={() => setQuery("")} disabled={!query}>×</button></label><label>絞り込み<select value={filter} onChange={event => setFilter(event.target.value)}><option value="all">すべて</option><option value="visited">訪問済み</option><option value="unvisited">未訪問</option><option value="photo">写真あり</option><option value="no-photo">写真なし</option><option value="favorite">お気に入り</option><option value="want">行きたい</option></select></label><label>並び替え<select value={sort} onChange={event => setSort(event.target.value)}><option value="newest">訪問日の新しい順</option><option value="oldest">訪問日の古い順</option><option value="name">都道府県順</option></select></label></div>{!filtered.length ? <div className="memories-empty" aria-live="polite"><span>⌕</span><h2>{filter === "favorite" && !filtered.length ? "お気に入りの思い出はまだありません" : filter === "want" && !filtered.length ? "行きたい県はまだありません" : entries.length ? "条件に一致する思い出がありません" : "まだ思い出がありません。"}</h2><p>{entries.length ? "検索語や絞り込み条件を変えてみてください。" : "地図から旅の記録を追加してみましょう。"}</p>{!entries.length && <button type="button" onClick={() => onSelect(null)}>地図を見る</button>}</div> : <div className="memory-grid">{filtered.map(({ id, name }) => { const record = visits.records[id]; return <button type="button" className="memory-card" key={id} onClick={() => onSelect(id)}><div className="memory-card-photo">{covers[id] ? <img src={covers[id]} alt={`${name}の代表写真`} /> : <span aria-hidden="true">⌁</span>}</div><div className="memory-card-body"><div className="memory-card-top"><h2>{name}{record.favorite === true && <span className="favorite-mark" role="img" aria-label="お気に入り">★</span>}</h2><span className={record.visited ? "visited-badge" : "unvisited-badge"}>{record.visited ? "訪問済み" : "未訪問"}</span>{record.wantToVisit === true && <span className="want-badge">行きたい</span>}</div><p className="memory-card-date">{record.visitDate || "訪問日未記録"}</p>{record.rating > 0 && <p className="rating-display" aria-label={`お気に入り度${record.rating}つ星`}>{"★".repeat(record.rating)}{"☆".repeat(5 - record.rating)}</p>}<p className="memory-card-text">{record.memory || "思い出の文章はまだありません。"}</p>{record.companions && <p className="companions-text">一緒に行った人：{record.companions}</p>}{record.municipalities && <p className="companions-text">行った市町村：{record.municipalities}</p>}{record.foods && <p className="companions-text">食べたもの：{record.foods}</p>}{record.recommendedSpots && <p className="companions-text">おすすめスポット：{record.recommendedSpots}</p>}</div></button>; })}</div>}</section>;
 }
-function WantList({ visits, onSelect }) {
+function WantList({ visits, onSelect, onPlan }) {
   const [region, setRegion] = useState("all");
   const [sort, setSort] = useState("name");
   const [covers, setCovers] = useState({});
   const entries = prefectures.filter(({ id }) => visits.records[id]?.wantToVisit === true);
   useEffect(() => {
     let active = true;
-    Promise.all(entries.map(async ({ id }) => { try { const photos = await listPhotos(id); return [id, photos[0] ? URL.createObjectURL(photos[0].blob) : ""]; } catch { return [id, ""]; } }))
-      .then(items => { if (active) setCovers(Object.fromEntries(items)); });
+    Promise.all(entries.map(async ({ id }) => {
+      try {
+        const photos = await listPhotos(id);
+        return [id, photos[0] ? URL.createObjectURL(photos[0].blob) : ""];
+      } catch {
+        return [id, ""];
+      }
+    })).then(items => { if (active) setCovers(Object.fromEntries(items)); });
     return () => { active = false; };
   }, [visits.records]);
   const regionIds = region === "all" ? null : new Set((REGIONS.find(([name]) => name === region) || ["", []])[1]);
@@ -320,7 +326,36 @@ function WantList({ visits, onSelect }) {
     if (sort === "favorite") return Number(rb.favorite === true) - Number(ra.favorite === true) || a.name.localeCompare(b.name, "ja");
     return a.name.localeCompare(b.name, "ja");
   });
-  return <section className="memories-page" aria-labelledby="want-title"><div className="memories-header"><div><p className="section-kicker">NEXT DESTINATIONS</p><h1 id="want-title">行きたい県</h1></div><p>{filtered.length} / {entries.length}件</p></div><div className="memory-controls want-controls"><label>地方<select value={region} onChange={event => setRegion(event.target.value)}><option value="all">すべて</option>{REGIONS.map(([name]) => <option key={name} value={name}>{name}</option>)}</select></label><label>並び替え<select value={sort} onChange={event => setSort(event.target.value)}><option value="name">都道府県順</option><option value="favorite">お気に入り優先</option></select></label></div>{!filtered.length ? <div className="memories-empty" aria-live="polite"><span>♡</span><h2>行きたい県はまだありません。</h2><p>地図から気になる県を「行きたい」に追加してみましょう。</p></div> : <div className="memory-grid">{filtered.map(({ id, name }) => { const record = visits.records[id]; return <button type="button" className="memory-card" key={id} onClick={() => onSelect(id)}><div className="memory-card-photo">{covers[id] ? <img src={covers[id]} alt={`${name}の代表写真`} /> : <span aria-hidden="true">♡</span>}</div><div className="memory-card-body"><div className="memory-card-top"><h2>{name}{record.favorite === true && <span className="favorite-mark" role="img" aria-label="お気に入り">★</span>}</h2><span className="want-badge">行きたい</span></div>{record.wantToVisitReason && <p className="want-note">行きたい理由：{record.wantToVisitReason}</p>}{record.wantToVisitPlaces && <p className="want-note">行きたい場所：{record.wantToVisitPlaces}</p>}{record.visited && <p className="memory-card-date"><span className="visited-badge">訪問済み</span></p>}<p className="memory-card-text">{record.memory || "思い出の文章はまだありません。"}</p>{record.companions && <p className="companions-text">一緒に行った人：{record.companions}</p>}{record.municipalities && <p className="companions-text">行った市町村：{record.municipalities}</p>}{record.foods && <p className="companions-text">食べたもの：{record.foods}</p>}{record.recommendedSpots && <p className="companions-text">おすすめスポット：{record.recommendedSpots}</p>}</div></button>; })}</div>}</section>;
+  return <section className="memories-page" aria-labelledby="want-title">
+    <div className="memories-header">
+      <div><p className="section-kicker">NEXT DESTINATIONS</p><h1 id="want-title">行きたい県</h1></div>
+      <p>{filtered.length} / {entries.length}件</p>
+    </div>
+    <div className="memory-controls want-controls">
+      <label>地方<select value={region} onChange={event => setRegion(event.target.value)}><option value="all">すべて</option>{REGIONS.map(([name]) => <option key={name} value={name}>{name}</option>)}</select></label>
+      <label>並び替え<select value={sort} onChange={event => setSort(event.target.value)}><option value="name">都道府県順</option><option value="favorite">お気に入り優先</option></select></label>
+    </div>
+    {!filtered.length ? <div className="memories-empty" aria-live="polite"><span>♡</span><h2>行きたい県はまだありません。</h2><p>地図から気になる県を「行きたい」に追加してみましょう。</p></div> : <div className="memory-grid">
+      {filtered.map(({ id, name }) => {
+        const record = visits.records[id];
+        return <article className="memory-card want-list-card" key={id}>
+          <button type="button" className="want-list-open" onClick={() => onSelect(id)} aria-label={`${name}の行きたいメモを見る`}>
+            <div className="memory-card-photo">{covers[id] ? <img src={covers[id]} alt={`${name}の代表写真`} /> : <span aria-hidden="true">♡</span>}</div>
+            <div className="memory-card-body">
+              <div className="memory-card-top"><h2>{name}{record.favorite === true && <span className="favorite-mark" role="img" aria-label="お気に入り">★</span>}</h2><span className="want-badge">行きたい</span></div>
+              {record.wantToVisitReason && <p className="want-note">行きたい理由：{record.wantToVisitReason}</p>}
+              {record.wantToVisitPlaces && <p className="want-note">行きたい場所：{record.wantToVisitPlaces}</p>}
+              {record.visited && <p className="memory-card-date"><span className="visited-badge">訪問済み</span></p>}
+              <p className="memory-card-text">{record.memory || "思い出の文章はまだありません。"}</p>
+            </div>
+          </button>
+          <div className="want-list-actions">
+            <button type="button" onClick={() => onPlan(id)}>この県で旅を計画</button>
+          </div>
+        </article>;
+      })}
+    </div>}
+  </section>;
 }
 function YearTable({ visits, onSelect }) {
   const [yearFilter, setYearFilter] = useState("all");
@@ -700,7 +735,7 @@ function App({ initialPlanId }) {
     </div>
   </details>
 </nav>
-{view === "plans" ? <TripPlans onImport={importTrip} onOpenMemory={setSelectedId} initialPlanId={requestedPlanId} onInitialPlanOpened={() => setRequestedPlanId(null)} initialTravelMode={requestedTravelMode} onInitialTravelModeOpened={() => setRequestedTravelMode(false)} initialPrefectureId={requestedPrefectureId} initialPrefecturePlaces={requestedPrefectureId ? visits.records[requestedPrefectureId]?.wantToVisitPlaces || "" : ""} initialPrefectureReason={requestedPrefectureId ? visits.records[requestedPrefectureId]?.wantToVisitReason || "" : ""} onInitialPrefectureOpened={() => setRequestedPrefectureId(null)} /> : view === "backup" ? <DataBackup onRestored={() => { setVisits(readVisits()); setView("map"); }} /> : view === "year" ? <YearTable visits={visits} onSelect={setSelectedId} /> : view === "ranking" ? <Ranking visits={visits} onSelect={setSelectedId} /> : view === "timeline" ? <Timeline visits={visits} onSelect={setSelectedId} /> : view === "want" ? <WantList visits={visits} onSelect={setSelectedId} /> : view === "memories" ? <MemoriesList visits={visits} onSelect={(id) => { if (id === null) setView("map"); else setSelectedId(id); }} /> : <>
+{view === "plans" ? <TripPlans onImport={importTrip} onOpenMemory={setSelectedId} initialPlanId={requestedPlanId} onInitialPlanOpened={() => setRequestedPlanId(null)} initialTravelMode={requestedTravelMode} onInitialTravelModeOpened={() => setRequestedTravelMode(false)} initialPrefectureId={requestedPrefectureId} initialPrefecturePlaces={requestedPrefectureId ? visits.records[requestedPrefectureId]?.wantToVisitPlaces || "" : ""} initialPrefectureReason={requestedPrefectureId ? visits.records[requestedPrefectureId]?.wantToVisitReason || "" : ""} onInitialPrefectureOpened={() => setRequestedPrefectureId(null)} /> : view === "backup" ? <DataBackup onRestored={() => { setVisits(readVisits()); setView("map"); }} /> : view === "year" ? <YearTable visits={visits} onSelect={setSelectedId} /> : view === "ranking" ? <Ranking visits={visits} onSelect={setSelectedId} /> : view === "timeline" ? <Timeline visits={visits} onSelect={setSelectedId} /> : view === "want" ? <WantList visits={visits} onSelect={setSelectedId} onPlan={id => { trackEvent("want_list_plan_start", { source: "want_list" }); setRequestedPrefectureId(id); setView("plans"); }} /> : view === "memories" ? <MemoriesList visits={visits} onSelect={(id) => { if (id === null) setView("map"); else setSelectedId(id); }} /> : <>
 <section className="intro" aria-labelledby="home-title">
   <p className="eyebrow">
     <span /> YOUR TRAVEL, YOUR COLORS
