@@ -1107,7 +1107,7 @@ function App({ initialPlanId }) {
 </section>
 </>}
 </main>
-{selectedId !== null && <MemoryPanel key={selectedId} prefecture={prefectures.find(({ id }) => id === selectedId)} record={visits.records[selectedId]} readError={visits.error} onSave={(id, draft) => { const result = saveMemory(id, draft); if (!result) setView("memories"); return result; }} onClose={() => setSelectedId(null)} />}
+{selectedId !== null && <MemoryPanel key={selectedId} prefecture={prefectures.find(({ id }) => id === selectedId)} record={visits.records[selectedId]} readError={visits.error} onSave={(id, draft) => { const result = saveMemory(id, draft); if (!result) trackEvent("memory_saved", { source: view, result: "success" }); return result; }} onClose={() => setSelectedId(null)} />}
 {summaryPlan && <HomeTravelSummary plan={summaryPlan} onClose={() => setSummaryPlan(null)} onOpenMemory={() => { const prefectureId = summaryPlan.prefectureId; setSummaryPlan(null); setSelectedId(prefectureId); }} />}
 <footer className="site-footer">
 <span className="footer-brand">
