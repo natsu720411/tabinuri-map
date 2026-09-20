@@ -1101,3 +1101,8 @@
 .visit-date-row button:hover{background:#eef5ef}
 .visit-date-row button:focus-visible{outline:3px solid #217453;outline-offset:2px}
 @media(max-width:600px){.visit-date-row{grid-template-columns:1fr auto}.visit-date-row button{padding-inline:12px}}
+
+.photo-add-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.photo-add-actions .photo-add{min-width:0;text-align:center;padding:9px}
+.photo-add-actions .photo-camera{border-style:solid;background:#edf5ef}
+@media(max-width:600px){.photo-add-actions{grid-template-columns:1fr 1fr}.photo-add-actions .photo-add{font-size:13px}}

@@ -207,7 +207,16 @@ function MemoryPanel({ prefecture, record, onSave, onClose, readError }) {
       <label htmlFor="memory-text">思い出の文章</label>
       <textarea id="memory-text" rows="5" placeholder="出会った景色、おいしかったもの、旅の思い出…" value={draft.memory} onChange={event => setDraft(previous => ({ ...previous, memory: event.target.value }))} />
       <div className="photo-section"><div className="photo-section-heading"><label>旅の写真</label><span>{photos.length} / {MAX_PHOTOS}枚</span></div>
-        <label className={`photo-add${photoBusy || photos.length >= MAX_PHOTOS ? " disabled" : ""}`}><input type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple disabled={photoBusy || photos.length >= MAX_PHOTOS} onChange={addPhotos} />{photoBusy ? "保存中…" : photos.length >= MAX_PHOTOS ? "5枚保存済み" : "＋ 写真を追加"}</label>
+        <div className="photo-add-actions">
+          <label className={`photo-add photo-camera${photoBusy || photos.length >= MAX_PHOTOS ? " disabled" : ""}`}>
+            <input type="file" accept="image/*" capture="environment" disabled={photoBusy || photos.length >= MAX_PHOTOS} onChange={event => { trackEvent("memory_photo_camera_open", { source: "memory_panel" }); addPhotos(event); }} />
+            {photoBusy ? "保存中…" : photos.length >= MAX_PHOTOS ? "5枚保存済み" : "📷 写真を撮る"}
+          </label>
+          <label className={`photo-add${photoBusy || photos.length >= MAX_PHOTOS ? " disabled" : ""}`}>
+            <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple disabled={photoBusy || photos.length >= MAX_PHOTOS} onChange={event => { trackEvent("memory_photo_library_open", { source: "memory_panel" }); addPhotos(event); }} />
+            {photoBusy ? "保存中…" : photos.length >= MAX_PHOTOS ? "5枚保存済み" : "＋ 写真を選ぶ"}
+          </label>
+        </div>
         {photos.length > 0 && <div className="photo-grid">{photos.map(photo => <div className="photo-thumb" key={photo.id}><img src={URL.createObjectURL(photo.blob)} alt={`${prefecture.name}の思い出`} onClick={() => setPreview(photo)} /><button type="button" onClick={() => removePhoto(photo.id)} aria-label="この写真を削除">×</button></div>)}</div>}
       </div></div>
 
