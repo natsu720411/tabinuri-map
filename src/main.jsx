@@ -481,6 +481,7 @@ function HomeTravelSummary({ plan, onClose, onOpenMemory }) {
 function App({ initialPlanId }) {
   const queryParams = new URLSearchParams(location.search);
   const requestedStart = queryParams.get("start");
+  const requestedSource = queryParams.get("from");
   const fromMapShare = queryParams.get("utm_campaign") === "map_share";
   const [requestedPlanId, setRequestedPlanId] = useState(initialPlanId);
   const [requestedTravelMode, setRequestedTravelMode] = useState(false);
@@ -488,7 +489,7 @@ function App({ initialPlanId }) {
   const [visits, setVisits] = useState(readVisits);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [mobileMapWidth, setMobileMapWidth] = useState(680);
-  const [quickCheckMode, setQuickCheckMode] = useState(false);
+  const [quickCheckMode, setQuickCheckMode] = useState(requestedStart === "check");
   const [quickCheckUndo, setQuickCheckUndo] = useState(null);
   const mapCanvasRef = useRef(null);
   const mobileMapScrollRatio = useRef(0.48);
@@ -609,6 +610,21 @@ function App({ initialPlanId }) {
   useEffect(() => {
     if (fromMapShare) trackEvent("share_landing_viewed", { source: "map_share" });
   }, [fromMapShare]);
+
+  useEffect(() => {
+    if (requestedStart !== "check") return;
+    trackEvent("seo_quick_check_landing", { source: requestedSource || "seo" });
+    const frame = requestAnimationFrame(() => {
+      const heading = document.getElementById("map-heading");
+      if (!heading) return;
+      heading.focus({ preventScroll: true });
+      heading.scrollIntoView({
+        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+        block: "start",
+      });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [requestedStart, requestedSource]);
 
   useEffect(() => {
     if (!quickCheckUndo) return;
