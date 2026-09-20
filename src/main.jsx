@@ -792,16 +792,19 @@ function App({ initialPlanId }) {
       <span>これから旅行する</span>
       <strong>旅の計画を作る</strong>
     </button>
-    <a className="intro-secondary" href="#map-heading" onClick={(event) => {
-      const heading = document.getElementById("map-heading");
-      if (!heading) return;
-      event.preventDefault();
-      heading.focus({ preventScroll: true });
-      heading.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth", block: "start" });
+    <button type="button" className="intro-secondary" onClick={() => {
+      setQuickCheckMode(true);
+      trackEvent("home_quick_check_start", { source: "hero" });
+      requestAnimationFrame(() => {
+        const heading = document.getElementById("map-heading");
+        if (!heading) return;
+        heading.focus({ preventScroll: true });
+        heading.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+      });
     }}>
-      <span>過去の旅行を残したい</span>
-      <strong>日本地図から記録する</strong>
-    </a>
+      <span>行った県をまとめて登録</span>
+      <strong>日本地図をチェックする</strong>
+    </button>
   </div>
   {installPrompt && <button type="button" className="home-install-button" onClick={installApp}>
     <span aria-hidden="true">＋</span>
@@ -829,7 +832,7 @@ function App({ initialPlanId }) {
     <a href="/how-to-use.html">詳しい使い方</a>
   </div>
   <ol>
-    <li><span>1</span><div><strong>行き先を決める</strong><p>地図で「行きたい」を残すか、旅の計画を作ります。</p></div></li>
+    <li><span>1</span><div><strong>まず地図を塗ってみる</strong><p>行った県をタップするだけで、すぐ自分の旅マップを作れます。</p></div></li>
     <li><span>2</span><div><strong>旅行中に記録する</strong><p>チェックイン、写真、ひとことを旅ログに残せます。</p></div></li>
     <li><span>3</span><div><strong>思い出として保存</strong><p>旅行終了後、日本地図と旅のまとめで振り返れます。</p></div></li>
   </ol>
