@@ -37,6 +37,19 @@ function Icon({ name, ...props }) {
         <path d="m5 16-1 4 4-1L20 7l-3-3L5 16ZM14 7l3 3M12 20h8" />
       </>
     ),
+    calendar: (
+      <>
+        <rect x="4" y="5" width="16" height="15" rx="2" />
+        <path d="M8 3v4M16 3v4M4 10h16" />
+      </>
+    ),
+    more: (
+      <>
+        <circle cx="5" cy="12" r="1.4" fill="currentColor" stroke="none" />
+        <circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none" />
+        <circle cx="19" cy="12" r="1.4" fill="currentColor" stroke="none" />
+      </>
+    ),
   };
   return (
     <svg
@@ -673,12 +686,12 @@ function App({ initialPlanId }) {
 </header>
 <main id="main">
 <nav className="view-tabs" aria-label="表示切り替え" onClickCapture={event => { if (view === "plans" && event.target.closest("button") && !window.dispatchEvent(new Event("trip-plan-leave", { cancelable: true }))) { event.preventDefault(); event.stopPropagation(); } }}>
-  <button type="button" className={view === "map" ? "active" : ""} aria-current={view === "map" ? "page" : undefined} onClick={() => setView("map")}>地図</button>
-  <button type="button" className={view === "memories" ? "active" : ""} aria-current={view === "memories" ? "page" : undefined} onClick={() => setView("memories")}>思い出</button>
-  <button type="button" className={view === "want" ? "active" : ""} aria-current={view === "want" ? "page" : undefined} onClick={() => setView("want")}>行きたい</button>
-  <button type="button" className={view === "plans" ? "active" : ""} aria-current={view === "plans" ? "page" : undefined} onClick={() => { trackEvent("nav_trip_plans_open", { source: "main_nav" }); setView("plans"); }}>旅の計画</button>
+  <button type="button" className={view === "map" ? "active" : ""} aria-current={view === "map" ? "page" : undefined} onClick={() => setView("map")}><Icon name="map" className="nav-icon" /><span>地図</span></button>
+  <button type="button" className={view === "memories" ? "active" : ""} aria-current={view === "memories" ? "page" : undefined} onClick={() => setView("memories")}><Icon name="camera" className="nav-icon" /><span>思い出</span></button>
+  <button type="button" className={view === "want" ? "active" : ""} aria-current={view === "want" ? "page" : undefined} onClick={() => setView("want")}><Icon name="pin" className="nav-icon" /><span>行きたい</span></button>
+  <button type="button" className={view === "plans" ? "active" : ""} aria-current={view === "plans" ? "page" : undefined} onClick={() => { trackEvent("nav_trip_plans_open", { source: "main_nav" }); setView("plans"); }}><Icon name="calendar" className="nav-icon" /><span>旅の計画</span></button>
   <details className={["ranking", "year", "timeline", "backup"].includes(view) ? "view-more active" : "view-more"}>
-    <summary aria-label="その他の表示を開く">その他</summary>
+    <summary aria-label="その他の表示を開く"><Icon name="more" className="nav-icon" /><span>その他</span></summary>
     <div className="view-more-menu">
       <button type="button" className={view === "ranking" ? "active" : ""} aria-current={view === "ranking" ? "page" : undefined} onClick={() => setView("ranking")}>ランキング</button>
       <button type="button" className={view === "year" ? "active" : ""} aria-current={view === "year" ? "page" : undefined} onClick={() => setView("year")}>旅行年表</button>

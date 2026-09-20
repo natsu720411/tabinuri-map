@@ -1106,3 +1106,13 @@
 .photo-add-actions .photo-add{min-width:0;text-align:center;padding:9px}
 .photo-add-actions .photo-camera{border-style:solid;background:#edf5ef}
 @media(max-width:600px){.photo-add-actions{grid-template-columns:1fr 1fr}.photo-add-actions .photo-add{font-size:13px}}
+
+.view-tabs .nav-icon{display:none}
+@media(max-width:600px){
+  .view-tabs>button,
+  .view-tabs .view-more>summary{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}
+  .view-tabs .nav-icon{display:block;width:19px;height:19px;flex:0 0 auto}
+  .view-tabs>button>span,
+  .view-tabs .view-more>summary>span{display:block;font-size:10px;line-height:1.1}
+  .view-tabs .view-more>summary::after{display:none}
+}
