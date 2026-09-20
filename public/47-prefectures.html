@@ -62,6 +62,35 @@
                 "item": "https://tabinuri-map.vercel.app/47-prefectures.html"
               }
             ]
+          },
+          {
+            "@type": "FAQPage",
+            "mainEntity": [
+              {
+                "@type": "Question",
+                "name": "47都道府県制覇に決まったルールはありますか？",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "公式の共通ルールはありません。観光した県、宿泊した県、立ち寄った県など、自分で基準を決めて記録できます。"
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "47都道府県制覇まであと何県か確認できますか？",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "はい。旅図帳で訪問済みの都道府県をチェックすると、訪問数と達成率を確認できます。"
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "昔行った県も後から追加できますか？",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "はい。訪問日が分からなくても訪問済みとして登録でき、後から写真や思い出を追加できます。"
+                }
+              }
+            ]
           }
         ]
       }
@@ -90,6 +119,9 @@
       .region-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
       .region-grid section { padding:14px 15px; border:1px solid #dfe7dc; border-radius:14px; background:#f8faf7; }
       .region-grid p { margin:0; color:#5f7064; font-size:13px; }
+      .challenge-faq details { margin:10px 0; padding:0 14px; border:1px solid #dfe7dc; border-radius:12px; background:#f8faf7; }
+      .challenge-faq summary { min-height:48px; display:flex; align-items:center; cursor:pointer; color:#365947; font-weight:700; }
+      .challenge-faq details p { margin:0 0 14px; font-size:14px; }
       .related { margin-top:32px; padding-top:24px; border-top:1px solid #e2e8df; }
       .related-links { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; padding:0; list-style:none; }
       .related-links li { margin:0; }
@@ -152,6 +184,22 @@
           <h2>まずは行った県をタップしてみよう</h2>
           <p>会員登録は不要です。「47都道府県チャレンジを始める」を押すと、訪問県をかんたんチェックできる日本地図が開きます。</p>
           <p><a class="cta" href="/?start=check&from=47_prefectures" onclick="gtag('event','seo_cta_click',{source:'47_prefectures',action:'start_challenge'});">全国制覇まであと何県か確認する</a></p>
+        </section>
+
+        <section class="challenge-faq" aria-labelledby="challenge-faq-title">
+          <h2 id="challenge-faq-title">47都道府県制覇でよくある質問</h2>
+          <details>
+            <summary>47都道府県制覇に決まったルールはある？</summary>
+            <p>公式の共通ルールはありません。観光した県だけ、宿泊した県、食事や観光で立ち寄った県など、自分が続けやすい基準で数えられます。</p>
+          </details>
+          <details>
+            <summary>全国制覇まであと何県か確認できる？</summary>
+            <p>はい。旅図帳で訪問済みの県をチェックすると、訪問数と達成率を確認できます。未訪問の県も地図で見つけやすくなります。</p>
+          </details>
+          <details>
+            <summary>昔行った県も後から追加できる？</summary>
+            <p>はい。訪問日が分からなくても県だけ先に登録できます。思い出したタイミングで写真やメモを後から追加できます。</p>
+          </details>
         </section>
 
         <section class="related" aria-labelledby="related-title">
