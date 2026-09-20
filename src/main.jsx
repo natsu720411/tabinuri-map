@@ -417,6 +417,7 @@ function App({ initialPlanId }) {
   const [pickerOpen, setPickerOpen] = useState(false);
   const [mobileMapWidth, setMobileMapWidth] = useState(680);
   const mapCanvasRef = useRef(null);
+  const mobileMapScrollRatio = useRef(0.48);
   const [selectedId, setSelectedId] = useState(null);
   const [homePhotoCount, setHomePhotoCount] = useState(0);
   const [homePhotoCounts, setHomePhotoCounts] = useState({});
@@ -525,7 +526,7 @@ function App({ initialPlanId }) {
     if (!element) return;
     const frame = requestAnimationFrame(() => {
       const max = Math.max(0, element.scrollWidth - element.clientWidth);
-      if (max > 0) element.scrollLeft = max * 0.48;
+      if (max > 0) element.scrollLeft = max * mobileMapScrollRatio.current;
     });
     return () => cancelAnimationFrame(frame);
   }, [view]);
@@ -535,6 +536,7 @@ function App({ initialPlanId }) {
     if (!element) return;
     const max = Math.max(0, element.scrollWidth - element.clientWidth);
     const ratio = position === "west" ? 0 : position === "east" ? 1 : 0.48;
+    mobileMapScrollRatio.current = ratio;
     element.scrollTo({ left: max * ratio, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
   }
 
@@ -882,8 +884,16 @@ function App({ initialPlanId }) {
       {prefectures.map(prefecture => <option key={prefecture.id} value={prefecture.id}>{prefecture.name}{visited.includes(prefecture.id) ? "（訪問済み）" : wantToVisitIds.includes(prefecture.id) ? "（行きたい）" : ""}</option>)}
     </select>
   </label>
-  <div className="map-canvas" ref={mapCanvasRef}>
-    <JapanMap onSelect={setSelectedId} visited={visited} wantToVisitIds={wantToVisitIds} mobileWidth={mobileMapWidth} />
+  <div className="map-canvas" ref={mapCanvasRef} onScroll={event => {
+    if (!window.matchMedia("(max-width: 600px)").matches) return;
+    const element = event.currentTarget;
+    const max = Math.max(0, element.scrollWidth - element.clientWidth);
+    if (max > 0) mobileMapScrollRatio.current = element.scrollLeft / max;
+  }}>
+    <JapanMap onSelect={id => {
+      trackEvent("map_prefecture_opened", { source: "map" });
+      setSelectedId(id);
+    }} visited={visited} wantToVisitIds={wantToVisitIds} mobileWidth={mobileMapWidth} />
     <div className="map-message">
       <span className="small-icon">
         <Icon name="map" />
