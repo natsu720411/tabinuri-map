@@ -1144,3 +1144,9 @@
 .share-landing-card button:hover{background:#427859}
 .share-landing-card button:focus-visible{outline:3px solid #8dc7a3;outline-offset:3px}
 @media(max-width:600px){.share-landing-card{display:grid;padding:16px}.share-landing-card h2{font-size:18px}.share-landing-card button{width:100%}}
+
+.quick-check-undo{position:fixed;z-index:80;left:50%;bottom:22px;transform:translateX(-50%);display:flex;align-items:center;gap:12px;width:min(520px,calc(100% - 32px));padding:11px 12px 11px 14px;border:1px solid #cfdccf;border-radius:14px;background:#263c32f2;color:#fff;box-shadow:0 12px 32px rgba(24,39,31,.28);font-size:12px}
+.quick-check-undo span{min-width:0;flex:1}
+.quick-check-undo button{flex:0 0 auto;min-height:38px;padding:7px 11px;border:1px solid #d8e6dc;border-radius:10px;background:#fff;color:#365947;font:inherit;font-size:12px;font-weight:800;cursor:pointer}
+.quick-check-undo button:focus-visible{outline:3px solid #8dc7a3;outline-offset:2px}
+@media(max-width:600px){.quick-check-undo{bottom:calc(82px + env(safe-area-inset-bottom));width:calc(100% - 24px)}}

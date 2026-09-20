@@ -488,6 +488,7 @@ function App({ initialPlanId }) {
   const [pickerOpen, setPickerOpen] = useState(false);
   const [mobileMapWidth, setMobileMapWidth] = useState(680);
   const [quickCheckMode, setQuickCheckMode] = useState(false);
+  const [quickCheckUndo, setQuickCheckUndo] = useState(null);
   const mapCanvasRef = useRef(null);
   const mobileMapScrollRatio = useRef(0.48);
   const [selectedId, setSelectedId] = useState(null);
@@ -609,6 +610,12 @@ function App({ initialPlanId }) {
   }, [fromMapShare]);
 
   useEffect(() => {
+    if (!quickCheckUndo) return;
+    const timer = window.setTimeout(() => setQuickCheckUndo(null), 5000);
+    return () => window.clearTimeout(timer);
+  }, [quickCheckUndo]);
+
+  useEffect(() => {
     const captureInstallPrompt = event => {
       event.preventDefault();
       setInstallPrompt(event);
@@ -649,9 +656,24 @@ function App({ initialPlanId }) {
 
   function toggleVisitedQuick(id) {
     const current = { ...emptyMemory, ...(visits.records[id] || {}) };
-    const nextVisited = !current.visited;
+    const previousVisited = current.visited === true;
+    const nextVisited = !previousVisited;
     const result = saveMemory(id, { ...current, visited: nextVisited });
-    if (!result) trackEvent("map_quick_check", { source: "map", result: nextVisited ? "visited" : "unvisited" });
+    if (!result) {
+      const name = prefectures.find(prefecture => prefecture.id === id)?.name || "この県";
+      setQuickCheckUndo({ id, previousVisited, name });
+      trackEvent("map_quick_check", { source: "map", result: nextVisited ? "visited" : "unvisited" });
+    }
+  }
+
+  function undoQuickCheck() {
+    if (!quickCheckUndo) return;
+    const current = { ...emptyMemory, ...(visits.records[quickCheckUndo.id] || {}) };
+    const result = saveMemory(quickCheckUndo.id, { ...current, visited: quickCheckUndo.previousVisited });
+    if (!result) {
+      trackEvent("map_quick_check_undo", { source: "map", result: "success" });
+      setQuickCheckUndo(null);
+    }
   }
 
   function saveMemory(id, draft, source = visits) {
@@ -1070,6 +1092,10 @@ function App({ initialPlanId }) {
   </div>
 </section>
 <ShareTravel count={count} total={prefectures.length} visited={visited} records={visits.records} />
+{quickCheckUndo && <div className="quick-check-undo" role="status" aria-live="polite">
+  <span>{quickCheckUndo.name}を{quickCheckUndo.previousVisited ? "未訪問" : "訪問済み"}に変更しました。</span>
+  <button type="button" onClick={undoQuickCheck}>元に戻す</button>
+</div>}
 <section className="memory-note" aria-labelledby="memory-title">
   <span className="memory-icons">
     <Icon name="camera" />
