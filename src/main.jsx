@@ -423,6 +423,7 @@ function App({ initialPlanId }) {
   const [homePhotoCounts, setHomePhotoCounts] = useState({});
   const [summaryPlan, setSummaryPlan] = useState(null);
   const [shareSiteMessage, setShareSiteMessage] = useState("");
+  const [installPrompt, setInstallPrompt] = useState(null);
   const [view, setView] = useState(initialPlanId || requestedStart === "plan" ? "plans" : "map");
   const visited = prefectures.filter(({ id }) => visits.records[id]?.visited).map(({ id }) => id);
   const count = visited.length;
@@ -531,6 +532,23 @@ function App({ initialPlanId }) {
     return () => cancelAnimationFrame(frame);
   }, [view]);
 
+  useEffect(() => {
+    const captureInstallPrompt = event => {
+      event.preventDefault();
+      setInstallPrompt(event);
+    };
+    const installed = () => {
+      setInstallPrompt(null);
+      trackEvent("app_installed", { result: "success" });
+    };
+    window.addEventListener("beforeinstallprompt", captureInstallPrompt);
+    window.addEventListener("appinstalled", installed);
+    return () => {
+      window.removeEventListener("beforeinstallprompt", captureInstallPrompt);
+      window.removeEventListener("appinstalled", installed);
+    };
+  }, []);
+
   function moveMobileMap(position) {
     const element = mapCanvasRef.current;
     if (!element) return;
@@ -575,6 +593,19 @@ function App({ initialPlanId }) {
     const record = mergeTripMemory({ ...emptyMemory, ...source.records[plan.prefectureId] }, plan, values);
     const error = saveMemory(plan.prefectureId, record, source);
     return { error, prefectureId: plan.prefectureId };
+  }
+
+  async function installApp() {
+    if (!installPrompt) return;
+    trackEvent("app_install_prompt", { source: "home", action: "open" });
+    await installPrompt.prompt();
+    const choice = await installPrompt.userChoice;
+    if (choice?.outcome === "accepted") {
+      trackEvent("app_install_prompt", { source: "home", result: "accepted" });
+      setInstallPrompt(null);
+    } else {
+      trackEvent("app_install_prompt", { source: "home", result: "dismissed" });
+    }
   }
 
   async function shareSite() {
@@ -667,6 +698,10 @@ function App({ initialPlanId }) {
       <strong>日本地図から記録する</strong>
     </a>
   </div>
+  {installPrompt && <button type="button" className="home-install-button" onClick={installApp}>
+    <span aria-hidden="true">＋</span>
+    ホーム画面に追加してすぐ開く
+  </button>}
 </section>
 {firstUse && <section className="home-start-guide" aria-labelledby="home-start-guide-title">
   <div className="home-start-guide-heading">

@@ -1084,3 +1084,9 @@
     touch-action:manipulation;
   }
 }
+
+.home-install-button{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:42px;margin:13px auto 0;padding:8px 14px;border:1px solid #c8d8ca;border-radius:999px;background:#f8faf7;color:#427859;font:inherit;font-size:12px;font-weight:800;cursor:pointer}
+.home-install-button:hover{background:#eef5ef}
+.home-install-button:focus-visible{outline:3px solid #8dc7a3;outline-offset:3px}
+.home-install-button>span{display:grid;place-items:center;width:20px;height:20px;border-radius:50%;background:#e5f0e7;font-size:15px;line-height:1}
+@media(max-width:600px){.home-install-button{width:100%;max-width:620px;min-height:46px;margin-top:11px}}
