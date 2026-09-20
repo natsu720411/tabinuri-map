@@ -7,6 +7,7 @@ import ShareTravel from "./ShareTravel.jsx";
 import TravelLogShare from "./TravelLogShare.jsx";
 import TravelSummary from "./TravelSummary.jsx";
 import { trackEvent } from "./analytics.js";
+import DataBackup from "./DataBackup.jsx";
 import React, { useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import "./style.css";
@@ -545,16 +546,17 @@ function App({ initialPlanId }) {
   <button type="button" className={view === "memories" ? "active" : ""} aria-current={view === "memories" ? "page" : undefined} onClick={() => setView("memories")}>思い出</button>
   <button type="button" className={view === "want" ? "active" : ""} aria-current={view === "want" ? "page" : undefined} onClick={() => setView("want")}>行きたい</button>
   <button type="button" className={view === "plans" ? "active" : ""} aria-current={view === "plans" ? "page" : undefined} onClick={() => { trackEvent("nav_trip_plans_open", { source: "main_nav" }); setView("plans"); }}>旅の計画</button>
-  <details className={["ranking", "year", "timeline"].includes(view) ? "view-more active" : "view-more"}>
+  <details className={["ranking", "year", "timeline", "backup"].includes(view) ? "view-more active" : "view-more"}>
     <summary aria-label="その他の表示を開く">その他</summary>
     <div className="view-more-menu">
       <button type="button" className={view === "ranking" ? "active" : ""} aria-current={view === "ranking" ? "page" : undefined} onClick={() => setView("ranking")}>ランキング</button>
       <button type="button" className={view === "year" ? "active" : ""} aria-current={view === "year" ? "page" : undefined} onClick={() => setView("year")}>旅行年表</button>
       <button type="button" className={view === "timeline" ? "active" : ""} aria-current={view === "timeline" ? "page" : undefined} onClick={() => setView("timeline")}>タイムライン</button>
+      <button type="button" className={view === "backup" ? "active" : ""} aria-current={view === "backup" ? "page" : undefined} onClick={() => setView("backup")}>データ管理</button>
     </div>
   </details>
 </nav>
-{view === "plans" ? <TripPlans onImport={importTrip} onOpenMemory={setSelectedId} initialPlanId={requestedPlanId} onInitialPlanOpened={() => setRequestedPlanId(null)} initialTravelMode={requestedTravelMode} onInitialTravelModeOpened={() => setRequestedTravelMode(false)} initialPrefectureId={requestedPrefectureId} initialPrefecturePlaces={requestedPrefectureId ? visits.records[requestedPrefectureId]?.wantToVisitPlaces || "" : ""} initialPrefectureReason={requestedPrefectureId ? visits.records[requestedPrefectureId]?.wantToVisitReason || "" : ""} onInitialPrefectureOpened={() => setRequestedPrefectureId(null)} /> : view === "year" ? <YearTable visits={visits} onSelect={setSelectedId} /> : view === "ranking" ? <Ranking visits={visits} onSelect={setSelectedId} /> : view === "timeline" ? <Timeline visits={visits} onSelect={setSelectedId} /> : view === "want" ? <WantList visits={visits} onSelect={setSelectedId} /> : view === "memories" ? <MemoriesList visits={visits} onSelect={(id) => { if (id === null) setView("map"); else setSelectedId(id); }} /> : <>
+{view === "plans" ? <TripPlans onImport={importTrip} onOpenMemory={setSelectedId} initialPlanId={requestedPlanId} onInitialPlanOpened={() => setRequestedPlanId(null)} initialTravelMode={requestedTravelMode} onInitialTravelModeOpened={() => setRequestedTravelMode(false)} initialPrefectureId={requestedPrefectureId} initialPrefecturePlaces={requestedPrefectureId ? visits.records[requestedPrefectureId]?.wantToVisitPlaces || "" : ""} initialPrefectureReason={requestedPrefectureId ? visits.records[requestedPrefectureId]?.wantToVisitReason || "" : ""} onInitialPrefectureOpened={() => setRequestedPrefectureId(null)} /> : view === "backup" ? <DataBackup onRestored={() => { setVisits(readVisits()); setView("map"); }} /> : view === "year" ? <YearTable visits={visits} onSelect={setSelectedId} /> : view === "ranking" ? <Ranking visits={visits} onSelect={setSelectedId} /> : view === "timeline" ? <Timeline visits={visits} onSelect={setSelectedId} /> : view === "want" ? <WantList visits={visits} onSelect={setSelectedId} /> : view === "memories" ? <MemoriesList visits={visits} onSelect={(id) => { if (id === null) setView("map"); else setSelectedId(id); }} /> : <>
 <section className="intro" aria-labelledby="home-title">
   <p className="eyebrow">
     <span /> YOUR TRAVEL, YOUR COLORS
@@ -927,7 +929,7 @@ function App({ initialPlanId }) {
   </details>
   <details>
     <summary>データはどこに保存されますか？</summary>
-  <p>旅行計画や旅行記録は主にブラウザのlocalStorage、写真はIndexedDBに保存します。サイトデータの削除などで失われることがあり、端末間の自動同期はありません。</p>
+  <p>旅行計画や旅行記録は主にブラウザのlocalStorage、写真はIndexedDBに保存します。サイトデータの削除などで失われることがあり、端末間の自動同期はありません。「その他 → データ管理」から、写真を含むバックアップファイルを書き出して保管できます。</p>
   <p>AI旅程を作成する場合は、入力中の必要な計画情報を旅図帳のサーバー経由でGoogle Geminiへ送信します。共有しおりは選択したデータをURLに含める仕組みです。Google Analytics 4によるアクセス解析も含め、詳しくは<a href="/privacy.html">プライバシーポリシー</a>をご確認ください。</p>
   </details>
 </section>
