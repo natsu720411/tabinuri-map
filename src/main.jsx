@@ -485,6 +485,7 @@ function App({ initialPlanId }) {
   const [visits, setVisits] = useState(readVisits);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [mobileMapWidth, setMobileMapWidth] = useState(680);
+  const [quickCheckMode, setQuickCheckMode] = useState(false);
   const mapCanvasRef = useRef(null);
   const mobileMapScrollRatio = useRef(0.48);
   const [selectedId, setSelectedId] = useState(null);
@@ -638,6 +639,13 @@ function App({ initialPlanId }) {
       const newMax = Math.max(0, updated.scrollWidth - updated.clientWidth);
       updated.scrollLeft = newMax * positionRatio;
     }));
+  }
+
+  function toggleVisitedQuick(id) {
+    const current = { ...emptyMemory, ...(visits.records[id] || {}) };
+    const nextVisited = !current.visited;
+    const result = saveMemory(id, { ...current, visited: nextVisited });
+    if (!result) trackEvent("map_quick_check", { source: "map", result: nextVisited ? "visited" : "unvisited" });
   }
 
   function saveMemory(id, draft, source = visits) {
@@ -957,7 +965,7 @@ function App({ initialPlanId }) {
     </span>
   </div>
   <p className="map-help">
-    県をタップ・クリックして、訪問状態や思い出を記録できます。
+    {quickCheckMode ? "かんたんチェック中：県をタップすると訪問済み／未訪問をすぐ切り替えられます。" : "県をタップ・クリックして、訪問状態や思い出を記録できます。"}
     <span className="map-mobile-tip">スマホでは地図を左右にスワイプできます。県を大きく表示してタップしてください。</span>
     <br />
     <a href="#prefecture-picker" onClick={() => setPickerOpen(true)}>
@@ -965,6 +973,15 @@ function App({ initialPlanId }) {
     </a>{" "}
     · Tabで移動、Enter／スペースで詳細を開く
   </p>
+  <div className="map-quick-check">
+    <button type="button" className={quickCheckMode ? "active" : ""} aria-pressed={quickCheckMode} onClick={() => {
+      setQuickCheckMode(current => !current);
+      trackEvent("map_quick_check_mode", { source: "map", action: quickCheckMode ? "off" : "on" });
+    }}>
+      {quickCheckMode ? "✓ かんたんチェック中" : "✓ 訪問県をかんたんチェック"}
+    </button>
+    <span>{quickCheckMode ? "タップだけで地図を塗れます。もう一度押すと通常モードに戻ります。" : "思い出を書かず、まず行った県だけ登録したい人向けです。"}</span>
+  </div>
   <div className="map-mobile-jumps" aria-label="地図の表示位置">
     <button type="button" onClick={() => moveMobileMap("west")}>← 西側</button>
     <button type="button" onClick={() => moveMobileMap("center")}>中央</button>
@@ -980,8 +997,12 @@ function App({ initialPlanId }) {
     <select defaultValue="" onChange={event => {
       const id = Number(event.target.value);
       if (!id) return;
-      trackEvent("mobile_prefecture_select", { source: "map" });
-      setSelectedId(id);
+      if (quickCheckMode) {
+        toggleVisitedQuick(id);
+      } else {
+        trackEvent("mobile_prefecture_select", { source: "map" });
+        setSelectedId(id);
+      }
       event.target.value = "";
     }}>
       <option value="">都道府県を選択</option>
@@ -995,6 +1016,10 @@ function App({ initialPlanId }) {
     if (max > 0) mobileMapScrollRatio.current = element.scrollLeft / max;
   }}>
     <JapanMap onSelect={id => {
+      if (quickCheckMode) {
+        toggleVisitedQuick(id);
+        return;
+      }
       trackEvent("map_prefecture_opened", { source: "map" });
       setSelectedId(id);
     }} visited={visited} wantToVisitIds={wantToVisitIds} mobileWidth={mobileMapWidth} />
