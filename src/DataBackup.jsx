@@ -7,6 +7,7 @@ const MEMORIES_KEY = "tabinuri.prefectureMemories.v1";
 const PHOTO_DB = "tabinuri-photos-v1";
 const PHOTO_STORE = "photos";
 const BACKUP_VERSION = 1;
+const BACKUP_META_KEY = "tabizucho_last_backup_at";
 
 function openPhotoDb() {
   return new Promise((resolve, reject) => {
@@ -70,6 +71,7 @@ export default function DataBackup({ onRestored }) {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [lastBackupAt, setLastBackupAt] = useState(() => localStorage.getItem(BACKUP_META_KEY) || "");
 
   async function exportBackup() {
     if (busy) return;
@@ -100,6 +102,9 @@ export default function DataBackup({ onRestored }) {
       link.click();
       link.remove();
       URL.revokeObjectURL(url);
+      const exportedAt = new Date().toISOString();
+      localStorage.setItem(BACKUP_META_KEY, exportedAt);
+      setLastBackupAt(exportedAt);
       setMessage(`バックアップを書き出しました（写真 ${photos.length}枚）。ファイルを大切に保管してください。`);
       trackEvent("data_backup_exported", { result: "success" });
     } catch {
@@ -114,29 +119,51 @@ export default function DataBackup({ onRestored }) {
     const file = event.target.files?.[0];
     event.target.value = "";
     if (!file || busy) return;
+    if (file.size > 120 * 1024 * 1024) {
+      setError("バックアップファイルが大きすぎます。120MB以下のファイルを選択してください。");
+      return;
+    }
     if (!window.confirm("現在の旅図帳データを、選択したバックアップの内容で置き換えます。続けますか？")) return;
     setBusy(true); setError(""); setMessage("バックアップを復元しています…");
+    let previousPhotos = null;
+    const previousMemories = localStorage.getItem(MEMORIES_KEY);
+    const previousPlans = localStorage.getItem(TRIP_PLANS_KEY);
     try {
-      const backup = JSON.parse(await file.text());
-      if (!backup || backup.app !== "tabizucho" || backup.version !== BACKUP_VERSION || !validObject(backup.memories) || !validObject(backup.tripPlans) || !Array.isArray(backup.photos)) {
+      const imported = JSON.parse(await file.text());
+      if (!imported || imported.app !== "tabizucho" || imported.version !== BACKUP_VERSION || !validObject(imported.memories) || !validObject(imported.tripPlans) || !Array.isArray(imported.tripPlans.plans) || !Array.isArray(imported.photos)) {
         throw new Error("invalid backup");
       }
-      if (backup.photos.length > 300) throw new Error("too many photos");
+      if (imported.photos.length > 300) throw new Error("too many photos");
       const photos = [];
-      for (const photo of backup.photos) {
+      for (const photo of imported.photos) {
         if (!Number.isInteger(photo.prefectureId) || photo.prefectureId < 1 || photo.prefectureId > 47 || typeof photo.dataUrl !== "string" || !photo.dataUrl.startsWith("data:image/")) throw new Error("invalid photo");
         const blob = await dataUrlToBlob(photo.dataUrl);
         if (!blob.type.startsWith("image/")) throw new Error("invalid photo type");
         photos.push({ prefectureId: photo.prefectureId, createdAt: Number(photo.createdAt) || Date.now(), blob });
       }
-      localStorage.setItem(MEMORIES_KEY, JSON.stringify(backup.memories));
-      localStorage.setItem(TRIP_PLANS_KEY, JSON.stringify(backup.tripPlans));
+
+      // Validate everything first. IndexedDB replacement is one transaction, then localStorage is updated.
+      previousPhotos = await getAllPhotos();
       await replacePhotos(photos);
+      try {
+        localStorage.setItem(MEMORIES_KEY, JSON.stringify(imported.memories));
+        localStorage.setItem(TRIP_PLANS_KEY, JSON.stringify(imported.tripPlans));
+      } catch (storageError) {
+        await replacePhotos(previousPhotos);
+        throw storageError;
+      }
+
       setMessage(`復元しました（写真 ${photos.length}枚）。旅図帳のデータを読み直しました。`);
       trackEvent("data_backup_restored", { result: "success" });
       onRestored?.();
     } catch {
-      setError("このファイルは旅図帳のバックアップとして読み込めませんでした。現在のデータは変更していません。");
+      try {
+        if (previousMemories === null) localStorage.removeItem(MEMORIES_KEY);
+        else localStorage.setItem(MEMORIES_KEY, previousMemories);
+        if (previousPlans === null) localStorage.removeItem(TRIP_PLANS_KEY);
+        else localStorage.setItem(TRIP_PLANS_KEY, previousPlans);
+      } catch {}
+      setError("このファイルは旅図帳のバックアップとして読み込めないか、復元に失敗しました。元の記録を保護したまま処理を中止しました。");
       setMessage("");
     } finally {
       setBusy(false);
@@ -148,6 +175,7 @@ export default function DataBackup({ onRestored }) {
       <p className="section-kicker">DATA MANAGEMENT</p>
       <h1 id="data-backup-title">データ管理</h1>
       <p>旅図帳の記録はこのブラウザ内に保存されています。機種変更やブラウザのデータ削除に備えて、定期的なバックアップをおすすめします。</p>
+      {lastBackupAt && <p className="data-backup-last">最後のバックアップ：<time dateTime={lastBackupAt}>{new Date(lastBackupAt).toLocaleString("ja-JP", { year: "numeric", month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" })}</time></p>}
     </div>
 
     <div className="data-backup-grid">
