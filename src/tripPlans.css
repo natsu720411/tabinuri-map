@@ -84,3 +84,26 @@
 }
 
 @media (max-width:640px){.trip-reuse{grid-template-columns:1fr;padding:15px}.trip-reuse button{width:100%;min-width:0}}
+
+/* Mobile sticky trip save */
+@media (max-width:640px){
+  .trip-save{
+    position:sticky;
+    z-index:35;
+    bottom:calc(70px + env(safe-area-inset-bottom));
+    margin:20px -10px 8px;
+    padding:10px;
+    border:1px solid #d9e5d8;
+    border-radius:14px;
+    background:rgba(255,255,255,.96);
+    box-shadow:0 8px 24px rgba(31,49,40,.14);
+    backdrop-filter:blur(8px);
+  }
+  .trip-save .trip-primary{
+    flex:1 1 180px;
+  }
+  .trip-save span,
+  .trip-save small{
+    flex:1 1 100%;
+  }
+}
