@@ -1061,3 +1061,11 @@
   .map-mobile-zoom span{min-width:50px;text-align:center;color:#65766b;font-size:11px;font-weight:800}
   .map-mobile-zoom button:focus-visible{outline:3px solid #8dc7a3;outline-offset:2px}
 }
+
+.map-mobile-select{display:none}
+@media(max-width:600px){
+  .map-mobile-select{display:grid;gap:6px;margin:9px 18px 0}
+  .map-mobile-select>span{color:#65766b;font-size:11px;font-weight:700}
+  .map-mobile-select select{width:100%;min-height:46px;padding:8px 12px;border:1px solid #cfdccf;border-radius:12px;background:#fff;color:#293f36;font:inherit;font-size:16px}
+  .map-mobile-select select:focus-visible{outline:3px solid #8dc7a3;outline-offset:2px}
+}

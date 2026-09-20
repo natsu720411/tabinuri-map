@@ -856,6 +856,19 @@ function App({ initialPlanId }) {
     <span>{Math.round((mobileMapWidth / 680) * 100)}%</span>
     <button type="button" disabled={mobileMapWidth >= 1020} onClick={() => zoomMobileMap(1)}>＋ 大きく</button>
   </div>
+  <label className="map-mobile-select">
+    <span>押しにくい県は名前から選ぶ</span>
+    <select defaultValue="" onChange={event => {
+      const id = Number(event.target.value);
+      if (!id) return;
+      trackEvent("mobile_prefecture_select", { source: "map" });
+      setSelectedId(id);
+      event.target.value = "";
+    }}>
+      <option value="">都道府県を選択</option>
+      {prefectures.map(prefecture => <option key={prefecture.id} value={prefecture.id}>{prefecture.name}{visited.includes(prefecture.id) ? "（訪問済み）" : wantToVisitIds.includes(prefecture.id) ? "（行きたい）" : ""}</option>)}
+    </select>
+  </label>
   <div className="map-canvas" ref={mapCanvasRef}>
     <JapanMap onSelect={setSelectedId} visited={visited} wantToVisitIds={wantToVisitIds} mobileWidth={mobileMapWidth} />
     <div className="map-message">
