@@ -1090,3 +1090,8 @@
 .home-install-button:focus-visible{outline:3px solid #8dc7a3;outline-offset:3px}
 .home-install-button>span{display:grid;place-items:center;width:20px;height:20px;border-radius:50%;background:#e5f0e7;font-size:15px;line-height:1}
 @media(max-width:600px){.home-install-button{width:100%;max-width:620px;min-height:46px;margin-top:11px}}
+
+@media(max-width:600px){
+  .memory-dialog .panel-heading{position:sticky;z-index:3;top:-20px;margin:-20px -20px 0;padding:16px 20px 10px;background:rgba(252,253,249,.97);border-bottom:1px solid #e7ece4;backdrop-filter:blur(8px)}
+  .memory-dialog .save-memory{bottom:max(0px,env(safe-area-inset-bottom));margin:0 -2px;padding:12px 16px}
+}

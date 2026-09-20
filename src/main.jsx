@@ -139,7 +139,8 @@ function readVisits() {
 }
 function MemoryPanel({ prefecture, record, onSave, onClose, readError }) {
   const dialog = useRef(null);
-  const [draft, setDraft] = useState(() => ({ ...emptyMemory, ...record }));
+  const initialDraft = useRef({ ...emptyMemory, ...record });
+  const [draft, setDraft] = useState(() => ({ ...initialDraft.current }));
   const [error, setError] = useState("");
   const [photos, setPhotos] = useState([]);
   const [photoBusy, setPhotoBusy] = useState(false);
@@ -173,15 +174,20 @@ function MemoryPanel({ prefecture, record, onSave, onClose, readError }) {
       if (opener instanceof Element && opener.isConnected) opener.focus?.();
     };
   }, []);
+  const dirty = JSON.stringify(draft) !== JSON.stringify(initialDraft.current);
+  function requestClose() {
+    if (dirty && !window.confirm("未保存の変更があります。保存せずに閉じますか？")) return;
+    onClose();
+  }
   function submit(event) {
     event.preventDefault();
     const result = onSave(prefecture.id, draft);
     if (result) setError(result);
     else onClose();
   }
-  return <dialog ref={dialog} className="memory-dialog" aria-labelledby="memory-panel-title" aria-describedby="memory-panel-help" onCancel={event => { event.preventDefault(); onClose(); }}>
+  return <dialog ref={dialog} className="memory-dialog" aria-labelledby="memory-panel-title" aria-describedby="memory-panel-help" onCancel={event => { event.preventDefault(); requestClose(); }}>
     <form onSubmit={submit}>
-      <div className="panel-heading"><div><p className="section-kicker">MY TRAVEL MEMORY</p><h2 id="memory-panel-title">{prefecture.name}の思い出</h2></div><button type="button" className="panel-close" onClick={onClose} autoFocus>閉じる</button></div>
+      <div className="panel-heading"><div><p className="section-kicker">MY TRAVEL MEMORY</p><h2 id="memory-panel-title">{prefecture.name}の思い出</h2></div><button type="button" className="panel-close" onClick={requestClose} autoFocus>閉じる</button></div>
       <p id="memory-panel-help">訪問日や、忘れたくない出来事を残しましょう。
 変更は「保存する」で反映されます。閉じると未保存の変更は破棄されます。</p>
       <div className="panel-section"><h3 className="panel-section-title">基本情報</h3>
@@ -234,7 +240,7 @@ function MemoryPanel({ prefecture, record, onSave, onClose, readError }) {
   </details>
   <p className="panel-note">未訪問に戻して保存しても、日付と文章は残ります。</p>
   {(error || readError) && <p role="alert" className="storage-error">{error || readError}</p>}
-  <button type="submit" className="save-memory" disabled={Boolean(readError)}>保存する</button>
+  <button type="submit" className="save-memory" disabled={Boolean(readError)}>{dirty ? "変更を保存する" : "保存する"}</button>
 </form>
 {preview && <div className="photo-preview" role="dialog" aria-label="写真の拡大表示" onClick={() => setPreview(null)}><img src={URL.createObjectURL(preview.blob)} alt={`${prefecture.name}の思い出`} /><button type="button" onClick={() => setPreview(null)}>閉じる</button></div>}
 </dialog>;
