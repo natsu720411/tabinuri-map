@@ -98,7 +98,11 @@
       .related-links li { margin: 0; }
       .related-links a { display: block; height: 100%; padding: 14px; border: 1px solid #dfe7dc; border-radius: 12px; background: #f8faf7; text-decoration: none; font-weight: 700; }
       .related-links small { display: block; margin-top: 4px; color: #65766b; font-weight: 400; line-height: 1.6; }
-      @media (max-width: 600px) { .related-links { grid-template-columns: 1fr; } }
+      .prefecture-groups { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 18px 0 20px; }
+      .prefecture-groups section { margin: 0; padding: 14px 15px; border: 1px solid #dde6da; border-radius: 14px; background: #f8faf7; }
+      .prefecture-groups h3 { margin: 0 0 6px; color: #365947; font-size: 15px; }
+      .prefecture-groups p { margin: 0; color: #5f7064; font-size: 13px; line-height: 1.9; }
+      @media (max-width: 600px) { .related-links, .prefecture-groups { grid-template-columns: 1fr; } .prefecture-groups { gap: 9px; } }
     </style>
   </head>
   <body>
@@ -112,6 +116,20 @@
           <h2>行った都道府県をチェックリストのように整理</h2>
           <p>旅図帳では、日本地図から都道府県を選んで訪問済みにすると、保存後に地図の色が変わります。47都道府県の訪問状況を見比べられるので、頭の中だけで数えるよりも、行った場所と未訪問の場所を整理しやすくなります。</p>
           <p>都道府県のチェックリストを作るつもりで、まずは確かに覚えている県から登録しましょう。通過しただけの県を含めるか、観光した県だけにするかは、自分なりの基準を決めておくと後で見返しやすくなります。</p>
+        </section>
+        <section aria-labelledby="prefecture-list-title">
+          <h2 id="prefecture-list-title">47都道府県チェックリスト</h2>
+          <p>まずは下の一覧を見ながら、行ったことのある都道府県を思い出してみてください。旅図帳では、この47都道府県を日本地図上でタップして訪問済みにできます。</p>
+          <div class="prefecture-groups">
+            <section><h3>北海道・東北</h3><p>北海道、青森県、岩手県、宮城県、秋田県、山形県、福島県</p></section>
+            <section><h3>関東</h3><p>茨城県、栃木県、群馬県、埼玉県、千葉県、東京都、神奈川県</p></section>
+            <section><h3>中部</h3><p>新潟県、富山県、石川県、福井県、山梨県、長野県、岐阜県、静岡県、愛知県</p></section>
+            <section><h3>近畿</h3><p>三重県、滋賀県、京都府、大阪府、兵庫県、奈良県、和歌山県</p></section>
+            <section><h3>中国</h3><p>鳥取県、島根県、岡山県、広島県、山口県</p></section>
+            <section><h3>四国</h3><p>徳島県、香川県、愛媛県、高知県</p></section>
+            <section><h3>九州・沖縄</h3><p>福岡県、佐賀県、長崎県、熊本県、大分県、宮崎県、鹿児島県、沖縄県</p></section>
+          </div>
+          <p><a class="cta" href="/?start=check&from=prefecture_check" onclick="gtag('event','seo_cta_click',{source:'prefecture_check',action:'start_checklist'});">47都道府県のチェックを始める</a></p>
         </section>
         <section>
           <h2>旅行の思い出も一緒に記録</h2>
