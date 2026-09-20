@@ -389,7 +389,7 @@ function Timeline({ visits, onSelect }) {
 
 const MOBILE_MAP_HIT_IDS = new Set([13, 14, 23, 26, 27, 28, 37, 41, 42, 43, 46, 47]);
 
-function JapanMap({ onSelect, visited, wantToVisitIds, mobileWidth = 680 }) {
+function JapanMap({ onSelect, visited, wantToVisitIds, mobileWidth = 680, quickCheckMode = false }) {
   const [activeId, setActiveId] = useState(null);
   const active = prefectures.find(({ id }) => id === activeId);
   return (
@@ -402,8 +402,7 @@ function JapanMap({ onSelect, visited, wantToVisitIds, mobileWidth = 680 }) {
     >
       <title id="map-title">47都道府県の訪問マップ</title>
       <desc id="map-description">
-        現在の訪問数は{visited.length}
-        県です。都道府県を選ぶと思い出の詳細パネルを開きます。Tabで移動し、Enterまたはスペースで選択できます。沖縄県は左上の別枠に表示しています。
+        現在の訪問数は{visited.length}県です。{quickCheckMode ? "かんたんチェック中は、都道府県を選ぶと訪問済みと未訪問を切り替えます。" : "都道府県を選ぶと思い出の詳細パネルを開きます。"}Tabで移動し、Enterまたはスペースで選択できます。沖縄県は左上の別枠に表示しています。
       </desc>
       <path className="inset-line" d="M50 290h210l35-35V100" />
       <text className="map-label" x="66" y="105">
@@ -429,8 +428,10 @@ function JapanMap({ onSelect, visited, wantToVisitIds, mobileWidth = 680 }) {
           d={d}
           role="button"
           tabIndex={0}
-          aria-label={`${name}・${visited.includes(id) ? "訪問済み" : "未訪問"}の思い出を開く`}
-          aria-haspopup="dialog"
+          aria-label={quickCheckMode
+            ? `${name}・現在${visited.includes(id) ? "訪問済み" : "未訪問"}。選択して${visited.includes(id) ? "未訪問" : "訪問済み"}に切り替える`
+            : `${name}・${visited.includes(id) ? "訪問済み" : "未訪問"}の思い出を開く`}
+          aria-haspopup={quickCheckMode ? undefined : "dialog"}
           onClick={(event) =>
             onSelect(Number(event.currentTarget.dataset.prefectureId))
           }
@@ -1029,6 +1030,8 @@ function App({ initialPlanId }) {
     <span>{quickCheckMode ? "タップだけで地図を塗れます。もう一度押すと通常モードに戻ります。" : "思い出を書かず、まず行った県だけ登録したい人向けです。"}</span>
     {quickCheckMode && count > 0 && <button type="button" className="map-quick-share" onClick={() => {
       trackEvent("quick_check_share_cta", { source: "map" });
+      setQuickCheckMode(false);
+      setQuickCheckUndo(null);
       document.getElementById("travel-share")?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
     }}>チェック完了 → 旅マップを共有</button>}
   </div>
@@ -1072,7 +1075,7 @@ function App({ initialPlanId }) {
       }
       trackEvent("map_prefecture_opened", { source: "map" });
       setSelectedId(id);
-    }} visited={visited} wantToVisitIds={wantToVisitIds} mobileWidth={mobileMapWidth} />
+    }} visited={visited} wantToVisitIds={wantToVisitIds} mobileWidth={mobileMapWidth} quickCheckMode={quickCheckMode} />
     <div className="map-message">
       <span className="small-icon">
         <Icon name="map" />
