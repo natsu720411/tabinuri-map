@@ -318,11 +318,11 @@ function Timeline({ visits, onSelect }) {
 
 }
 
-function JapanMap({ onSelect, visited, wantToVisitIds }) {
+function JapanMap({ onSelect, visited, wantToVisitIds, mobileWidth = 680 }) {
   const [activeId, setActiveId] = useState(null);
   const active = prefectures.find(({ id }) => id === activeId);
   return (
-    <div className="map-shell">
+    <div className="map-shell" style={{ "--mobile-map-width": `${mobileWidth}px` }}>
     <svg
       className="japan-map"
       viewBox="0 0 800 760"
@@ -402,6 +402,7 @@ function App({ initialPlanId }) {
   const [requestedPrefectureId, setRequestedPrefectureId] = useState(null);
   const [visits, setVisits] = useState(readVisits);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [mobileMapWidth, setMobileMapWidth] = useState(680);
   const mapCanvasRef = useRef(null);
   const [selectedId, setSelectedId] = useState(null);
   const [homePhotoCount, setHomePhotoCount] = useState(0);
@@ -522,6 +523,19 @@ function App({ initialPlanId }) {
     const max = Math.max(0, element.scrollWidth - element.clientWidth);
     const ratio = position === "west" ? 0 : position === "east" ? 1 : 0.48;
     element.scrollTo({ left: max * ratio, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+  }
+
+  function zoomMobileMap(direction) {
+    const element = mapCanvasRef.current;
+    const oldMax = element ? Math.max(0, element.scrollWidth - element.clientWidth) : 0;
+    const positionRatio = element && oldMax > 0 ? element.scrollLeft / oldMax : 0.48;
+    setMobileMapWidth(current => Math.max(680, Math.min(1020, current + direction * 170)));
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      const updated = mapCanvasRef.current;
+      if (!updated) return;
+      const newMax = Math.max(0, updated.scrollWidth - updated.clientWidth);
+      updated.scrollLeft = newMax * positionRatio;
+    }));
   }
 
   function saveMemory(id, draft, source = visits) {
@@ -837,8 +851,13 @@ function App({ initialPlanId }) {
     <button type="button" onClick={() => moveMobileMap("center")}>中央</button>
     <button type="button" onClick={() => moveMobileMap("east")}>東側 →</button>
   </div>
+  <div className="map-mobile-zoom" aria-label="地図の拡大縮小">
+    <button type="button" disabled={mobileMapWidth <= 680} onClick={() => zoomMobileMap(-1)}>− 小さく</button>
+    <span>{Math.round((mobileMapWidth / 680) * 100)}%</span>
+    <button type="button" disabled={mobileMapWidth >= 1020} onClick={() => zoomMobileMap(1)}>＋ 大きく</button>
+  </div>
   <div className="map-canvas" ref={mapCanvasRef}>
-    <JapanMap onSelect={setSelectedId} visited={visited} wantToVisitIds={wantToVisitIds} />
+    <JapanMap onSelect={setSelectedId} visited={visited} wantToVisitIds={wantToVisitIds} mobileWidth={mobileMapWidth} />
     <div className="map-message">
       <span className="small-icon">
         <Icon name="map" />
