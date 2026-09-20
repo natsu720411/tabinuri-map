@@ -1065,18 +1065,24 @@ function App({ initialPlanId }) {
   open={pickerOpen}
   onToggle={(event) => setPickerOpen(event.currentTarget.open)}
 >
-  <summary>都道府県の一覧から選ぶ（{count}県訪問済み）</summary>
+  <summary>{quickCheckMode ? "一覧から訪問県をかんたんチェック" : "都道府県の一覧から選ぶ"}（{count}県訪問済み）</summary>
   <ul>
     {prefectures.map(({ id, name }) => (
       <li key={id}>
         <button
           type="button"
           data-visited={visited.includes(id)}
-          aria-haspopup="dialog"
-          onClick={() => setSelectedId(id)}
+          aria-haspopup={quickCheckMode ? undefined : "dialog"}
+          onClick={() => {
+            if (quickCheckMode) {
+              toggleVisitedQuick(id);
+              return;
+            }
+            setSelectedId(id);
+          }}
         >
           <span>{name}</span>
-          <span>{visited.includes(id) ? "✓ 訪問済み" : "未訪問"}</span>
+          <span>{visited.includes(id) ? "✓ 訪問済み" : quickCheckMode ? "タップで訪問済み" : "未訪問"}</span>
         </button>
       </li>
     ))}
