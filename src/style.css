@@ -1136,3 +1136,11 @@
 .map-quick-check .map-quick-share{border-color:#527f61;background:#527f61;color:#fff}
 .map-quick-check .map-quick-share:hover{background:#427859}
 @media(min-width:601px){.map-quick-check .map-quick-share{margin-left:auto}}
+
+.share-landing-card{max-width:760px;margin:0 auto 18px;padding:18px 20px;display:flex;align-items:center;justify-content:space-between;gap:18px;border:1px solid #d4e2d6;border-radius:18px;background:#f1f7f2}
+.share-landing-card h2{margin:3px 0 4px;font-size:20px;color:#365947}
+.share-landing-card p{margin:0;color:#65766b;font-size:12px;line-height:1.7}
+.share-landing-card button{flex:0 0 auto;min-height:46px;padding:10px 16px;border:1px solid #527f61;border-radius:12px;background:#527f61;color:#fff;font:inherit;font-size:13px;font-weight:800;cursor:pointer}
+.share-landing-card button:hover{background:#427859}
+.share-landing-card button:focus-visible{outline:3px solid #8dc7a3;outline-offset:3px}
+@media(max-width:600px){.share-landing-card{display:grid;padding:16px}.share-landing-card h2{font-size:18px}.share-landing-card button{width:100%}}

@@ -1,5 +1,5 @@
 import { getTravelAchievement } from "./achievement.js";
-export const SHARE_URL = "https://tabinuri-map.vercel.app/";
+export const SHARE_URL = "https://tabinuri-map.vercel.app/?utm_source=share&utm_medium=travel_map&utm_campaign=map_share";
 
 export function createShareText(count, total = 47) {
   const message = count === 0

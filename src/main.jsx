@@ -478,7 +478,9 @@ function HomeTravelSummary({ plan, onClose, onOpenMemory }) {
 }
 
 function App({ initialPlanId }) {
-  const requestedStart = new URLSearchParams(location.search).get("start");
+  const queryParams = new URLSearchParams(location.search);
+  const requestedStart = queryParams.get("start");
+  const fromMapShare = queryParams.get("utm_campaign") === "map_share";
   const [requestedPlanId, setRequestedPlanId] = useState(initialPlanId);
   const [requestedTravelMode, setRequestedTravelMode] = useState(false);
   const [requestedPrefectureId, setRequestedPrefectureId] = useState(null);
@@ -601,6 +603,10 @@ function App({ initialPlanId }) {
     });
     return () => cancelAnimationFrame(frame);
   }, [view]);
+
+  useEffect(() => {
+    if (fromMapShare) trackEvent("share_landing_viewed", { source: "map_share" });
+  }, [fromMapShare]);
 
   useEffect(() => {
     const captureInstallPrompt = event => {
@@ -780,6 +786,21 @@ function App({ initialPlanId }) {
     ホーム画面に追加してすぐ開く
   </button>}
 </section>
+{fromMapShare && <section className="share-landing-card" aria-labelledby="share-landing-title">
+  <div>
+    <p className="section-kicker">YOUR TURN</p>
+    <h2 id="share-landing-title">あなたは何県行った？</h2>
+    <p>友達の旅マップを見たあとは、自分の訪問県もタップだけでチェックできます。</p>
+  </div>
+  <button type="button" onClick={() => {
+    setQuickCheckMode(true);
+    trackEvent("share_landing_cta", { source: "map_share", action: "quick_check" });
+    requestAnimationFrame(() => document.getElementById("map-heading")?.scrollIntoView({
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+      block: "start"
+    }));
+  }}>自分も行った県をチェック</button>
+</section>}
 {firstUse && <section className="home-start-guide" aria-labelledby="home-start-guide-title">
   <div className="home-start-guide-heading">
     <div><p className="section-kicker">START HERE</p><h2 id="home-start-guide-title">旅図帳は3ステップで使えます</h2></div>
