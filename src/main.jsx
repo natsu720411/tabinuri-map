@@ -396,6 +396,7 @@ function HomeTravelSummary({ plan, onClose, onOpenMemory }) {
 }
 
 function App({ initialPlanId }) {
+  const requestedStart = new URLSearchParams(location.search).get("start");
   const [requestedPlanId, setRequestedPlanId] = useState(initialPlanId);
   const [requestedTravelMode, setRequestedTravelMode] = useState(false);
   const [requestedPrefectureId, setRequestedPrefectureId] = useState(null);
@@ -406,7 +407,7 @@ function App({ initialPlanId }) {
   const [homePhotoCounts, setHomePhotoCounts] = useState({});
   const [summaryPlan, setSummaryPlan] = useState(null);
   const [shareSiteMessage, setShareSiteMessage] = useState("");
-  const [view, setView] = useState(initialPlanId ? "plans" : "map");
+  const [view, setView] = useState(initialPlanId || requestedStart === "plan" ? "plans" : "map");
   const visited = prefectures.filter(({ id }) => visits.records[id]?.visited).map(({ id }) => id);
   const count = visited.length;
   const wantToVisitIds = prefectures.filter(({ id }) => visits.records[id]?.wantToVisit && !visits.records[id]?.visited).map(({ id }) => id);
