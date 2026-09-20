@@ -195,7 +195,13 @@ function MemoryPanel({ prefecture, record, onSave, onClose, readError }) {
       <button type="button" className={`favorite-toggle${draft.favorite ? " active" : ""}`} aria-pressed={draft.favorite} aria-label={`${prefecture.name}を${draft.favorite ? "お気に入りから外す" : "お気に入りに追加"}`} onClick={() => setDraft(previous => ({ ...previous, favorite: !previous.favorite }))}>★ <span>{draft.favorite ? "お気に入り" : "お気に入りに追加"}</span></button>
       <fieldset className="rating-field"><legend>お気に入り度</legend><div className="rating-stars">{[1,2,3,4,5].map(value => <button key={value} type="button" className={value <= draft.rating ? "selected" : ""} aria-label={`${value}つ星に設定`} aria-pressed={draft.rating === value} onClick={() => setDraft(previous => ({ ...previous, rating: value }))}>★</button>)}</div></fieldset>
       <label htmlFor="visit-date">訪問日</label>
-      <input id="visit-date" type="date" value={draft.visitDate} onChange={event => setDraft(previous => ({ ...previous, visitDate: event.target.value }))} />
+      <div className="visit-date-row">
+        <input id="visit-date" type="date" value={draft.visitDate} onChange={event => setDraft(previous => ({ ...previous, visitDate: event.target.value }))} />
+        <button type="button" onClick={() => {
+          setDraft(previous => ({ ...previous, visited: true, visitDate: todayLocal() }));
+          trackEvent("memory_today_fill", { source: "memory_panel" });
+        }}>今日を入力</button>
+      </div>
       </div>
       <div className="panel-section"><h3 className="panel-section-title">思い出</h3>
       <label htmlFor="memory-text">思い出の文章</label>

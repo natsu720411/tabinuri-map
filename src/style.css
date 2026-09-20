@@ -1095,3 +1095,9 @@
   .memory-dialog .panel-heading{position:sticky;z-index:3;top:-20px;margin:-20px -20px 0;padding:16px 20px 10px;background:rgba(252,253,249,.97);border-bottom:1px solid #e7ece4;backdrop-filter:blur(8px)}
   .memory-dialog .save-memory{bottom:max(0px,env(safe-area-inset-bottom));margin:0 -2px;padding:12px 16px}
 }
+
+.visit-date-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:end}
+.visit-date-row button{min-height:48px;padding:10px 14px;border:1px solid #c9d6c5;border-radius:10px;background:#f8faf7;color:#427859;font:inherit;font-size:13px;font-weight:800;cursor:pointer;white-space:nowrap}
+.visit-date-row button:hover{background:#eef5ef}
+.visit-date-row button:focus-visible{outline:3px solid #217453;outline-offset:2px}
+@media(max-width:600px){.visit-date-row{grid-template-columns:1fr auto}.visit-date-row button{padding-inline:12px}}
