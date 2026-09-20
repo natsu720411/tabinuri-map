@@ -405,6 +405,7 @@ function App({ initialPlanId }) {
   const [homePhotoCount, setHomePhotoCount] = useState(0);
   const [homePhotoCounts, setHomePhotoCounts] = useState({});
   const [summaryPlan, setSummaryPlan] = useState(null);
+  const [shareSiteMessage, setShareSiteMessage] = useState("");
   const [view, setView] = useState(initialPlanId ? "plans" : "map");
   const visited = prefectures.filter(({ id }) => visits.records[id]?.visited).map(({ id }) => id);
   const count = visited.length;
@@ -524,6 +525,34 @@ function App({ initialPlanId }) {
     const record = mergeTripMemory({ ...emptyMemory, ...source.records[plan.prefectureId] }, plan, values);
     const error = saveMemory(plan.prefectureId, record, source);
     return { error, prefectureId: plan.prefectureId };
+  }
+
+  async function shareSite() {
+    const url = `${location.origin}/`;
+    const data = {
+      title: "旅図帳",
+      text: "日本地図に旅の思い出を残せて、AIで旅行計画や旅のしおりも作れる無料の旅サービス「旅図帳」",
+      url,
+    };
+    setShareSiteMessage("");
+    try {
+      if (navigator.share) {
+        await navigator.share(data);
+        setShareSiteMessage("共有メニューを開きました。");
+        trackEvent("site_share_opened", { source: "home_share" });
+        return;
+      }
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(url);
+        setShareSiteMessage("旅図帳のURLをコピーしました。");
+        trackEvent("site_share_copied", { source: "home_share" });
+        return;
+      }
+      window.prompt("このURLをコピーして友達に送ってください。", url);
+      trackEvent("site_share_opened", { source: "home_share" });
+    } catch (shareError) {
+      if (shareError?.name !== "AbortError") setShareSiteMessage("共有できませんでした。もう一度お試しください。");
+    }
   }
 
   return (
@@ -696,6 +725,16 @@ function App({ initialPlanId }) {
   <div><strong>{homePhotoCount}</strong><span>写真</span></div>
   <div><strong>{travelLogCount}</strong><span>旅ログ</span></div>
   <div><strong>{wantToVisitIds.length}</strong><span>行きたい県</span></div>
+</section>
+
+<section className="home-share-card" aria-labelledby="home-share-title">
+  <div>
+    <p className="section-kicker">SHARE TABIZUCHO</p>
+    <h2 id="home-share-title">旅行好きの友達にも旅図帳を紹介</h2>
+    <p>個人の旅行記録は共有せず、旅図帳のトップページだけを送ります。</p>
+  </div>
+  <button type="button" onClick={shareSite}>旅図帳を友達に送る</button>
+  {shareSiteMessage && <p className="home-share-message" role="status">{shareSiteMessage}</p>}
 </section>
 
 {hasThisYearActivity && <section className="home-period-stats" aria-labelledby="home-period-stats-title">
