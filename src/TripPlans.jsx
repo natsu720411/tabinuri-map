@@ -176,7 +176,7 @@ export default function TripPlans({ onImport, onOpenMemory, initialPlanId, onIni
     if (draft.days.some(day => day.items.some(item => !item.name.trim()))) { setError("予定名を入力してください。"); return; }
     clearFeedback(); setImportOpen(true);
   }
-  function saveTripToBook(planToSave, values) {
+  function saveTripToBook(planToSave, values, source = "trip_editor") {
     if (blocked) return { error: "保存を停止しています。再読み込みしてください。" };
     const result = onImport(planToSave, values);
     if (result.error) return { error: result.error };
@@ -189,10 +189,11 @@ export default function TripPlans({ onImport, onOpenMemory, initialPlanId, onIni
     setDirty(false);
     setImportedPrefecture(result.prefectureId);
     showSaved("✓ 旅図帳に保存しました");
+    if (!result.already) trackEvent("trip_saved_to_memory", { source, result: "success" });
     return { error: "", already: result.already, prefectureId: result.prefectureId, saved };
   }
   function confirmImport(values) {
-    const result = saveTripToBook(draft, values);
+    const result = saveTripToBook(draft, values, "trip_editor");
     if (result.error) return result.error;
     setImportOpen(false);
     return "";
@@ -205,7 +206,7 @@ export default function TripPlans({ onImport, onOpenMemory, initialPlanId, onIni
       setMessage("この旅行はすでに旅図帳に保存されています。");
       return { error: "", already: true, prefectureId: planToFinish.prefectureId, saved: planToFinish };
     }
-    const result = saveTripToBook(planToFinish, importDefaults(planToFinish));
+    const result = saveTripToBook(planToFinish, importDefaults(planToFinish), "travel_mode");
     if (result.error) return result;
     setMessage(result.already ? "この旅行はすでに旅図帳に保存されています。" : "旅行を終了し、旅ログ・写真・ひとことを旅図帳の思い出に保存しました。");
     return result;
