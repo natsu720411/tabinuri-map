@@ -42,7 +42,7 @@ export default function ShareTravel({ count, total, visited, records }) {
     }
   }
 
-  return <div className="travel-share" role="region" aria-labelledby="travel-share-heading">
+  return <div id="travel-share" className="travel-share" role="region" aria-labelledby="travel-share-heading">
     <h2 id="travel-share-heading">旅マップを保存・共有</h2>
     <p id="travel-share-description">訪問した都道府県の地図を画像にして保存・共有できます。プレビューで写真を1枚添えることもできます。</p>
     <ShareImage visited={visited} records={records} onTextShare={() => { setOpen(true); setStatus("画像の代わりに共有文を使えます。"); }} />

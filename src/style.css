@@ -1132,3 +1132,7 @@
 .map-quick-check span{color:#65766b;font-size:11px;line-height:1.55}
 .map-quick-check button:focus-visible{outline:3px solid #8dc7a3;outline-offset:2px}
 @media(max-width:600px){.map-quick-check{display:grid;margin:10px 18px 0}.map-quick-check button{width:100%;min-height:46px}.map-quick-check span{text-align:center;font-size:10px}}
+
+.map-quick-check .map-quick-share{border-color:#527f61;background:#527f61;color:#fff}
+.map-quick-check .map-quick-share:hover{background:#427859}
+@media(min-width:601px){.map-quick-check .map-quick-share{margin-left:auto}}

@@ -981,6 +981,10 @@ function App({ initialPlanId }) {
       {quickCheckMode ? "✓ かんたんチェック中" : "✓ 訪問県をかんたんチェック"}
     </button>
     <span>{quickCheckMode ? "タップだけで地図を塗れます。もう一度押すと通常モードに戻ります。" : "思い出を書かず、まず行った県だけ登録したい人向けです。"}</span>
+    {quickCheckMode && count > 0 && <button type="button" className="map-quick-share" onClick={() => {
+      trackEvent("quick_check_share_cta", { source: "map" });
+      document.getElementById("travel-share")?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+    }}>チェック完了 → 旅マップを共有</button>}
   </div>
   <div className="map-mobile-jumps" aria-label="地図の表示位置">
     <button type="button" onClick={() => moveMobileMap("west")}>← 西側</button>
