@@ -80,6 +80,33 @@ export default function TripPlans({ onImport, onOpenMemory, initialPlanId, onIni
     ["出発地点", Boolean(draft.departureLocation?.trim())],
     ["最終到着地点", Boolean(draft.returnLocation?.trim())],
   ].filter(([, ready]) => !ready).map(([label]) => label) : [];
+  const listToday = todayLocal();
+  const listTodayDate = new Date(`${listToday}T00:00:00`);
+  const tripListPlans = [...store.plans].sort((a, b) => {
+    const aCompleted = a.status === "completed" || Boolean(a.travelBookSavedAt);
+    const bCompleted = b.status === "completed" || Boolean(b.travelBookSavedAt);
+    if (aCompleted !== bCompleted) return aCompleted ? 1 : -1;
+    const aOngoing = !aCompleted && a.startDate && a.startDate <= listToday && (!a.endDate || a.endDate >= listToday);
+    const bOngoing = !bCompleted && b.startDate && b.startDate <= listToday && (!b.endDate || b.endDate >= listToday);
+    if (aOngoing !== bOngoing) return aOngoing ? -1 : 1;
+    const aFuture = !aCompleted && a.startDate && a.startDate >= listToday;
+    const bFuture = !bCompleted && b.startDate && b.startDate >= listToday;
+    if (aFuture !== bFuture) return aFuture ? -1 : 1;
+    if (aFuture && bFuture && a.startDate !== b.startDate) return a.startDate.localeCompare(b.startDate);
+    return (b.updatedAt || "").localeCompare(a.updatedAt || "");
+  });
+  function tripTimingLabel(plan) {
+    if (plan.status === "completed" || plan.travelBookSavedAt) return "";
+    if (!plan.startDate) return "";
+    if (plan.startDate <= listToday && (!plan.endDate || plan.endDate >= listToday)) return "旅行中";
+    if (plan.startDate < listToday) return "";
+    const start = new Date(`${plan.startDate}T00:00:00`);
+    const days = Math.round((start - listTodayDate) / 86400000);
+    if (days === 0) return "今日出発";
+    if (days === 1) return "明日出発";
+    if (days > 1 && days <= 30) return `あと${days}日`;
+    return "";
+  }
   function edit(plan) { clearFeedback(); setImportedPrefecture(null); setDraft(structuredClone(plan)); setDirty(false); setMessage(""); setError(""); }
   function update(key, value) { clearFeedback(); setDraft(previous => ({ ...previous, [key]: value })); setDirty(true); }
   function updateDay(id, transform) { update("days", draft.days.map(day => day.id === id ? transform(day) : day)); }
@@ -235,12 +262,19 @@ export default function TripPlans({ onImport, onOpenMemory, initialPlanId, onIni
     {(store.error || conflict || error) && <p className="trip-error" role="alert">{store.error || (conflict ? "別のタブで旅行計画が変更されました。上書きを防ぐため保存を停止しています。入力を控えてから再読み込みしてください。" : error)}</p>}
     <p className="trip-status" role="status">{message}</p>
     {!draft ? <div className="trip-list">{store.plans.length === 0 && !blocked && <p className="trip-empty">まだ計画はありません。「新しい旅行を計画する」から始めましょう。</p>}
-      {store.plans.map(plan => <button key={plan.id} type="button" className="trip-card" disabled={blocked} onClick={() => edit(plan)}>
-        <span className="trip-badge">{plan.status === "completed" ? "旅行済み" : "計画中"}</span><h2>{plan.title}</h2>
-        {plan.travelBookSavedAt && <p>✓ 旅図帳に保存済み</p>}
-        <p>{prefectures.find(prefecture => prefecture.id === plan.prefectureId)?.name || "行き先未設定"}</p>
-        <p>{plan.startDate || "出発日未定"} 〜 {plan.endDate || "帰宅日未定"}</p><p>誰と：{plan.companions || "未定"}</p>
-      </button>)}
+      {tripListPlans.map(plan => {
+        const timing = tripTimingLabel(plan);
+        return <button key={plan.id} type="button" className="trip-card" disabled={blocked} onClick={() => edit(plan)}>
+          <div className="trip-card-badges">
+            <span className="trip-badge">{plan.status === "completed" ? "旅行済み" : "計画中"}</span>
+            {timing && <span className={`trip-timing-badge${timing === "旅行中" ? " active" : ""}`}>{timing}</span>}
+          </div>
+          <h2>{plan.title}</h2>
+          {plan.travelBookSavedAt && <p>✓ 旅図帳に保存済み</p>}
+          <p>{prefectures.find(prefecture => prefecture.id === plan.prefectureId)?.name || "行き先未設定"}</p>
+          <p>{plan.startDate || "出発日未定"} 〜 {plan.endDate || "帰宅日未定"}</p><p>誰と：{plan.companions || "未定"}</p>
+        </button>;
+      })}
     </div> : <form ref={form} onSubmit={event => { event.preventDefault(); save(); }}>
       <fieldset disabled={blocked} className="trip-editor"><legend className="sr-only">旅行計画の入力</legend>
         <div className="trip-fields trip-fields-primary">

@@ -13,7 +13,10 @@
 .trip-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
 .trip-plans .trip-card { display: block; width: 100%; text-align: left; padding: 24px; border-radius: 18px; color: #293f36; overflow-wrap: anywhere; }
 .trip-card p { margin: 8px 0; font-size: 14px; }
+.trip-card-badges { display:flex; flex-wrap:wrap; gap:7px; align-items:center; }
 .trip-badge { display: inline-block; border-radius: 8px; padding: 4px 10px; background: #edf3e9; color: #427859; font-size: 13px; }
+.trip-timing-badge { display:inline-block; border-radius:999px; padding:4px 9px; background:#f4f1e7; color:#7a6336; font-size:12px; font-weight:800; }
+.trip-timing-badge.active { background:#e3f2e7; color:#2f6a46; }
 .trip-empty { padding: 24px; background: #fff; border-radius: 16px; grid-column: 1 / -1; }
 .trip-editor { min-width: 0; padding: 24px; margin: 0; border: 1px solid #e2e8df; border-radius: 20px; background: #fff; }
 .trip-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
