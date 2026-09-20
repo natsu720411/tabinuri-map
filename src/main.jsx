@@ -318,6 +318,8 @@ function Timeline({ visits, onSelect }) {
 
 }
 
+const MOBILE_MAP_HIT_IDS = new Set([13, 14, 23, 26, 27, 28, 37, 41, 42, 43, 46, 47]);
+
 function JapanMap({ onSelect, visited, wantToVisitIds, mobileWidth = 680 }) {
   const [activeId, setActiveId] = useState(null);
   const active = prefectures.find(({ id }) => id === activeId);
@@ -338,6 +340,17 @@ function JapanMap({ onSelect, visited, wantToVisitIds, mobileWidth = 680 }) {
       <text className="map-label" x="66" y="105">
         沖縄
       </text>
+      {prefectures.map(({ id, d }) => MOBILE_MAP_HIT_IDS.has(id) && (
+        <path
+          key={`hit-${id}`}
+          className="prefecture-hit-area"
+          data-prefecture-id={id}
+          d={d}
+          aria-hidden="true"
+          onPointerDown={() => setActiveId(id)}
+          onClick={(event) => onSelect(Number(event.currentTarget.dataset.prefectureId))}
+        />
+      ))}
       {prefectures.map(({ id, name, d }) => (
         <path
           key={id}

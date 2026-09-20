@@ -1069,3 +1069,18 @@
   .map-mobile-select select{width:100%;min-height:46px;padding:8px 12px;border:1px solid #cfdccf;border-radius:12px;background:#fff;color:#293f36;font:inherit;font-size:16px}
   .map-mobile-select select:focus-visible{outline:3px solid #8dc7a3;outline-offset:2px}
 }
+
+.prefecture-hit-area{display:none}
+@media(max-width:600px){
+  .prefecture-hit-area{
+    display:block;
+    fill:none;
+    stroke:transparent;
+    stroke-width:14;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+    pointer-events:stroke;
+    cursor:pointer;
+    touch-action:manipulation;
+  }
+}
