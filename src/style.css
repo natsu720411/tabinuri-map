@@ -1044,3 +1044,11 @@
 
 .map-mobile-tip{display:none}
 @media(max-width:600px){.map-mobile-tip{display:block}}
+
+.map-mobile-jumps{display:none}
+@media(max-width:600px){
+  .map-mobile-jumps{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:10px 18px 0}
+  .map-mobile-jumps button{min-height:40px;border:1px solid #cfdccf;border-radius:999px;background:#fff;color:#427859;font:inherit;font-size:12px;font-weight:800;cursor:pointer;touch-action:manipulation}
+  .map-mobile-jumps button:active{background:#edf4ee}
+  .map-mobile-jumps button:focus-visible{outline:3px solid #8dc7a3;outline-offset:2px}
+}

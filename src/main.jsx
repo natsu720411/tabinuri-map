@@ -402,6 +402,7 @@ function App({ initialPlanId }) {
   const [requestedPrefectureId, setRequestedPrefectureId] = useState(null);
   const [visits, setVisits] = useState(readVisits);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const mapCanvasRef = useRef(null);
   const [selectedId, setSelectedId] = useState(null);
   const [homePhotoCount, setHomePhotoCount] = useState(0);
   const [homePhotoCounts, setHomePhotoCounts] = useState({});
@@ -503,6 +504,25 @@ function App({ initialPlanId }) {
       .catch(() => {});
     return () => { active = false; };
   }, [visits.records]);
+
+  useEffect(() => {
+    if (view !== "map" || !window.matchMedia("(max-width: 600px)").matches) return;
+    const element = mapCanvasRef.current;
+    if (!element) return;
+    const frame = requestAnimationFrame(() => {
+      const max = Math.max(0, element.scrollWidth - element.clientWidth);
+      if (max > 0) element.scrollLeft = max * 0.48;
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [view]);
+
+  function moveMobileMap(position) {
+    const element = mapCanvasRef.current;
+    if (!element) return;
+    const max = Math.max(0, element.scrollWidth - element.clientWidth);
+    const ratio = position === "west" ? 0 : position === "east" ? 1 : 0.48;
+    element.scrollTo({ left: max * ratio, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+  }
 
   function saveMemory(id, draft, source = visits) {
     if (visits.error) return visits.error;
@@ -812,7 +832,12 @@ function App({ initialPlanId }) {
     </a>{" "}
     · Tabで移動、Enter／スペースで詳細を開く
   </p>
-  <div className="map-canvas">
+  <div className="map-mobile-jumps" aria-label="地図の表示位置">
+    <button type="button" onClick={() => moveMobileMap("west")}>← 西側</button>
+    <button type="button" onClick={() => moveMobileMap("center")}>中央</button>
+    <button type="button" onClick={() => moveMobileMap("east")}>東側 →</button>
+  </div>
+  <div className="map-canvas" ref={mapCanvasRef}>
     <JapanMap onSelect={setSelectedId} visited={visited} wantToVisitIds={wantToVisitIds} />
     <div className="map-message">
       <span className="small-icon">
