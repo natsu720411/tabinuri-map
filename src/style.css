@@ -1018,3 +1018,29 @@
 .home-share-card>button:focus-visible{outline:3px solid #8dc7a3;outline-offset:3px}
 .home-share-message{grid-column:1/-1;margin:0;color:#427859;font-size:12px;font-weight:700}
 @media(max-width:600px){.home-share-card{grid-template-columns:1fr;padding:15px}.home-share-card>button{width:100%}}
+
+@media(max-width:600px){
+  .map-heading{padding:20px 18px 0;align-items:flex-start}
+  .map-help{margin:10px 18px 0;line-height:1.7}
+  .map-mobile-tip{display:block;margin-top:8px;padding:9px 11px;border-radius:10px;background:#eef5ef;color:#3f6f51;font-size:11px;font-weight:700}
+  .map-canvas{
+    margin:10px 0 0;
+    overflow-x:auto;
+    overflow-y:hidden;
+    overscroll-behavior-inline:contain;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:thin;
+    scrollbar-color:#b9cbbb transparent;
+  }
+  .map-canvas::-webkit-scrollbar{height:7px}
+  .map-canvas::-webkit-scrollbar-thumb{background:#b9cbbb;border-radius:999px}
+  .map-shell{width:680px;max-width:none;margin:0}
+  .japan-map{width:680px;max-width:none}
+  .map-message,.map-caption{display:none}
+  .prefecture.interactive{touch-action:pan-x pan-y pinch-zoom}
+  .prefecture.interactive:active{stroke:#365947;stroke-width:3}
+  .map-footer{padding:13px 18px}
+}
+
+.map-mobile-tip{display:none}
+@media(max-width:600px){.map-mobile-tip{display:block}}

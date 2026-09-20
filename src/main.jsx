@@ -805,6 +805,7 @@ function App({ initialPlanId }) {
   </div>
   <p className="map-help">
     県をタップ・クリックして、訪問状態や思い出を記録できます。
+    <span className="map-mobile-tip">スマホでは地図を左右にスワイプできます。県を大きく表示してタップしてください。</span>
     <br />
     <a href="#prefecture-picker" onClick={() => setPickerOpen(true)}>
       小さな県は一覧から選択
