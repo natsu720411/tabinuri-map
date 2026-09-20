@@ -8,5 +8,5 @@ export function createShareText(count, total = 47) {
       ? `${total}都道府県制覇しました！\n旅の思い出を日本地図に残しています。`
       : `${total}都道府県中${count}県を訪問しました！\n全国制覇まであと${total - count}県。\n旅の思い出を日本地図に残しています。`;
   const { percent, title } = getTravelAchievement(count);
-  return `${message}\n達成率 ${percent}%｜称号：${title}\n\n#旅図帳 #旅行記録 #日本地図`;
+  return `${message}\n達成率 ${percent}%｜称号：${title}\n\nあなたは何県行った？ 旅図帳でチェックしてみよう。\n\n#旅図帳 #旅行記録 #日本地図`;
 }

@@ -1,6 +1,7 @@
 import ShareImage from "./ShareImage.jsx";
 import React, { useRef, useState } from "react";
 import { createShareText, SHARE_URL } from "./share.js";
+import { trackEvent } from "./analytics.js";
 
 export default function ShareTravel({ count, total, visited, records }) {
   const [open, setOpen] = useState(false);
@@ -20,6 +21,7 @@ export default function ShareTravel({ count, total, visited, records }) {
     setBusy(true);
     try {
       await navigator.share({ title: "旅図帳の旅の記録", text, url: SHARE_URL });
+      trackEvent("travel_map_shared", { source: "map_share", result: "success" });
     } catch (error) {
       if (error.name !== "AbortError") {
         setOpen(true);
@@ -35,6 +37,7 @@ export default function ShareTravel({ count, total, visited, records }) {
     try {
       await navigator.clipboard.writeText(fullText);
       setStatus("コピーしました");
+      trackEvent("travel_map_shared", { source: "map_share", action: "copy" });
     } catch {
       preview.current?.focus();
       preview.current?.select();
@@ -47,13 +50,13 @@ export default function ShareTravel({ count, total, visited, records }) {
     <p id="travel-share-description">訪問した都道府県の地図を画像にして保存・共有できます。プレビューで写真を1枚添えることもできます。</p>
     <ShareImage visited={visited} records={records} onTextShare={() => { setOpen(true); setStatus("画像の代わりに共有文を使えます。"); }} />
     <button type="button" className="share-primary" onClick={share} disabled={busy} aria-expanded={open} aria-controls="travel-share-options">旅の記録を文章で共有</button>
-    <button type="button" className="share-alternative" onClick={() => { setOpen(previous => !previous); setStatus(""); }} aria-expanded={open} aria-controls="travel-share-options">X・コピーで共有</button>
+    <button type="button" className="share-alternative" onClick={() => { setOpen(previous => !previous); setStatus(""); trackEvent("travel_share_options_opened", { source: "map_share" }); }} aria-expanded={open} aria-controls="travel-share-options">X・コピーで共有</button>
 
     {open && <div id="travel-share-options" className="share-options">
       <label htmlFor="travel-share-text">共有する内容</label>
       <textarea ref={preview} id="travel-share-text" readOnly value={fullText} rows={8} />
       <div className="share-actions">
-        <a href={intent} target="_blank" rel="noopener noreferrer">Xで共有</a>
+        <a href={intent} target="_blank" rel="noopener noreferrer" onClick={() => trackEvent("travel_map_shared", { source: "map_share", action: "x" })}>Xで共有</a>
         <button type="button" onClick={copy}>共有文をコピー</button>
         <button type="button" onClick={() => { setOpen(false); setStatus(""); }}>閉じる</button>
       </div>
