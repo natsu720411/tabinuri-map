@@ -12,7 +12,8 @@
     </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#f8f9f5" />
-    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/favicon.png" />
     <link rel="apple-touch-icon" href="/favicon.png" />
     <meta
       name="description"
@@ -66,6 +67,35 @@
                 "item": "https://tabinuri-map.vercel.app/travel-record.html"
               }
             ]
+          },
+          {
+            "@type": "FAQPage",
+            "mainEntity": [
+              {
+                "@type": "Question",
+                "name": "旅行日記アプリとして無料で使えますか？",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "はい。旅図帳は会員登録不要で、スマートフォンやPCのブラウザから無料で使えます。写真、訪問日、思い出、旅ログをまとめて記録できます。"
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "旅ログには何を記録できますか？",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "旅行中のチェックイン、立ち寄った場所、写真、ひとことを時刻順の旅ログとして残せます。旅行後は旅のまとめから振り返れます。"
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "旅行の写真や記録はどこに保存されますか？",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "旅行記録と写真は基本的に利用中のブラウザ内へ保存されます。端末間の自動同期はないため、大切な写真は元のファイルも保管し、必要に応じてデータのバックアップを作成してください。"
+                }
+              }
+            ]
           }
         ]
       }
@@ -92,6 +122,9 @@
       ul, ol { padding-left: 24px; }
       li { margin: 10px 0; }
       h3 { margin: 24px 0 8px; font-size: 17px; color: #427859; }
+      .record-faq details { margin: 10px 0; padding: 0 14px; border: 1px solid #dfe7dc; border-radius: 12px; background: #f8faf7; }
+      .record-faq summary { min-height: 48px; display: flex; align-items: center; cursor: pointer; color: #365947; font-weight: 700; }
+      .record-faq details p { margin: 0 0 14px; font-size: 14px; }
       .related { margin-top: 32px; padding-top: 24px; border-top: 1px solid #e2e8df; }
       .related-links { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; padding: 0; list-style: none; }
       .related-links li { margin: 0; }
@@ -142,6 +175,21 @@
           <h2>無料で今すぐ使える</h2>
           <p>旅図帳はインストール不要で、スマホ・PCのブラウザから無料で利用できます。</p>
           <p>文章などの旅行記録と写真は、お使いのブラウザ内に保存されます。端末間の自動同期はなく、サイトデータを消すと記録が失われる場合があります。写真は保存時にサイズ調整・圧縮されるため、大切な元の写真は別に保管してください。</p>
+        </section>
+        <section class="record-faq" aria-labelledby="record-faq-title">
+          <h2 id="record-faq-title">旅行日記・旅ログでよくある質問</h2>
+          <details>
+            <summary>旅行日記アプリとして無料で使える？</summary>
+            <p>はい。旅図帳は会員登録不要で、スマートフォンやPCのブラウザから無料で使えます。写真、訪問日、思い出、旅ログをまとめて記録できます。</p>
+          </details>
+          <details>
+            <summary>旅ログには何を記録できる？</summary>
+            <p>旅行中のチェックイン、立ち寄った場所、写真、ひとことを時刻順の旅ログとして残せます。旅行後は旅のまとめから振り返れます。</p>
+          </details>
+          <details>
+            <summary>旅行の写真や記録はどこに保存される？</summary>
+            <p>旅行記録と写真は基本的に利用中のブラウザ内へ保存されます。端末間の自動同期はないため、大切な写真は元のファイルも保管し、必要に応じてデータのバックアップを作成してください。</p>
+          </details>
         </section>
         <p><a class="cta" href="/#map-heading" onclick="gtag('event','seo_cta_click',{source:'travel_record',action:'start_record'});">旅図帳で旅行日記を始める</a></p>
         <section class="related" aria-labelledby="related-title">
