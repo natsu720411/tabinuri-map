@@ -4,6 +4,14 @@ import { createDiagnostics } from "../lib/geminiDiagnostics.js";
 const prefectures = JSON.parse(readFileSync(new URL("../src/prefectures.json", import.meta.url), "utf8"));
 export const config = { maxDuration: 60 };
 const FAILURE = "AI旅程の作成に失敗しました。もう一度お試しください。";
+function publicGeminiError(status) {
+  if (status === 400) return "AIモデルへの送信設定でエラーが発生しました（Gemini 400）。";
+  if (status === 401 || status === 403) return "Gemini APIキーの権限またはGoogle AI側の設定を確認してください。";
+  if (status === 404) return "設定中のAIモデルが利用できません。GEMINI_MODELを確認してください。";
+  if (status === 429) return "AIが混み合っているか、Geminiの利用上限に達しています。少し時間をおいてお試しください。";
+  if (Number.isInteger(status) && status >= 500) return "Gemini側で一時的なエラーが発生しています。少し時間をおいてお試しください。";
+  return FAILURE;
+}
 // A per-instance brake, not a replacement for Vercel's distributed rate limiting.
 const recent = new Map();
 function allow(ip) {
@@ -67,7 +75,8 @@ export function createHandler({ fetchImpl = fetch, env = process.env, rateLimit 
         let message = "Gemini returned a non-JSON error response.";
         try { const body = await result.json(); if (typeof body.error?.message === "string") message = body.error.message; } catch { /* Never log raw HTML or response bodies. */ }
         report({ status: upstreamStatus, model, message });
-        return send(result.status === 429 ? 429 : 502, { error: result.status === 429 ? "AIが混み合っています。少し時間をおいてお試しください。" : FAILURE });
+        const error = publicGeminiError(result.status);
+        return send(result.status === 429 ? 429 : 503, { error });
       }
       stage = "response JSON decoding";
       const response = await result.json();
