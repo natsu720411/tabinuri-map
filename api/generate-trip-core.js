@@ -9,6 +9,34 @@ const FAILURE = "AI旅程の作成に失敗しました。もう一度お試し�
 const FORMAT_FAILURE = "AIから旅程データを正しい形式で受け取れませんでした。もう一度お試しください。";
 const PRIMARY_MODEL = "gemini-3.5-flash-lite";
 const FALLBACK_MODEL = "gemini-3.8-flash";
+const RESPONSE_SCHEMA = {
+  type: "object",
+  properties: {
+    days: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          day: { type: "integer" },
+          items: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                time: { type: "string" },
+                title: { type: "string" },
+                memo: { type: "string" },
+              },
+              required: ["time", "title", "memo"],
+            },
+          },
+        },
+        required: ["day", "items"],
+      },
+    },
+  },
+  required: ["days"],
+};
 
 const SYSTEM_PROMPT = `あなたは日本国内旅行の旅程作成者です。
 返答は必ずJSONオブジェクトだけにしてください。
@@ -60,35 +88,66 @@ function parseGeminiJson(text) {
 
 function normalizeTime(value) {
   if (typeof value !== "string") return "";
-  const match = value.trim().match(/^(\d{1,2}):([0-5]\d)$/);
-  if (!match) return value.trim();
-  const hour = Number(match[1]);
-  if (hour > 23) return value.trim();
-  return `${String(hour).padStart(2, "0")}:${match[2]}`;
+  const trimmed = value.trim();
+  const colon = trimmed.match(/^(\d{1,2}):([0-5]\d)$/);
+  if (colon) {
+    const hour = Number(colon[1]);
+    if (hour <= 23) return `${String(hour).padStart(2, "0")}:${colon[2]}`;
+  }
+  const japanese = trimmed.match(/^(\d{1,2})時(?:([0-5]?\d)分?)?$/);
+  if (japanese) {
+    const hour = Number(japanese[1]);
+    const minute = Number(japanese[2] || 0);
+    if (hour <= 23 && minute <= 59) return `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+  }
+  return trimmed;
 }
 
 function normalizeItinerary(value, count) {
+  if (Array.isArray(value)) value = { days: value };
   if (!value || !Array.isArray(value.days) || value.days.length !== count) return value;
   return {
-    days: value.days.map((day, index) => ({
-      day: index + 1,
-      items: Array.isArray(day?.items)
-        ? day.items.slice(0, 16).map(item => ({
-            time: normalizeTime(item?.time),
-            title: typeof item?.title === "string"
-              ? item.title.trim().slice(0, 180)
-              : typeof item?.name === "string"
-                ? item.name.trim().slice(0, 180)
+    days: value.days.map((day, index) => {
+      const rawItems = Array.isArray(day?.items)
+        ? day.items
+        : Array.isArray(day?.schedule)
+          ? day.schedule
+          : Array.isArray(day?.plans)
+            ? day.plans
+            : [];
+      return {
+        day: index + 1,
+        items: rawItems.slice(0, 16).map(item => ({
+          time: normalizeTime(item?.time ?? item?.startTime ?? item?.start_time),
+          title: typeof item?.title === "string"
+            ? item.title.trim().slice(0, 180)
+            : typeof item?.name === "string"
+              ? item.name.trim().slice(0, 180)
+              : typeof item?.activity === "string"
+                ? item.activity.trim().slice(0, 180)
                 : "",
-            memo: typeof item?.memo === "string"
-              ? item.memo.trim().slice(0, 1400)
-              : typeof item?.description === "string"
-                ? item.description.trim().slice(0, 1400)
-                : "",
-          }))
-        : [],
-    })),
+          memo: typeof item?.memo === "string"
+            ? item.memo.trim().slice(0, 1400)
+            : typeof item?.description === "string"
+              ? item.description.trim().slice(0, 1400)
+              : typeof item?.details === "string"
+                ? item.details.trim().slice(0, 1400)
+                : "予定の詳細は現地情報をご確認ください。",
+        })),
+      };
+    }),
   };
+}
+
+function formatErrorMessage(error) {
+  const message = String(error?.message || "");
+  if (message.includes("旅行日数")) return "AIが指定と異なる日数の旅程を返しました。もう一度お試しください。";
+  if (message.includes("予定形式")) return "AIの旅程の日ごとの形式が崩れました。もう一度お試しください。";
+  if (message.includes("予定内容")) return "AIの旅程に時刻や予定名の欠落がありました。もう一度お試しください。";
+  if (message.includes("Incomplete generation") || message.includes("MAX_TOKENS")) return "AIの回答が途中で終了しました。日数や希望条件を少し減らしてお試しください。";
+  if (message.includes("Invalid JSON") || message.includes("Invalid output")) return FORMAT_FAILURE;
+  if (message.includes("locked itinerary")) return "固定した予定をAIが保持できませんでした。もう一度お試しください。";
+  return FORMAT_FAILURE;
 }
 
 const recent = new Map();
@@ -170,12 +229,13 @@ export function createHandler({
     const destination = prefectures.find(p => p.id === data.plan.prefectureId)?.name;
     const userText = JSON.stringify({ ...data, destination });
     const models = [PRIMARY_MODEL, FALLBACK_MODEL];
-    const maxOutputTokens = Math.min(10000, 3200 + data.dates.length * 480);
+    const maxOutputTokens = Math.min(14000, 4200 + data.dates.length * 650);
     let lastStatus;
     let lastModel = models[0];
     let sawDailyQuota = false;
     let sawMinuteQuota = false;
     let sawFormatFailure = false;
+    let lastFormatMessage = FORMAT_FAILURE;
 
     const callGemini = model => fetchImpl(
       `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
@@ -188,6 +248,7 @@ export function createHandler({
           contents: [{ role: "user", parts: [{ text: userText }] }],
           generationConfig: {
             responseMimeType: "application/json",
+            ...(model === PRIMARY_MODEL ? { responseJsonSchema: RESPONSE_SCHEMA } : {}),
             maxOutputTokens,
             thinkingConfig: { thinkingLevel: thinkingLevelFor(model) },
           },
@@ -238,7 +299,7 @@ export function createHandler({
           const reason = candidate?.finishReason;
           if (reason !== "STOP") {
             if (["SAFETY", "PROHIBITED_CONTENT", "BLOCKLIST"].includes(reason)) {
-              return send(502, { error: FAILURE });
+              return send(502, { error: "AIが安全上の理由で旅程生成を完了できませんでした。入力内容を少し変えてお試しください。" });
             }
             throw new Error(`Incomplete generation (${reason || "unknown"})`);
           }
@@ -260,9 +321,10 @@ export function createHandler({
             }
           }
           return send(200, checked);
-        } catch {
+        } catch (error) {
           sawFormatFailure = true;
-          report({ status: result.status, model, message: "Invalid itinerary JSON from Gemini." });
+          lastFormatMessage = formatErrorMessage(error);
+          report({ status: result.status, model, message: `Invalid itinerary JSON from Gemini: ${String(error?.message || "unknown")}` });
         }
       }
 
@@ -273,7 +335,7 @@ export function createHandler({
         res.setHeader("Retry-After", "60");
         return send(429, { error: "Geminiの短時間の利用上限に達しています。1分ほど待ってからお試しください。" });
       }
-      if (sawFormatFailure) return send(502, { error: FORMAT_FAILURE });
+      if (sawFormatFailure) return send(502, { error: lastFormatMessage });
       if (Number.isInteger(lastStatus) && lastStatus >= 500) {
         return send(503, { error: publicGeminiError(lastStatus) });
       }
@@ -284,7 +346,7 @@ export function createHandler({
         model: lastModel,
         message: controller.signal.aborted ? "Gemini request timed out." : "Gemini generation failed.",
       });
-      return send(controller.signal.aborted ? 504 : 502, { error: FAILURE });
+      return send(controller.signal.aborted ? 504 : 502, { error: controller.signal.aborted ? "AI旅程の作成がタイムアウトしました。日数や希望条件を少し減らしてお試しください。" : FAILURE });
     } finally {
       clearTimeout(timer);
     }
