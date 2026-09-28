@@ -1,14 +1,14 @@
 import { readFileSync } from "node:fs";
-import { validateRequest, validateItinerary, itinerarySchema } from "../lib/tripItinerary.js";
+import { validateRequest, validateItinerary } from "../lib/tripItinerary.js";
 import { createDiagnostics } from "../lib/geminiDiagnostics.js";
 
 const prefectures = JSON.parse(readFileSync(new URL("../src/prefectures.json", import.meta.url), "utf8"));
 export const config = { maxDuration: 60 };
 
 const FAILURE = "AI旅程の作成に失敗しました。もう一度お試しください。";
-const FALLBACK_MODEL = "gemini-3.8-flash";
+const PREFERRED_MODEL = "gemini-3.8-flash";
 const SYSTEM_PROMPT = `あなたは日本国内旅行の旅程作成者です。日本語のJSONだけを返してください。
-返答は必ず {"days":[{"day":1,"items":[{"time":"09:00","title":"予定名","memo":"説明"}]}]} の形にし、JSON以外の説明は付けないでください。
+返答は必ず {"days":[{"day":1,"items":[{"time":"09:00","title":"予定名","memo":"説明"}]}]} の形にし、JSON以外の説明やMarkdownのコードフェンスを付けないでください。
 指定された旅行日数と day の連番を厳守し、各日は時刻HH:mmの昇順で、原則4〜10件程度の現実的な予定にしてください。
 初日はdepartureLocationから出発し、最終日はreturnLocationへ到着するまでを含めてください。departureTimeとreturnTimeがあれば考慮してください。
 transportStyleを必ず考慮し、公共交通中心なら駅・路線・乗換・概算所要時間、車中心なら概算所要時間や駐車場確認、徒歩を少なめなら公共交通やタクシーを組み合わせてください。
@@ -110,7 +110,7 @@ export function createHandler({
 
     if (!ready) return send(503, { error: "AI機能は準備中です。管理者によるAPI設定が必要です。" });
 
-    const configuredModel = env.GEMINI_MODEL?.trim() || "gemini-2.5-flash";
+    const configuredModel = env.GEMINI_MODEL?.trim() || "gemini-3.6-flash";
     if (!/^gemini-[a-zA-Z0-9._-]+$/.test(configuredModel)) return send(503, { error: "AIモデルの設定を確認してください。" });
 
     const ip = String(req.headers["x-forwarded-for"] || req.socket?.remoteAddress || "unknown").split(",")[0].trim();
@@ -121,14 +121,15 @@ export function createHandler({
 
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
-    const destination = prefectures.find(p => p.id === data.plan.prefectureId)?.name;
+    const destination = prefectures.find(p => p.id === data.plan.prefureId)?.name
+      || prefectures.find(p => p.id === data.plan.prefectureId)?.name;
     const userText = JSON.stringify({ ...data, destination });
-    const models = [...new Set([configuredModel, FALLBACK_MODEL])];
+    const models = [...new Set([PREFERRED_MODEL, configuredModel])];
+    const maxOutputTokens = Math.min(12000, 4000 + data.dates.length * 600);
     let lastStatus;
-    let lastModel = configuredModel;
-    let lastStage = "network";
+    let lastModel = models[0];
 
-    const callGemini = (model, structured) => fetchImpl(
+    const callGemini = model => fetchImpl(
       `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
       {
         method: "POST",
@@ -137,17 +138,10 @@ export function createHandler({
         body: JSON.stringify({
           systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
           contents: [{ role: "user", parts: [{ text: userText }] }],
-          generationConfig: structured
-            ? {
-                responseMimeType: "application/json",
-                responseJsonSchema: itinerarySchema(data.dates.length),
-                maxOutputTokens: 12000,
-                temperature: 0.4,
-              }
-            : {
-                maxOutputTokens: 12000,
-                temperature: 0.3,
-              },
+          generationConfig: {
+            maxOutputTokens,
+            temperature: 0.3,
+          },
         }),
       },
     );
@@ -155,80 +149,80 @@ export function createHandler({
     try {
       for (const model of models) {
         lastModel = model;
-        for (const structured of [true, false]) {
-          lastStage = `${model} ${structured ? "structured" : "plain"}`;
-          let result;
+        let result;
+        try {
+          result = await callGemini(model);
+        } catch {
+          if (controller.signal.aborted) throw new Error("timeout");
+          report({ model, message: "Gemini request failed." });
+          continue;
+        }
+
+        lastStatus = result.status;
+        if (!result.ok) {
+          let message = "Gemini returned a non-JSON error response.";
           try {
-            result = await callGemini(model, structured);
+            const body = await result.json();
+            if (typeof body.error?.message === "string") message = body.error.message;
           } catch {
-            if (controller.signal.aborted) throw new Error("timeout");
-            report({ model, message: `Request failed during ${lastStage}.` });
-            continue;
+            // Never log raw HTML or response bodies.
           }
+          report({ status: result.status, model, message });
 
-          lastStatus = result.status;
-          if (!result.ok) {
-            let message = "Gemini returned a non-JSON error response.";
-            try {
-              const body = await result.json();
-              if (typeof body.error?.message === "string") message = body.error.message;
-            } catch {
-              // Never log raw HTML or response bodies.
-            }
-            report({ status: result.status, model, message });
-
-            if ([401, 403, 429].includes(result.status)) {
-              return send(result.status === 429 ? 429 : 503, { error: publicGeminiError(result.status) });
-            }
-            if (result.status === 404) {
-              return send(503, { error: publicGeminiError(result.status) });
-            }
-            if (result.status === 400 || result.status >= 500) continue;
+          if ([401, 403].includes(result.status)) {
             return send(503, { error: publicGeminiError(result.status) });
           }
-
-          try {
-            const response = await result.json();
-            const candidate = response.candidates?.[0];
-            if (candidate?.finishReason !== "STOP") {
-              const reason = candidate?.finishReason || "unknown";
-              if (["SAFETY", "PROHIBITED_CONTENT", "BLOCKLIST"].includes(reason)) {
-                return send(502, { error: FAILURE });
-              }
-              throw new Error(`Incomplete generation (${reason})`);
-            }
-
-            const text = candidate.content?.parts
-              ?.filter(part => !part.thought && typeof part.text === "string")
-              .map(part => part.text)
-              .join("");
-            if (!text || text.length > 150000) throw new Error("Invalid output");
-
-            const checked = validateItinerary(parseGeminiJson(text), data.dates.length);
-            if (data.lockedItems?.length) {
-              for (const locked of data.lockedItems) {
-                const match = checked.days[locked.day - 1]?.items.some(
-                  item => item.time === locked.time && item.title === locked.title && item.memo === locked.memo,
-                );
-                if (!match) throw new Error("AI changed a locked itinerary item.");
-              }
-            }
-            return send(200, checked);
-          } catch {
-            report({ status: result.status, model, message: `Invalid itinerary during ${lastStage}.` });
+          if ([400, 404, 429].includes(result.status) || result.status >= 500) {
+            continue;
           }
+          return send(503, { error: publicGeminiError(result.status) });
+        }
+
+        try {
+          const response = await result.json();
+          const candidate = response.candidates?.[0];
+          const reason = candidate?.finishReason;
+          if (reason !== "STOP") {
+            if (["SAFETY", "PROHIBITED_CONTENT", "BLOCKLIST"].includes(reason)) {
+              return send(502, { error: FAILURE });
+            }
+            throw new Error(`Incomplete generation (${reason || "unknown"})`);
+          }
+
+          const text = candidate.content?.parts
+            ?.filter(part => !part.thought && typeof part.text === "string")
+            .map(part => part.text)
+            .join("");
+          if (!text || text.length > 150000) throw new Error("Invalid output");
+
+          const checked = validateItinerary(parseGeminiJson(text), data.dates.length);
+          if (data.lockedItems?.length) {
+            for (const locked of data.lockedItems) {
+              const match = checked.days[locked.day - 1]?.items.some(
+                item => item.time === locked.time && item.title === locked.title && item.memo === locked.memo,
+              );
+              if (!match) throw new Error("AI changed a locked itinerary item.");
+            }
+          }
+          return send(200, checked);
+        } catch {
+          report({ status: result.status, model, message: "Invalid itinerary JSON from Gemini." });
         }
       }
 
+      if (lastStatus === 429) {
+        res.setHeader("Retry-After", "60");
+        return send(429, { error: publicGeminiError(429) });
+      }
       if (Number.isInteger(lastStatus) && lastStatus >= 500) {
-        return send(503, { error: "Gemini側で一時的なエラーが続いています。少し時間をおいてお試しください。" });
+        return send(503, { error: publicGeminiError(lastStatus) });
       }
       return send(502, { error: FAILURE });
     } catch {
       report({
         status: lastStatus,
         model: lastModel,
-        message: controller.signal.aborted ? "Gemini request timed out." : `Failed during ${lastStage}.`,
+        message: controller.signal.aborted ? "Gemini request timed out." : "Gemini generation failed.",
       });
       return send(controller.signal.aborted ? 504 : 502, { error: FAILURE });
     } finally {
