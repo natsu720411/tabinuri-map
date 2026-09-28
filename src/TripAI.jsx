@@ -52,11 +52,13 @@ export default function TripAI({ plan, blocked, onApply, onClose }) {
       const response = await fetch("/api/generate-trip", { method: "POST", headers: { "Content-Type": "application/json" }, signal: abort.signal, body: JSON.stringify({ plan: request.plan, mood, pace, transportStyle, requestNote: request.requestNote }) });
       const payload = await response.json();
       if (response.status === 503 && payload.error === PREPARING) { setReady(false); return; }
-      if (!response.ok) throw new Error([400, 413, 415, 429, 503].includes(response.status) && typeof payload.error === "string" ? payload.error : "AI旅程の作成に失敗しました。もう一度お試しください。");
+      if (!response.ok) throw new Error(typeof payload.error === "string" ? payload.error : "AI旅程の作成に失敗しました。もう一度お試しください。");
       const checked = validateItinerary(payload, request.dates.length);
       setResult({ days: checked.days.map((day, index) => ({ id: newId(), date: request.dates[index], items: day.items.map(item => ({ id: newId(), time: item.time, name: item.title, memo: item.memo })) })) });
       trackEvent("ai_itinerary_generated", { result: "success" });
-    } catch (err) { if (dialog.current?.open) setError(err.name === "AbortError" ? "作成に時間がかかっています。もう一度お試しください。" : (err.message.startsWith("AI") || err.message.includes("入力") || err.message.includes("設定") || err.message.includes("時間をおいて") ? err.message : "AI旅程の作成に失敗しました。もう一度お試しください。")); }
+    } catch (err) {
+      if (dialog.current?.open) setError(err.name === "AbortError" ? "作成に時間がかかっています。もう一度お試しください。" : (typeof err.message === "string" && err.message ? err.message : "AI旅程の作成に失敗しました。もう一度お試しください。"));
+    }
     finally { clearTimeout(timeout); busyRef.current = false; if (dialog.current?.open) setBusy(false); }
   }
   async function refine() {
@@ -90,7 +92,7 @@ export default function TripAI({ plan, blocked, onApply, onClose }) {
         }),
       });
       const payload = await response.json();
-      if (!response.ok) throw new Error([400, 413, 415, 429, 503].includes(response.status) && typeof payload.error === "string" ? payload.error : "AI旅程の修正に失敗しました。もう一度お試しください。");
+      if (!response.ok) throw new Error(typeof payload.error === "string" ? payload.error : "AI旅程の修正に失敗しました。もう一度お試しください。");
       const checked = validateItinerary(payload, request.dates.length);
       const revised = { days: checked.days.map((day, index) => ({ id: newId(), date: request.dates[index], items: day.items.map(item => ({ id: newId(), time: item.time, name: item.title, memo: item.memo })) })) };
       setPreviousResult(result);
@@ -98,7 +100,7 @@ export default function TripAI({ plan, blocked, onApply, onClose }) {
       setRevisionRequest("");
       trackEvent("ai_itinerary_refined", { result: "success" });
     } catch (err) {
-      if (dialog.current?.open) setError(err.name === "AbortError" ? "修正に時間がかかっています。もう一度お試しください。" : (err.message.startsWith("AI") || err.message.includes("入力") || err.message.includes("修正") || err.message.includes("時間をおいて") ? err.message : "AI旅程の修正に失敗しました。もう一度お試しください。"));
+      if (dialog.current?.open) setError(err.name === "AbortError" ? "修正に時間がかかっています。もう一度お試しください。" : (typeof err.message === "string" && err.message ? err.message : "AI旅程の修正に失敗しました。もう一度お試しください。"));
     } finally {
       clearTimeout(timeout); busyRef.current = false; if (dialog.current?.open) setBusy(false);
     }
