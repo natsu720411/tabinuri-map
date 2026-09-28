@@ -51,7 +51,7 @@ function invoke(handler, overrides = {}) {
 }
 
 const options = {
-  env: { GEMINI_API_KEY: "test-only-not-a-real-key" },
+  env: { GEMINI_API_KEY: "test-only-not-a-real-key", GEMINI_MODEL: "gemini-3.6-flash" },
   rateLimit: () => true,
 };
 
@@ -69,17 +69,18 @@ test("date and itinerary validation", () => {
   assert.deepEqual(validateItinerary(itinerary, 2), itinerary);
 });
 
-test("Flash-Lite uses JSON mode and succeeds with one request", async () => {
+test("Gemini 3.6 JSON mode succeeds with one request", async () => {
   let calls = 0;
   const handler = createHandler({
     ...options,
     fetchImpl: async (url, init) => {
       calls += 1;
-      assert.match(url, /models\/gemini-3\.5-flash-lite:generateContent$/);
+      assert.match(url, /models\/gemini-3\.6-flash:generateContent$/);
       const body = JSON.parse(init.body);
       assert.equal(body.generationConfig.responseMimeType, "application/json");
+      assert.equal(body.generationConfig.responseJsonSchema, undefined);
       assert.equal(body.generationConfig.thinkingConfig.thinkingLevel, "minimal");
-      assert.ok(body.generationConfig.maxOutputTokens <= 8000);
+      assert.ok(body.generationConfig.maxOutputTokens <= 7500);
       assert.ok(!init.body.includes("must not send"));
       return okResponse(JSON.stringify(itinerary));
     },
@@ -94,7 +95,7 @@ test("minor AI format differences are normalized safely", async () => {
   const loose = {
     days: [
       { day: 99, items: [{ time: "9:00", name: "出発", description: "駅へ移動" }] },
-      { day: 88, items: [{ time: "10:00", title: "観光", memo: "散策" }] },
+      { day: 88, items: [{ time: "10時", title: "観光", memo: "散策" }] },
     ],
   };
   const result = await invoke(createHandler({
@@ -105,64 +106,23 @@ test("minor AI format differences are normalized safely", async () => {
   assert.equal(result.body.days[0].day, 1);
   assert.equal(result.body.days[0].items[0].time, "09:00");
   assert.equal(result.body.days[0].items[0].title, "出発");
-  assert.equal(result.body.days[0].items[0].memo, "駅へ移動");
+  assert.equal(result.body.days[1].items[0].time, "10:00");
 });
 
-test("slow primary model is aborted and fallback can succeed", async () => {
-  let calls = 0;
-  const urls = [];
-  const handler = createHandler({
-    ...options,
-    attemptTimeoutMs: 5,
-    timeoutMs: 200,
-    fetchImpl: async (url, init) => {
-      calls += 1;
-      urls.push(url);
-      if (calls === 1) {
-        return new Promise((_resolve, reject) => {
-          init.signal.addEventListener("abort", () => reject(Object.assign(new Error("aborted"), { name: "AbortError" })), { once: true });
-        });
-      }
-      return okResponse(JSON.stringify(itinerary));
-    },
-  });
-  const result = await invoke(handler);
-  assert.equal(result.status, 200);
-  assert.equal(calls, 2);
-  assert.match(urls[0], /gemini-3\.5-flash-lite/);
-  assert.match(urls[1], /gemini-3\.8-flash/);
-});
-
-test("invalid JSON from Flash-Lite falls back once to Gemini 3.8", async () => {
-  const urls = [];
-  const handler = createHandler({
-    ...options,
-    fetchImpl: async (url) => {
-      urls.push(url);
-      return urls.length === 1 ? okResponse("not json") : okResponse(JSON.stringify(itinerary));
-    },
-  });
-  const result = await invoke(handler);
-  assert.equal(result.status, 200);
-  assert.equal(urls.length, 2);
-  assert.match(urls[0], /gemini-3\.5-flash-lite/);
-  assert.match(urls[1], /gemini-3\.8-flash/);
-});
-
-test("both models returning malformed data gives a specific format error", async () => {
+test("invalid JSON returns diagnostic format code without retry", async () => {
   let calls = 0;
   const result = await invoke(createHandler({
     ...options,
     fetchImpl: async () => { calls += 1; return okResponse("not json"); },
   }));
   assert.equal(result.status, 502);
-  assert.equal(calls, 2);
-  assert.match(result.body.error, /正しい形式/);
+  assert.equal(calls, 1);
+  assert.match(result.body.error, /E-JSON/);
 });
 
-test("daily quota is reported after at most two model attempts", async () => {
+test("daily quota is reported after one request", async () => {
   let calls = 0;
-  const handler = createHandler({
+  const result = await invoke(createHandler({
     ...options,
     fetchImpl: async () => {
       calls += 1;
@@ -172,11 +132,22 @@ test("daily quota is reported after at most two model attempts", async () => {
         json: async () => ({ error: { message: "GenerateRequestsPerDayPerProjectPerModel-FreeTier" } }),
       };
     },
-  });
-  const result = await invoke(handler);
+  }));
   assert.equal(result.status, 429);
-  assert.equal(calls, 2);
-  assert.match(result.body.error, /1日あたり利用上限/);
+  assert.equal(calls, 1);
+  assert.match(result.body.error, /E-QUOTA-DAY/);
+});
+
+test("timeout returns a specific diagnostic code", async () => {
+  const result = await invoke(createHandler({
+    ...options,
+    timeoutMs: 5,
+    fetchImpl: async (_url, init) => new Promise((_resolve, reject) => {
+      init.signal.addEventListener("abort", () => reject(Object.assign(new Error("aborted"), { name: "AbortError" })), { once: true });
+    }),
+  }));
+  assert.equal(result.status, 504);
+  assert.match(result.body.error, /E-TIMEOUT-36/);
 });
 
 test("auth errors do not retry", async () => {
@@ -190,6 +161,7 @@ test("auth errors do not retry", async () => {
   }));
   assert.equal(result.status, 503);
   assert.equal(calls, 1);
+  assert.match(result.body.error, /E-AUTH/);
 });
 
 test("GET readiness never calls Gemini", async () => {
