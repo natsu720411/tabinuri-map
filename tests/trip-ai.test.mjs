@@ -51,7 +51,7 @@ function invoke(handler, overrides = {}) {
 }
 
 const options = {
-  env: { GEMINI_API_KEY: "test-only-not-a-real-key", GEMINI_MODEL: "gemini-3.6-flash" },
+  env: { GEMINI_API_KEY: "test-only-not-a-real-key" },
   rateLimit: () => true,
 };
 
@@ -69,7 +69,7 @@ test("date and itinerary validation", () => {
   assert.deepEqual(validateItinerary(itinerary, 2), itinerary);
 });
 
-test("Flash-Lite is the primary model and succeeds with one request", async () => {
+test("Flash-Lite uses JSON mode and succeeds with one request", async () => {
   let calls = 0;
   const handler = createHandler({
     ...options,
@@ -77,8 +77,8 @@ test("Flash-Lite is the primary model and succeeds with one request", async () =
       calls += 1;
       assert.match(url, /models\/gemini-3\.5-flash-lite:generateContent$/);
       const body = JSON.parse(init.body);
+      assert.equal(body.generationConfig.responseMimeType, "application/json");
       assert.equal(body.generationConfig.thinkingConfig.thinkingLevel, "minimal");
-      assert.equal(body.generationConfig.temperature, undefined);
       assert.ok(body.generationConfig.maxOutputTokens <= 10000);
       assert.ok(!init.body.includes("must not send"));
       return okResponse(JSON.stringify(itinerary));
@@ -90,30 +90,52 @@ test("Flash-Lite is the primary model and succeeds with one request", async () =
   assert.equal(calls, 1);
 });
 
-test("quota on Flash-Lite falls back to another model", async () => {
+test("minor AI format differences are normalized safely", async () => {
+  const loose = {
+    days: [
+      { day: 99, items: [{ time: "9:00", name: "出発", description: "駅へ移動" }] },
+      { day: 88, items: [{ time: "10:00", title: "観光", memo: "散策" }] },
+    ],
+  };
+  const result = await invoke(createHandler({
+    ...options,
+    fetchImpl: async () => okResponse(JSON.stringify(loose)),
+  }));
+  assert.equal(result.status, 200);
+  assert.equal(result.body.days[0].day, 1);
+  assert.equal(result.body.days[0].items[0].time, "09:00");
+  assert.equal(result.body.days[0].items[0].title, "出発");
+  assert.equal(result.body.days[0].items[0].memo, "駅へ移動");
+});
+
+test("invalid JSON from Flash-Lite falls back once to Gemini 3.8", async () => {
   const urls = [];
   const handler = createHandler({
     ...options,
     fetchImpl: async (url) => {
       urls.push(url);
-      if (urls.length === 1) {
-        return {
-          ok: false,
-          status: 429,
-          json: async () => ({ error: { message: "GenerateRequestsPerDayPerProjectPerModel-FreeTier" } }),
-        };
-      }
-      return okResponse(JSON.stringify(itinerary));
+      return urls.length === 1 ? okResponse("not json") : okResponse(JSON.stringify(itinerary));
     },
   });
   const result = await invoke(handler);
   assert.equal(result.status, 200);
   assert.equal(urls.length, 2);
   assert.match(urls[0], /gemini-3\.5-flash-lite/);
-  assert.match(urls[1], /gemini-3\.6-flash/);
+  assert.match(urls[1], /gemini-3\.8-flash/);
 });
 
-test("all models hitting daily quota returns a specific message", async () => {
+test("both models returning malformed data gives a specific format error", async () => {
+  let calls = 0;
+  const result = await invoke(createHandler({
+    ...options,
+    fetchImpl: async () => { calls += 1; return okResponse("not json"); },
+  }));
+  assert.equal(result.status, 502);
+  assert.equal(calls, 2);
+  assert.match(result.body.error, /正しい形式/);
+});
+
+test("daily quota is reported after at most two model attempts", async () => {
   let calls = 0;
   const handler = createHandler({
     ...options,
@@ -128,20 +150,19 @@ test("all models hitting daily quota returns a specific message", async () => {
   });
   const result = await invoke(handler);
   assert.equal(result.status, 429);
-  assert.equal(calls, 3);
+  assert.equal(calls, 2);
   assert.match(result.body.error, /1日あたり利用上限/);
 });
 
 test("auth errors do not retry", async () => {
   let calls = 0;
-  const handler = createHandler({
+  const result = await invoke(createHandler({
     ...options,
     fetchImpl: async () => {
       calls += 1;
       return { ok: false, status: 403, json: async () => ({ error: { message: "forbidden" } }) };
     },
-  });
-  const result = await invoke(handler);
+  }));
   assert.equal(result.status, 503);
   assert.equal(calls, 1);
 });
