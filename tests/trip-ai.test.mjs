@@ -79,7 +79,7 @@ test("Flash-Lite uses JSON mode and succeeds with one request", async () => {
       const body = JSON.parse(init.body);
       assert.equal(body.generationConfig.responseMimeType, "application/json");
       assert.equal(body.generationConfig.thinkingConfig.thinkingLevel, "minimal");
-      assert.ok(body.generationConfig.maxOutputTokens <= 10000);
+      assert.ok(body.generationConfig.maxOutputTokens <= 8000);
       assert.ok(!init.body.includes("must not send"));
       return okResponse(JSON.stringify(itinerary));
     },
@@ -106,6 +106,31 @@ test("minor AI format differences are normalized safely", async () => {
   assert.equal(result.body.days[0].items[0].time, "09:00");
   assert.equal(result.body.days[0].items[0].title, "出発");
   assert.equal(result.body.days[0].items[0].memo, "駅へ移動");
+});
+
+test("slow primary model is aborted and fallback can succeed", async () => {
+  let calls = 0;
+  const urls = [];
+  const handler = createHandler({
+    ...options,
+    attemptTimeoutMs: 5,
+    timeoutMs: 200,
+    fetchImpl: async (url, init) => {
+      calls += 1;
+      urls.push(url);
+      if (calls === 1) {
+        return new Promise((_resolve, reject) => {
+          init.signal.addEventListener("abort", () => reject(Object.assign(new Error("aborted"), { name: "AbortError" })), { once: true });
+        });
+      }
+      return okResponse(JSON.stringify(itinerary));
+    },
+  });
+  const result = await invoke(handler);
+  assert.equal(result.status, 200);
+  assert.equal(calls, 2);
+  assert.match(urls[0], /gemini-3\.5-flash-lite/);
+  assert.match(urls[1], /gemini-3\.8-flash/);
 });
 
 test("invalid JSON from Flash-Lite falls back once to Gemini 3.8", async () => {
