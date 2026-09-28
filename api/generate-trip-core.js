@@ -6,11 +6,15 @@ const prefectures = JSON.parse(readFileSync(new URL("../src/prefectures.json", i
 export const config = { maxDuration: 60 };
 
 const FAILURE = "AI旅程の作成に失敗しました。もう一度お試しください。";
+const FORMAT_FAILURE = "AIから旅程データを正しい形式で受け取れませんでした。もう一度お試しください。";
 const PRIMARY_MODEL = "gemini-3.5-flash-lite";
-const LAST_RESORT_MODEL = "gemini-3.8-flash";
-const SYSTEM_PROMPT = `あなたは日本国内旅行の旅程作成者です。日本語のJSONだけを返してください。
-返答は必ず {"days":[{"day":1,"items":[{"time":"09:00","title":"予定名","memo":"説明"}]}]} の形にし、JSON以外の説明やMarkdownのコードフェンスを付けないでください。
-指定された旅行日数と day の連番を厳守し、各日は時刻HH:mmの昇順で、原則4〜10件程度の現実的な予定にしてください。
+const FALLBACK_MODEL = "gemini-3.8-flash";
+
+const SYSTEM_PROMPT = `あなたは日本国内旅行の旅程作成者です。
+返答は必ずJSONオブジェクトだけにしてください。
+形式は {"days":[{"day":1,"items":[{"time":"09:00","title":"予定名","memo":"説明"}]}]} です。
+指定された旅行日数とdayの連番を厳守し、各日は時刻HH:mmの昇順で、原則4〜10件程度の現実的な予定にしてください。
+すべてのitemにtime、title、memoを必ず含めてください。memoが特に不要でも空文字ではなく短い説明を入れてください。
 初日はdepartureLocationから出発し、最終日はreturnLocationへ到着するまでを含めてください。departureTimeとreturnTimeがあれば考慮してください。
 transportStyleを必ず考慮し、公共交通中心なら駅・路線・乗換・概算所要時間、車中心なら概算所要時間や駐車場確認、徒歩を少なめなら公共交通やタクシーを組み合わせてください。
 観光地間の主要移動は独立した予定にし、titleは「移動：A → B」のように分かりやすくしてください。
@@ -36,8 +40,7 @@ function quotaKind(body) {
 }
 
 function thinkingLevelFor(model) {
-  if (model === "gemini-3.5-flash-lite" || model === "gemini-3.6-flash") return "minimal";
-  return "low";
+  return model === "gemini-3.8-flash" ? "low" : "minimal";
 }
 
 function parseGeminiJson(text) {
@@ -53,6 +56,39 @@ function parseGeminiJson(text) {
     if (first >= 0 && last > first) return JSON.parse(value.slice(first, last + 1));
     throw new Error("Invalid JSON output");
   }
+}
+
+function normalizeTime(value) {
+  if (typeof value !== "string") return "";
+  const match = value.trim().match(/^(\d{1,2}):([0-5]\d)$/);
+  if (!match) return value.trim();
+  const hour = Number(match[1]);
+  if (hour > 23) return value.trim();
+  return `${String(hour).padStart(2, "0")}:${match[2]}`;
+}
+
+function normalizeItinerary(value, count) {
+  if (!value || !Array.isArray(value.days) || value.days.length !== count) return value;
+  return {
+    days: value.days.map((day, index) => ({
+      day: index + 1,
+      items: Array.isArray(day?.items)
+        ? day.items.slice(0, 16).map(item => ({
+            time: normalizeTime(item?.time),
+            title: typeof item?.title === "string"
+              ? item.title.trim().slice(0, 180)
+              : typeof item?.name === "string"
+                ? item.name.trim().slice(0, 180)
+                : "",
+            memo: typeof item?.memo === "string"
+              ? item.memo.trim().slice(0, 1400)
+              : typeof item?.description === "string"
+                ? item.description.trim().slice(0, 1400)
+                : "",
+          }))
+        : [],
+    })),
+  };
 }
 
 const recent = new Map();
@@ -123,9 +159,6 @@ export function createHandler({
 
     if (!ready) return send(503, { error: "AI機能は準備中です。管理者によるAPI設定が必要です。" });
 
-    const configuredModel = env.GEMINI_MODEL?.trim() || "gemini-3.6-flash";
-    if (!/^gemini-[a-zA-Z0-9._-]+$/.test(configuredModel)) return send(503, { error: "AIモデルの設定を確認してください。" });
-
     const ip = String(req.headers["x-forwarded-for"] || req.socket?.remoteAddress || "unknown").split(",")[0].trim();
     if (!rateLimit(ip)) {
       res.setHeader("Retry-After", "60");
@@ -136,12 +169,13 @@ export function createHandler({
     const timer = setTimeout(() => controller.abort(), timeoutMs);
     const destination = prefectures.find(p => p.id === data.plan.prefectureId)?.name;
     const userText = JSON.stringify({ ...data, destination });
-    const models = [...new Set([PRIMARY_MODEL, configuredModel, LAST_RESORT_MODEL])];
+    const models = [PRIMARY_MODEL, FALLBACK_MODEL];
     const maxOutputTokens = Math.min(10000, 3200 + data.dates.length * 480);
     let lastStatus;
     let lastModel = models[0];
     let sawDailyQuota = false;
     let sawMinuteQuota = false;
+    let sawFormatFailure = false;
 
     const callGemini = model => fetchImpl(
       `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
@@ -153,6 +187,7 @@ export function createHandler({
           systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
           contents: [{ role: "user", parts: [{ text: userText }] }],
           generationConfig: {
+            responseMimeType: "application/json",
             maxOutputTokens,
             thinkingConfig: { thinkingLevel: thinkingLevelFor(model) },
           },
@@ -214,7 +249,8 @@ export function createHandler({
             .join("");
           if (!text || text.length > 150000) throw new Error("Invalid output");
 
-          const checked = validateItinerary(parseGeminiJson(text), data.dates.length);
+          const parsed = parseGeminiJson(text);
+          const checked = validateItinerary(normalizeItinerary(parsed, data.dates.length), data.dates.length);
           if (data.lockedItems?.length) {
             for (const locked of data.lockedItems) {
               const match = checked.days[locked.day - 1]?.items.some(
@@ -225,6 +261,7 @@ export function createHandler({
           }
           return send(200, checked);
         } catch {
+          sawFormatFailure = true;
           report({ status: result.status, model, message: "Invalid itinerary JSON from Gemini." });
         }
       }
@@ -236,6 +273,7 @@ export function createHandler({
         res.setHeader("Retry-After", "60");
         return send(429, { error: "Geminiの短時間の利用上限に達しています。1分ほど待ってからお試しください。" });
       }
+      if (sawFormatFailure) return send(502, { error: FORMAT_FAILURE });
       if (Number.isInteger(lastStatus) && lastStatus >= 500) {
         return send(503, { error: publicGeminiError(lastStatus) });
       }
