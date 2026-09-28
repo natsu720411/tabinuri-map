@@ -6,7 +6,8 @@ const prefectures = JSON.parse(readFileSync(new URL("../src/prefectures.json", i
 export const config = { maxDuration: 60 };
 
 const FAILURE = "AI旅程の作成に失敗しました。もう一度お試しください。";
-const PREFERRED_MODEL = "gemini-3.8-flash";
+const PRIMARY_MODEL = "gemini-3.5-flash-lite";
+const LAST_RESORT_MODEL = "gemini-3.8-flash";
 const SYSTEM_PROMPT = `あなたは日本国内旅行の旅程作成者です。日本語のJSONだけを返してください。
 返答は必ず {"days":[{"day":1,"items":[{"time":"09:00","title":"予定名","memo":"説明"}]}]} の形にし、JSON以外の説明やMarkdownのコードフェンスを付けないでください。
 指定された旅行日数と day の連番を厳守し、各日は時刻HH:mmの昇順で、原則4〜10件程度の現実的な予定にしてください。
@@ -21,10 +22,22 @@ lockedItemsは固定予定です。day・time・title・memoを変更、削除�
 function publicGeminiError(status) {
   if (status === 400) return "AIモデルへの送信設定でエラーが発生しました（Gemini 400）。";
   if (status === 401 || status === 403) return "Gemini APIキーの権限またはGoogle AI側の設定を確認してください。";
-  if (status === 404) return "設定中のAIモデルが利用できません。GEMINI_MODELを確認してください。";
-  if (status === 429) return "AIが混み合っているか、Geminiの利用上限に達しています。少し時間をおいてお試しください。";
+  if (status === 404) return "利用できるAIモデルが見つかりません。";
+  if (status === 429) return "AIが混み合っているか、Geminiの利用上限に達しています。";
   if (Number.isInteger(status) && status >= 500) return "Gemini側で一時的なエラーが発生しています。少し時間をおいてお試しください。";
   return FAILURE;
+}
+
+function quotaKind(body) {
+  const text = JSON.stringify(body || {}).toLowerCase();
+  if (text.includes("requestsperday") || text.includes("perday") || text.includes("daily quota") || text.includes("requests per day")) return "daily";
+  if (text.includes("requestsperminute") || text.includes("perminute") || text.includes("rate_limit_exceeded") || text.includes("too_many_requests")) return "minute";
+  return "unknown";
+}
+
+function thinkingLevelFor(model) {
+  if (model === "gemini-3.5-flash-lite" || model === "gemini-3.6-flash") return "minimal";
+  return "low";
 }
 
 function parseGeminiJson(text) {
@@ -50,7 +63,7 @@ function allow(ip) {
     if (recent.size >= 5000) return false;
     recent.set(ip, { until: now + 60000, count: 0 });
   }
-  return ++recent.get(ip).count <= 5;
+  return ++recent.get(ip).count <= 3;
 }
 
 export function createHandler({
@@ -116,18 +129,19 @@ export function createHandler({
     const ip = String(req.headers["x-forwarded-for"] || req.socket?.remoteAddress || "unknown").split(",")[0].trim();
     if (!rateLimit(ip)) {
       res.setHeader("Retry-After", "60");
-      return send(429, { error: "少し時間をおいてから、もう一度お試しください。" });
+      return send(429, { error: "短時間にAI旅程を作りすぎています。1分ほど待ってからお試しください。" });
     }
 
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
-    const destination = prefectures.find(p => p.id === data.plan.prefureId)?.name
-      || prefectures.find(p => p.id === data.plan.prefectureId)?.name;
+    const destination = prefectures.find(p => p.id === data.plan.prefectureId)?.name;
     const userText = JSON.stringify({ ...data, destination });
-    const models = [...new Set([PREFERRED_MODEL, configuredModel])];
-    const maxOutputTokens = Math.min(12000, 4000 + data.dates.length * 600);
+    const models = [...new Set([PRIMARY_MODEL, configuredModel, LAST_RESORT_MODEL])];
+    const maxOutputTokens = Math.min(10000, 3200 + data.dates.length * 480);
     let lastStatus;
     let lastModel = models[0];
+    let sawDailyQuota = false;
+    let sawMinuteQuota = false;
 
     const callGemini = model => fetchImpl(
       `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
@@ -140,7 +154,7 @@ export function createHandler({
           contents: [{ role: "user", parts: [{ text: userText }] }],
           generationConfig: {
             maxOutputTokens,
-            temperature: 0.3,
+            thinkingConfig: { thinkingLevel: thinkingLevelFor(model) },
           },
         }),
       },
@@ -160,9 +174,10 @@ export function createHandler({
 
         lastStatus = result.status;
         if (!result.ok) {
+          let body = {};
           let message = "Gemini returned a non-JSON error response.";
           try {
-            const body = await result.json();
+            body = await result.json();
             if (typeof body.error?.message === "string") message = body.error.message;
           } catch {
             // Never log raw HTML or response bodies.
@@ -172,9 +187,13 @@ export function createHandler({
           if ([401, 403].includes(result.status)) {
             return send(503, { error: publicGeminiError(result.status) });
           }
-          if ([400, 404, 429].includes(result.status) || result.status >= 500) {
+          if (result.status === 429) {
+            const kind = quotaKind(body);
+            if (kind === "daily") sawDailyQuota = true;
+            if (kind === "minute") sawMinuteQuota = true;
             continue;
           }
+          if (result.status === 400 || result.status === 404 || result.status >= 500) continue;
           return send(503, { error: publicGeminiError(result.status) });
         }
 
@@ -210,9 +229,12 @@ export function createHandler({
         }
       }
 
-      if (lastStatus === 429) {
+      if (sawDailyQuota) {
+        return send(429, { error: "Gemini無料枠の1日あたり利用上限に達しています。上限はGoogle側で毎日リセットされます。" });
+      }
+      if (sawMinuteQuota || lastStatus === 429) {
         res.setHeader("Retry-After", "60");
-        return send(429, { error: publicGeminiError(429) });
+        return send(429, { error: "Geminiの短時間の利用上限に達しています。1分ほど待ってからお試しください。" });
       }
       if (Number.isInteger(lastStatus) && lastStatus >= 500) {
         return send(503, { error: publicGeminiError(lastStatus) });
