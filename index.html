@@ -4,8 +4,28 @@
     <meta charset="UTF-8" />
     <!-- Google tag (gtag.js) -->
     <script>
+      const pageParams = new URLSearchParams(location.search);
+      const isSharedTrip = pageParams.has('shared-trip');
+
+      // X campaign visitors should land directly in the quick prefecture-check flow.
+      if (!isSharedTrip && pageParams.get('utm_source') === 'x') {
+        let changed = false;
+        if (!pageParams.has('start')) {
+          pageParams.set('start', 'check');
+          changed = true;
+        }
+        if (!pageParams.has('from')) {
+          pageParams.set('from', 'x');
+          changed = true;
+        }
+        if (changed) {
+          const nextQuery = pageParams.toString();
+          history.replaceState(null, '', `${location.pathname}${nextQuery ? `?${nextQuery}` : ''}${location.hash}`);
+        }
+      }
+
       // Shared itineraries must not be sent to analytics through their URL.
-      if (new URLSearchParams(location.search).has('shared-trip')) {
+      if (isSharedTrip) {
         const robots = document.createElement('meta');
         robots.name = 'robots'; robots.content = 'noindex, nofollow';
         document.head.appendChild(robots);
@@ -14,6 +34,11 @@
         window.gtag = function(){dataLayer.push(arguments);};
         gtag('js', new Date());
         gtag('config', 'G-TLPNKXBB7T');
+        if (pageParams.get('utm_source') === 'x') {
+          gtag('event', 'x_landing_viewed', {
+            campaign: pageParams.get('utm_campaign') || 'unknown'
+          });
+        }
         const tag = document.createElement('script');
         tag.async = true;
         tag.src = 'https://www.googletagmanager.com/gtag/js?id=G-TLPNKXBB7T';
