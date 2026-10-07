@@ -2,7 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://tabinuri-map.vercel.app/</loc>
-    <lastmod>2026-09-21</lastmod>
+    <lastmod>2026-10-06</lastmod>
   </url>
   <url>
     <loc>https://tabinuri-map.vercel.app/privacy.html</loc>
@@ -15,11 +15,11 @@
   </url>
   <url>
     <loc>https://tabinuri-map.vercel.app/how-to-use.html</loc>
-    <lastmod>2026-09-24</lastmod>
+    <lastmod>2026-10-07</lastmod>
   </url>
   <url>
     <loc>https://tabinuri-map.vercel.app/japan-map.html</loc>
-    <lastmod>2026-09-21</lastmod>
+    <lastmod>2026-10-07</lastmod>
   </url>
   <url>
     <loc>https://tabinuri-map.vercel.app/prefecture-check.html</loc>
@@ -31,7 +31,7 @@
   </url>
   <url>
     <loc>https://tabinuri-map.vercel.app/travel-record.html</loc>
-    <lastmod>2026-09-24</lastmod>
+    <lastmod>2026-10-07</lastmod>
   </url>
   <url>
     <loc>https://tabinuri-map.vercel.app/travel-itinerary.html</loc>
@@ -40,5 +40,17 @@
   <url>
     <loc>https://tabinuri-map.vercel.app/ai-trip-planner.html</loc>
     <lastmod>2026-09-19</lastmod>
+  </url>
+  <url>
+    <loc>https://tabinuri-map.vercel.app/travel-wishlist.html</loc>
+    <lastmod>2026-10-07</lastmod>
+  </url>
+  <url>
+    <loc>https://tabinuri-map.vercel.app/travel-timeline.html</loc>
+    <lastmod>2026-10-07</lastmod>
+  </url>
+  <url>
+    <loc>https://tabinuri-map.vercel.app/travel-map-share.html</loc>
+    <lastmod>2026-10-07</lastmod>
   </url>
 </urlset>
