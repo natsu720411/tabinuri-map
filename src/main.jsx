@@ -1174,7 +1174,7 @@ function App({ initialPlanId }) {
     <div className="home-feature"><h3>旅のしおりを作る</h3><p>日ごとの予定、時間、場所、メモをまとめて、旅行中にも見やすいしおりとして使えます。</p></div>
     <div className="home-feature"><h3>LINEやURLで共有</h3><p>しおりをLINEや共有リンクで友達に送れます。受け取った人は登録なしで閲覧できます。</p></div>
     <div className="home-feature"><h3>しおりを自分の計画にコピー</h3><p>友達から届いたしおりを自分の旅の計画へコピーし、日程や予定を自由に編集できます。</p></div>
-    <div className="home-feature"><h3>日本地図に旅を残す</h3><p>旅行後に計画を旅図帳へ保存すると、行き先の都道府県を訪問済みにして地図に残せます。</p></div>
+    <div className="home-feature"><h3>旅行で行った場所を日本地図に記録</h3><p>旅行後に計画を旅図帳へ保存すると、行き先の都道府県を訪問済みにして、行った場所を地図に残せます。</p></div>
     <div className="home-feature"><h3>写真と思い出を記録</h3><p>訪問日・写真・一緒に行った人・食べたもの・おすすめスポットなどを都道府県ごとに保存できます。</p></div>
     <div className="home-feature"><h3>行きたい場所を管理</h3><p>気になる県や行きたい場所、行きたい理由をメモし、次の旅行候補として残せます。</p></div>
     <div className="home-feature"><h3>旅を振り返る</h3><p>旅行年表・タイムライン・ランキング・日本地図で振り返れます。旅マップを画像や文章で共有することもできます。</p></div>
@@ -1205,8 +1205,8 @@ function App({ initialPlanId }) {
   <h2 id="home-discover-title">旅行の記録方法から探す</h2>
   <p>旅図帳では、日本地図で訪問県をチェックするだけでも、写真や旅ログまで残す使い方でも始められます。</p>
   <div className="home-discover-grid">
-    <a href="/japan-map.html"><strong>日本地図で旅行記録をつける</strong><span>行った都道府県を地図で塗りつぶして振り返る</span></a>
-    <a href="/prefecture-check.html"><strong>行った都道府県をチェックする</strong><span>47都道府県の訪問状況と行きたい県を整理する</span></a>
+    <a href="/japan-map.html"><strong>行った県を日本地図で塗りつぶす</strong><span>行ったことのある都道府県を色分けして旅行記録を振り返る</span></a>
+    <a href="/prefecture-check.html"><strong>47都道府県チェックリスト</strong><span>行った都道府県・未訪問・行きたい県を整理する</span></a>
     <a href="/travel-record.html"><strong>旅行の思い出を写真付きで残す</strong><span>訪問日・写真・食べたもの・旅のメモを記録する</span></a>
     <a href="/travel-itinerary.html"><strong>旅のしおりを作って共有する</strong><span>日程・時間・場所をまとめてLINEやURLで共有する</span></a>
     <a href="/ai-trip-planner.html"><strong>AIで旅行計画を作る</strong><span>行き先・日程・予算から旅行スケジュールを考える</span></a>
