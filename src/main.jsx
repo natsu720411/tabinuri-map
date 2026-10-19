@@ -1210,6 +1210,9 @@ function App({ initialPlanId }) {
     <a href="/travel-record.html"><strong>旅行の思い出を写真付きで残す</strong><span>訪問日・写真・食べたもの・旅のメモを記録する</span></a>
     <a href="/travel-itinerary.html"><strong>旅のしおりを作って共有する</strong><span>日程・時間・場所をまとめてLINEやURLで共有する</span></a>
     <a href="/ai-trip-planner.html"><strong>AIで旅行計画を作る</strong><span>行き先・日程・予算から旅行スケジュールを考える</span></a>
+    <a href="/travel-wishlist.html"><strong>行きたい場所リストを作る</strong><span>行きたい県・理由・候補スポットを次の旅行候補として残す</span></a>
+    <a href="/travel-timeline.html"><strong>旅行年表・タイムラインで振り返る</strong><span>訪問日をもとに、これまでの旅行履歴を時系列で見返す</span></a>
+    <a href="/travel-map-share.html"><strong>旅マップを画像で共有する</strong><span>行った都道府県を塗った日本地図を保存・Xなどで共有する</span></a>
     <a href="/how-to-use.html"><strong>旅図帳の詳しい使い方</strong><span>旅行計画から旅行中モード、旅行後の保存まで確認する</span></a>
   </div>
 </section>
@@ -1275,6 +1278,11 @@ function App({ initialPlanId }) {
   旅図帳<span>.</span>
 </span>
 <span>旅の思い出を、日本地図に。</span>
+<a href="/japan-map.html">日本地図で旅行記録</a>
+<a href="/travel-record.html">旅行日記・旅ログ</a>
+<a href="/travel-timeline.html">旅行年表</a>
+<a href="/travel-wishlist.html">行きたい場所リスト</a>
+<a href="/travel-map-share.html">旅マップ共有</a>
 <a href="/how-to-use.html">旅図帳の使い方</a>
 <a href="/privacy.html">プライバシーポリシー</a>
 <a href="/contact.html">お問い合わせ</a>
