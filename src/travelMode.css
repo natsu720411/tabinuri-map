@@ -6,3 +6,9 @@
 .travel-delay-button{grid-column:1/-1;width:max-content;max-width:100%;min-height:40px!important;padding:7px 11px!important;border-style:dashed!important;color:#9a3f35!important;background:#fff8f6!important;font-size:13px!important}.travel-schedule-message{margin:10px 0 0!important;color:#356449!important;font-size:13px!important;font-weight:700}@media(max-width:600px){.travel-delay-button{width:100%}}
 
 .travel-schedule-undo{margin-top:8px;min-height:40px!important;padding:7px 11px!important;border-style:dashed!important;background:transparent!important;color:#527f61!important;font-size:13px!important}@media(max-width:600px){.travel-schedule-undo{width:100%}}
+
+.travel-network-status { display:flex; flex-wrap:wrap; align-items:center; gap:6px 12px; margin:0 0 16px; padding:11px 14px; border-radius:12px; font-size:12px; }
+.travel-network-status strong { font-size:13px; }
+.travel-network-status.online { border:1px solid #d2e5d5; background:#f0f7f1; color:#356449; }
+.travel-network-status.offline { border:1px solid #ead9bd; background:#fff8eb; color:#785d2f; }
+.travel-network-status span { line-height:1.6; }

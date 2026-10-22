@@ -331,6 +331,7 @@ function WantList({ visits, onSelect, onPlan }) {
       <div><p className="section-kicker">NEXT DESTINATIONS</p><h1 id="want-title">行きたい県</h1></div>
       <p>{filtered.length} / {entries.length}件</p>
     </div>
+    <div className="want-plan-guide"><strong>「行きたい」をそのまま旅行計画へ</strong><span>登録した行きたい場所・理由を引き継いで、すぐに旅程作りを始められます。</span></div>
     <div className="memory-controls want-controls">
       <label>地方<select value={region} onChange={event => setRegion(event.target.value)}><option value="all">すべて</option>{REGIONS.map(([name]) => <option key={name} value={name}>{name}</option>)}</select></label>
       <label>並び替え<select value={sort} onChange={event => setSort(event.target.value)}><option value="name">都道府県順</option><option value="favorite">お気に入り優先</option></select></label>
@@ -350,7 +351,7 @@ function WantList({ visits, onSelect, onPlan }) {
             </div>
           </button>
           <div className="want-list-actions">
-            <button type="button" onClick={() => onPlan(id)}>この県で旅を計画</button>
+            <button type="button" className="want-plan-button" onClick={() => onPlan(id)}>このメモから旅の計画を作る</button>
           </div>
         </article>;
       })}
@@ -491,6 +492,7 @@ function App({ initialPlanId }) {
   const [mobileMapWidth, setMobileMapWidth] = useState(680);
   const [quickCheckMode, setQuickCheckMode] = useState(requestedStart === "check");
   const [quickCheckUndo, setQuickCheckUndo] = useState(null);
+  const [lastQuickVisitedId, setLastQuickVisitedId] = useState(null);
   const mapCanvasRef = useRef(null);
   const mobileMapScrollRatio = useRef(0.48);
   const [selectedId, setSelectedId] = useState(null);
@@ -507,6 +509,9 @@ function App({ initialPlanId }) {
   const completedRegions = REGIONS.filter(([, ids]) => ids.every(id => visited.includes(id)));
   const today = todayLocal();
   const allPlans = loadPlans().plans;
+  const lastBackupAt = localStorage.getItem("tabizucho_last_backup_at") || "";
+  const backupAge = lastBackupAt ? Date.now() - new Date(lastBackupAt).getTime() : Infinity;
+  const backupRecommended = (count >= 3 || homePhotoCount > 0 || allPlans.length > 0) && backupAge > 1000 * 60 * 60 * 24 * 30;
   const planningPlans = allPlans.filter(plan => plan.status === "planning");
   const nextTrip = [...planningPlans].sort((a, b) => {
     const aOngoing = a.startDate && a.startDate <= today && (!a.endDate || a.endDate >= today);
@@ -679,6 +684,7 @@ function App({ initialPlanId }) {
     if (!result) {
       const name = prefectures.find(prefecture => prefecture.id === id)?.name || "この県";
       setQuickCheckUndo({ id, previousVisited, name });
+      if (nextVisited) setLastQuickVisitedId(id);
       trackEvent("map_quick_check", { source: "map", result: nextVisited ? "visited" : "unvisited" });
     }
   }
@@ -828,6 +834,14 @@ function App({ initialPlanId }) {
     ホーム画面に追加してすぐ開く
   </button>}
 </section>
+{backupRecommended && <section className="backup-reminder" aria-labelledby="backup-reminder-title">
+  <div>
+    <p className="section-kicker">KEEP YOUR MEMORIES SAFE</p>
+    <h2 id="backup-reminder-title">旅の記録をバックアップしておきましょう</h2>
+    <p>旅図帳の記録や写真はこのブラウザに保存されています。端末の変更やサイトデータ削除に備えて、バックアップファイルを保管できます。</p>
+  </div>
+  <button type="button" onClick={() => { trackEvent("backup_reminder_opened", { source: "home" }); setView("backup"); }}>バックアップする</button>
+</section>}
 {fromMapShare && <section className="share-landing-card" aria-labelledby="share-landing-title">
   <div>
     <p className="section-kicker">YOUR TURN</p>
@@ -1044,12 +1058,22 @@ function App({ initialPlanId }) {
       {quickCheckMode ? "✓ かんたんチェック中" : "✓ 訪問県をかんたんチェック"}
     </button>
     <span>{quickCheckMode ? "タップだけで地図を塗れます。もう一度押すと通常モードに戻ります。" : "思い出を書かず、まず行った県だけ登録したい人向けです。"}</span>
-    {quickCheckMode && count > 0 && <button type="button" className="map-quick-share" onClick={() => {
-      trackEvent("quick_check_share_cta", { source: "map" });
-      setQuickCheckMode(false);
-      setQuickCheckUndo(null);
-      document.getElementById("travel-share")?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
-    }}>チェック完了 → 旅マップを共有</button>}
+    {quickCheckMode && count > 0 && <div className="quick-check-next-actions" aria-label="チェック後にできること">
+      <span>次にできること</span>
+      <button type="button" onClick={() => {
+        const targetId = lastQuickVisitedId || visited[visited.length - 1];
+        if (!targetId) return;
+        setQuickCheckMode(false);
+        setSelectedId(targetId);
+        trackEvent("quick_check_next_action", { source: "map", action: "memory" });
+      }}>思い出・写真を追加</button>
+      <button type="button" className="map-quick-share" onClick={() => {
+        trackEvent("quick_check_share_cta", { source: "map" });
+        setQuickCheckMode(false);
+        setQuickCheckUndo(null);
+        requestAnimationFrame(() => document.getElementById("travel-share")?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" }));
+      }}>旅マップを共有</button>
+    </div>}
   </div>
   <div className="map-mobile-jumps" aria-label="地図の表示位置">
     <button type="button" onClick={() => moveMobileMap("west")}>← 西側</button>
@@ -1271,6 +1295,21 @@ function App({ initialPlanId }) {
 </section>
 </>}
 </main>
+<nav className="mobile-bottom-nav" aria-label="スマホ用メニュー" onClickCapture={event => { if (view === "plans" && event.target.closest("button") && !window.dispatchEvent(new Event("trip-plan-leave", { cancelable: true }))) { event.preventDefault(); event.stopPropagation(); } }}>
+  <button type="button" className={view === "map" ? "active" : ""} aria-current={view === "map" ? "page" : undefined} onClick={() => setView("map")}><Icon name="map" /><span>地図</span></button>
+  <button type="button" className={view === "memories" ? "active" : ""} aria-current={view === "memories" ? "page" : undefined} onClick={() => setView("memories")}><Icon name="camera" /><span>思い出</span></button>
+  <button type="button" className={view === "want" ? "active" : ""} aria-current={view === "want" ? "page" : undefined} onClick={() => setView("want")}><Icon name="pin" /><span>行きたい</span></button>
+  <button type="button" className={view === "plans" ? "active" : ""} aria-current={view === "plans" ? "page" : undefined} onClick={() => { trackEvent("nav_trip_plans_open", { source: "mobile_bottom_nav" }); setView("plans"); }}><Icon name="calendar" /><span>計画</span></button>
+  <details className={["ranking", "year", "timeline", "backup"].includes(view) ? "mobile-bottom-more active" : "mobile-bottom-more"}>
+    <summary><Icon name="more" /><span>その他</span></summary>
+    <div className="mobile-bottom-more-menu">
+      <button type="button" onClick={() => setView("ranking")}>ランキング</button>
+      <button type="button" onClick={() => setView("year")}>旅行年表</button>
+      <button type="button" onClick={() => setView("timeline")}>タイムライン</button>
+      <button type="button" onClick={() => setView("backup")}>データ管理</button>
+    </div>
+  </details>
+</nav>
 {selectedId !== null && <MemoryPanel key={selectedId} prefecture={prefectures.find(({ id }) => id === selectedId)} record={visits.records[selectedId]} readError={visits.error} onSave={(id, draft) => { const result = saveMemory(id, draft); if (!result) trackEvent("memory_saved", { source: view, result: "success" }); return result; }} onClose={() => setSelectedId(null)} />}
 {summaryPlan && <HomeTravelSummary plan={summaryPlan} onClose={() => setSummaryPlan(null)} onOpenMemory={() => { const prefectureId = summaryPlan.prefectureId; setSummaryPlan(null); setSelectedId(prefectureId); }} />}
 <footer className="site-footer">
@@ -1298,6 +1337,12 @@ function App({ initialPlanId }) {
 </footer>
 </>);
 }
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js").catch(() => {});
+  });
+}
+
 const initialCopiedPlanId = typeof history.state?.openCopiedPlan === "string" ? history.state.openCopiedPlan : null;
 if (initialCopiedPlanId) history.replaceState(null, "", location.href);
 createRoot(document.getElementById("root")).render(

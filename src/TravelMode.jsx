@@ -77,6 +77,7 @@ export default function TravelMode({ plan, onClose, onPersist, onFinish, onOpenM
   const [scheduleMessage, setScheduleMessage] = useState("");
   const [scheduleUndo, setScheduleUndo] = useState(null);
   const [clockNow, setClockNow] = useState(() => Date.now());
+  const [online, setOnline] = useState(() => navigator.onLine);
   const watchId = useRef(null);
   const lastNearbySearch = useRef({ at: 0, position: null });
   const nearbyAbort = useRef(null);
@@ -88,6 +89,20 @@ export default function TravelMode({ plan, onClose, onPersist, onFinish, onOpenM
   useEffect(() => {
     const timer = setInterval(() => setClockNow(Date.now()), 30000);
     return () => clearInterval(timer);
+  }, []);
+  useEffect(() => {
+    const goOnline = () => setOnline(true);
+    const goOffline = () => {
+      setOnline(false);
+      setNearbyState("offline");
+      setNearbyMessage("オフライン中は周辺スポット検索を利用できません。保存済みの旅程・メモ・チェックはそのまま使えます。");
+    };
+    window.addEventListener("online", goOnline);
+    window.addEventListener("offline", goOffline);
+    return () => {
+      window.removeEventListener("online", goOnline);
+      window.removeEventListener("offline", goOffline);
+    };
   }, []);
 
   const day = plan.days[dayIndex] || { id: "", date: "", items: [], extraStops: [] };
@@ -194,6 +209,11 @@ export default function TravelMode({ plan, onClose, onPersist, onFinish, onOpenM
 
   async function searchNearby(currentPosition, { force = false } = {}) {
     if (!currentPosition) return;
+    if (!navigator.onLine) {
+      setNearbyState("offline");
+      setNearbyMessage("オフライン中は周辺スポット検索を利用できません。保存済みの旅程は引き続き使えます。");
+      return;
+    }
     const last = lastNearbySearch.current;
     const moved = distanceMeters(last.position, currentPosition);
     if (!force && Date.now() - last.at < 120000 && moved < 80) return;
@@ -465,11 +485,15 @@ export default function TravelMode({ plan, onClose, onPersist, onFinish, onOpenM
       <div><p className="section-kicker">TRAVEL MODE</p><h1 id="travel-mode-title">{plan.title}</h1><p>{dateRange}</p></div>
       <button type="button" onClick={onClose}>計画に戻る</button>
     </header>
+    <div className={online ? "travel-network-status online" : "travel-network-status offline"} role="status">
+      <strong>{online ? "オンライン" : "オフラインでも旅程を表示できます"}</strong>
+      <span>{online ? "周辺スポット検索やGoogleマップも利用できます。" : "保存済みの予定・メモ・チェックイン記録は利用できます。周辺検索など通信機能はオンライン復帰後に使えます。"}</span>
+    </div>
 
     <section className="travel-location" aria-labelledby="location-title">
       <div><h2 id="location-title">現在地チェックイン</h2><p>旅行中の現在地を使って、訪れた場所と到着時刻をこの端末の旅行計画に記録できます。位置情報を有効にすると、近くのお店や観光スポットも自動で候補表示します。</p></div>
       <div className="travel-location-actions">
-        {watchId.current === null ? <button type="button" className="travel-primary" onClick={startLocation}>位置情報を使う</button> : <><button type="button" onClick={stopLocation}>位置情報を停止</button><button type="button" onClick={() => searchNearby(position, { force: true })} disabled={!position || nearbyState === "loading"}>近くを再検索</button></>}
+        {watchId.current === null ? <button type="button" className="travel-primary" onClick={startLocation}>位置情報を使う</button> : <><button type="button" onClick={stopLocation}>位置情報を停止</button><button type="button" onClick={() => searchNearby(position, { force: true })} disabled={!position || !online || nearbyState === "loading"}>近くを再検索</button></>}
       </div>
       <p className={`travel-location-status ${locationState}`} role="status">{locationMessage || "位置情報はまだ使用していません。"}</p>
     </section>

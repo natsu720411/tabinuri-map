@@ -110,3 +110,6 @@
     flex:1 1 100%;
   }
 }
+
+.trip-autosave { display:inline-flex; align-items:center; min-height:30px; margin:4px 0 12px; padding:5px 10px; border-radius:999px; background:#edf5ed; color:#356449; font-size:12px; font-weight:700; }
+.trip-autosave.error { background:#fff1ed; color:#8a3027; }

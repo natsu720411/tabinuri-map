@@ -26,8 +26,10 @@ export default function TripPlans({ onImport, onOpenMemory, initialPlanId, onIni
   const [conflict, setConflict] = useState(false);
   const [aiOpen, setAiOpen] = useState(false);
   const [saveFeedback, setSaveFeedback] = useState(false);
+  const [autoSaveStatus, setAutoSaveStatus] = useState("");
   const feedbackTimer = useRef(null);
-  useEffect(() => () => clearTimeout(feedbackTimer.current), []);
+  const autoSaveTimer = useRef(null);
+  useEffect(() => () => { clearTimeout(feedbackTimer.current); clearTimeout(autoSaveTimer.current); }, []);
   function clearFeedback() { clearTimeout(feedbackTimer.current); setSaveFeedback(false); }
   function showSaved(text = "✓ 旅の計画を保存しました") { clearTimeout(feedbackTimer.current); setToast(text); setSaveFeedback(true); feedbackTimer.current = setTimeout(() => setSaveFeedback(false), 2800); }
   const heading = useRef(null);
@@ -60,7 +62,7 @@ export default function TripPlans({ onImport, onOpenMemory, initialPlanId, onIni
     const reason = typeof initialPrefectureReason === "string" ? initialPrefectureReason.trim() : "";
     plan.notes = reason ? `行きたい理由：${reason}` : "";
     edit(plan);
-    setMessage(`${prefecture.name}の「行きたい」メモを引き継ぎました。内容を確認して「計画を保存」を押してください。`);
+    setMessage(`${prefecture.name}の「行きたい」メモを引き継ぎました。入力内容は自動保存されます。`);
     onInitialPrefectureOpened?.();
   }, [initialPrefectureId]);
   useEffect(() => {
@@ -73,6 +75,36 @@ export default function TripPlans({ onImport, onOpenMemory, initialPlanId, onIni
     return () => { window.removeEventListener("beforeunload", warn); window.removeEventListener("storage", changed); window.removeEventListener("trip-plan-leave", leave); };
   }, [dirty]);
   const blocked = Boolean(store.error || conflict);
+  useEffect(() => {
+    clearTimeout(autoSaveTimer.current);
+    if (!draft || !dirty || blocked) return;
+    setAutoSaveStatus("保存中…");
+    autoSaveTimer.current = setTimeout(() => {
+      const invalidDate = draft.startDate && draft.endDate && draft.endDate < draft.startDate;
+      const invalidDayDate = draft.days.some(day => day.date && ((draft.startDate && day.date < draft.startDate) || (draft.endDate && day.date > draft.endDate)));
+      const blankItem = draft.days.some(day => day.items.some(item => !item.name.trim()));
+      if (!draft.title.trim() || invalidDate || invalidDayDate || blankItem) {
+        setAutoSaveStatus("入力内容を整えると自動保存されます");
+        return;
+      }
+      const saved = { ...draft, title: draft.title.trim(), updatedAt: new Date().toISOString() };
+      const existed = store.plans.some(plan => plan.id === saved.id);
+      const plans = existed ? store.plans.map(plan => plan.id === saved.id ? saved : plan) : [...store.plans, saved];
+      try {
+        persistPlans(plans);
+        setStore({ plans, error: "" });
+        setDraft(saved);
+        setDirty(false);
+        setError("");
+        setAutoSaveStatus("✓ 自動保存済み");
+        trackEvent("trip_plan_autosaved", { result: "success" });
+      } catch {
+        setAutoSaveStatus("自動保存できませんでした");
+        setError("自動保存できませんでした。空き容量やブラウザの保存設定をご確認ください。入力内容はこの画面に残っています。");
+      }
+    }, 900);
+    return () => clearTimeout(autoSaveTimer.current);
+  }, [draft, dirty, blocked]);
   const aiMissingFields = draft ? [
     ["行き先", Number.isInteger(draft.prefectureId) && draft.prefectureId >= 1 && draft.prefectureId <= 47],
     ["出発日", Boolean(draft.startDate)],
@@ -107,8 +139,8 @@ export default function TripPlans({ onImport, onOpenMemory, initialPlanId, onIni
     if (days > 1 && days <= 30) return `あと${days}日`;
     return "";
   }
-  function edit(plan) { clearFeedback(); setImportedPrefecture(null); setDraft(structuredClone(plan)); setDirty(false); setMessage(""); setError(""); }
-  function update(key, value) { clearFeedback(); setDraft(previous => ({ ...previous, [key]: value })); setDirty(true); }
+  function edit(plan) { clearFeedback(); clearTimeout(autoSaveTimer.current); setImportedPrefecture(null); setDraft(structuredClone(plan)); setDirty(false); setAutoSaveStatus(store.plans.some(item => item.id === plan.id) ? "✓ 保存済み" : "入力すると自動保存されます"); setMessage(""); setError(""); }
+  function update(key, value) { clearFeedback(); setAutoSaveStatus("保存中…"); setDraft(previous => ({ ...previous, [key]: value })); setDirty(true); }
   function updateDay(id, transform) { update("days", draft.days.map(day => day.id === id ? transform(day) : day)); }
   function updateItem(dayId, itemId, key, value) { updateDay(dayId, day => ({ ...day, items: day.items.map(item => item.id === itemId ? { ...item, [key]: value } : item) })); }
   function move(dayId, index, offset) {
@@ -130,7 +162,7 @@ export default function TripPlans({ onImport, onOpenMemory, initialPlanId, onIni
     const existed = store.plans.some(plan => plan.id === saved.id);
     const plans = existed ? store.plans.map(plan => plan.id === saved.id ? saved : plan) : [...store.plans, saved];
     if (commit(plans, "")) {
-      setDraft(saved); setDirty(false); showSaved();
+      setDraft(saved); setDirty(false); setAutoSaveStatus("✓ 保存済み"); showSaved();
       trackEvent(existed ? "trip_plan_saved" : "trip_plan_created", { result: "success" });
     }
   }
@@ -259,9 +291,10 @@ export default function TripPlans({ onImport, onOpenMemory, initialPlanId, onIni
       {draft ? <button type="button" onClick={close}>一覧に戻る</button> : <button type="button" className="trip-primary" disabled={blocked} onClick={() => edit(newPlan())}>新しい旅行を計画する</button>}
     </div>
     <p>行きたい場所を、次の旅へ。日程や楽しみにしていることをまとめておきましょう。</p>
-    <p className="trip-storage-note">計画はこのブラウザに保存されます。端末間の自動同期はありません。編集後は「計画を保存」を押してください。</p>
+    <p className="trip-storage-note">計画はこのブラウザに自動保存されます。端末間の自動同期はありません。大切な記録は「データ管理」からバックアップできます。</p>
     {(store.error || conflict || error) && <p className="trip-error" role="alert">{store.error || (conflict ? "別のタブで旅行計画が変更されました。上書きを防ぐため保存を停止しています。入力を控えてから再読み込みしてください。" : error)}</p>}
     <p className="trip-status" role="status">{message}</p>
+    {draft && <p className={autoSaveStatus.includes("できません") ? "trip-autosave error" : "trip-autosave"} role="status" aria-live="polite">{autoSaveStatus || (dirty ? "保存中…" : "✓ 保存済み")}</p>}
     {!draft ? <div className="trip-list">{store.plans.length === 0 && !blocked && <p className="trip-empty">まだ計画はありません。「新しい旅行を計画する」から始めましょう。</p>}
       {tripListPlans.map(plan => {
         const timing = tripTimingLabel(plan);
