@@ -74,6 +74,16 @@
     <meta name="twitter:title" content="旅図帳｜旅行で行った場所を日本地図に記録できる無料アプリ" />
     <meta name="twitter:description" content="日本地図に行った都道府県、写真、旅ログ、旅行の思い出を残せる無料Webアプリ。AI旅行計画や旅のしおり作成も使えます。" />
     <meta name="twitter:image" content="https://tabinuri-map.vercel.app/og-image.png" />
+    <style>
+      .initial-content{max-width:920px;margin:0 auto;padding:48px 28px 64px;color:#293f36;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans JP",sans-serif;line-height:1.8}
+      .initial-content h1{font-size:clamp(28px,5vw,44px);line-height:1.35;margin:0 0 18px}
+      .initial-content h2{font-size:22px;margin:34px 0 10px}
+      .initial-content p{margin:0 0 14px}
+      .initial-content ul{padding-left:1.4em}
+      .initial-links{display:flex;flex-wrap:wrap;gap:10px;margin:24px 0}
+      .initial-links a{display:inline-block;padding:10px 14px;border:1px solid #cfdcc9;border-radius:10px;color:#356449;text-decoration:none;background:#f7faf5}
+      .initial-note{font-size:13px;color:#66766b}
+    </style>
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -115,7 +125,47 @@
     </script>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <main class="initial-content">
+        <p>無料の旅行記録Webアプリ</p>
+        <h1>旅行で行った場所を日本地図に記録できる「旅図帳」</h1>
+        <p>旅図帳（たびずちょう）は、行った都道府県を日本地図で塗りつぶし、訪問日・写真・旅の思い出を残して振り返れる無料Webアプリです。会員登録やインストールなしで、スマートフォンやPCのブラウザから使えます。</p>
+
+        <div class="initial-links" aria-label="旅図帳を使う">
+          <a href="/?start=check">行った県をかんたんチェック</a>
+          <a href="/japan-map.html">日本地図で行った県を塗りつぶす</a>
+          <a href="/prefecture-check.html">47都道府県チェックリスト</a>
+          <a href="/travel-record.html">旅行日記・旅ログを残す</a>
+        </div>
+
+        <section>
+          <h2>旅図帳でできること</h2>
+          <ul>
+            <li>旅行で行った都道府県を日本地図に記録して、訪問県数を確認する</li>
+            <li>県ごとに訪問日・写真・思い出・食べたもの・おすすめスポットを残す</li>
+            <li>行きたい県や候補スポットをメモして、次の旅行計画につなげる</li>
+            <li>AIで旅行プランを作り、旅のしおりとして共有する</li>
+            <li>旅行中の予定・チェックイン・旅ログを記録し、旅行後に思い出へ保存する</li>
+            <li>行った県を塗った旅マップや旅行年表で、これまでの旅を振り返る</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>旅行前から旅行後まで、ひとつにつなげて記録</h2>
+          <p>「行きたい」をメモするところから、旅の計画、旅行中の記録、旅行後の思い出保存までを旅図帳の中でつなげられます。過去に行った場所を登録して、自分だけの旅行記録地図を作る使い方もできます。</p>
+          <div class="initial-links" aria-label="旅図帳の主な機能">
+            <a href="/travel-wishlist.html">行きたい場所リスト</a>
+            <a href="/travel-itinerary.html">旅のしおり</a>
+            <a href="/ai-trip-planner.html">AI旅行計画</a>
+            <a href="/travel-timeline.html">旅行年表</a>
+            <a href="/travel-map-share.html">旅マップ共有</a>
+            <a href="/how-to-use.html">詳しい使い方</a>
+          </div>
+        </section>
+
+        <p class="initial-note">JavaScriptが有効なブラウザでは、この案内のあとに旅図帳のアプリ画面が表示されます。</p>
+      </main>
+    </div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
