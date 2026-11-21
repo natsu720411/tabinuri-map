@@ -800,14 +800,14 @@ function App({ initialPlanId }) {
     <span /> YOUR TRAVEL, YOUR COLORS
   </p>
   <h1 id="home-title">
-    旅した場所を、
+    旅行の計画も、
     <wbr />
-    <span>思い出で塗っていこう。</span>
+    <span>日本地図の旅の記録も。</span>
   </h1>
   <p className="intro-copy">
-    見つけた景色も、忘れたくない一日も。
+    行った都道府県を地図で色分けし、写真や思い出を保存。
     <br />
-    日本地図に残す、あなただけの旅の記録。
+    これからの旅行は、日程を組んで旅のしおりに。
   </p>
   <p className="intro-free">無料・会員登録なしですぐ使えます</p>
   <div className="intro-actions" aria-label="旅図帳をはじめる">
@@ -1186,12 +1186,19 @@ function App({ initialPlanId }) {
   </ul>
 </details>
 <section className="home-guide" aria-labelledby="about-tabinuri-title">
-  <h2 id="about-tabinuri-title">旅図帳とは</h2>
-  <p>旅図帳（たびずちょう）は、旅行前の計画から旅行後の思い出までを、ひとつにつなげて残せる無料の旅行サービスです。「行きたい」をメモし、行き先や日程を決めて旅の計画を作れます。</p>
-  <p>AIに旅行スケジュールを提案してもらい、旅のしおりをLINEなどで友達に共有。旅行後は計画を旅図帳へ保存すると、訪れた都道府県が日本地図に色付きます。写真や食べたもの、訪問日、思い出も書き足せます。</p>
-  <p>会員登録・インストールは不要。スマートフォン・PCのブラウザから、これからの旅にも過去の旅行記録にも使えます。</p>
-  <p>旅行の予定を立てたい人は「旅の計画を作る」から、過去に行った都道府県を記録したい人は「日本地図をチェックする」から始められます。日本地図の塗りつぶし方だけを知りたい場合は<a href="/japan-map.html">日本地図で行った県を塗りつぶす方法</a>をご覧ください。</p>
-  <p>記録した内容は利用中のブラウザに保存されます。別の端末には自動同期されないため、大切な旅行記録はバックアップしておくと安心です。</p>
+  <h2 id="about-tabinuri-title">旅図帳は、旅行前も旅行後も使える無料Webアプリ</h2>
+  <p>会員登録やインストールなしで、これからの旅行計画と、これまでに訪れた場所の記録を一つにまとめられます。目的に合わせて、どちらか一方だけでも利用できます。</p>
+  <div className="home-feature-grid">
+    <div className="home-feature">
+      <h3>これから旅行する人</h3>
+      <p>行き先・日程・予算から予定を組み、AIの提案も参考に旅のしおりを作れます。<a href="/travel-itinerary.html">旅のしおりの使い方</a>を見る。</p>
+    </div>
+    <div className="home-feature">
+      <h3>過去の旅行を残したい人</h3>
+      <p>行った都道府県を日本地図でチェックし、訪問日・写真・思い出を県ごとに記録できます。<a href="/japan-map.html">日本地図の塗りつぶし方</a>を見る。</p>
+    </div>
+  </div>
+  <p className="trip-storage-note">旅行記録と写真は利用中のブラウザに保存され、別の端末へは自動同期されません。大切な記録は「データ管理」からバックアップしてください。</p>
 </section>
 <section className="home-guide" aria-labelledby="home-features-title">
   <h2 id="home-features-title">旅図帳でできること</h2>

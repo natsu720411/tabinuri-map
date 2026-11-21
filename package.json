@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "node --test tests/seo-structure.test.mjs && vite build",
     "preview": "vite preview",
     "dev:api": "node scripts/dev-api.mjs",
     "check:gemini-model": "node scripts/check-gemini-model.mjs",
